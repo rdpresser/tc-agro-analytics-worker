@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="Dapper" />
+		<PackageReference Include="EFCore.NamingConventions" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+		<PackageReference Include="Z.EntityFramework.Plus.EFCore" />
+		<PackageReference Include="WolverineFx.EntityFrameworkCore" />
+	</ItemGroup>
+
+  <ItemGroup>
+		<ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />		
+  </ItemGroup>
+
+</Project>
