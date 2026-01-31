@@ -44,11 +44,12 @@
     <!-- ========================= -->
     <!-- Wolverine -->
     <!-- ========================= -->
-    <PackageVersion Include="Weasel.Core" Version="8.4.3" />
+    <PackageVersion Include="Weasel.Core" Version="8.5.0" />
     <PackageVersion Include="WolverineFx" Version="5.12.0" />
     <PackageVersion Include="WolverineFx.Postgresql" Version="5.12.0" />
     <PackageVersion Include="WolverineFx.RabbitMQ" Version="5.12.0" />
     <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.12.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="5.12.0" />
     <!-- ========================= -->
     <!-- OpenTelemetry -->
     <!-- ========================= -->
@@ -90,11 +91,14 @@
     <!-- Testing -->
     <!-- ========================= -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.0.2" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="FakeItEasy" Version="9.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+
+
+	<PackageVersion Include="Marten" Version="8.19.0" />
+
   </ItemGroup>
 </Project>

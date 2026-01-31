@@ -6,12 +6,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Aggregates\" />
-	  <Folder Include="ValueObjects\" />
 	</ItemGroup>
 
 </Project>

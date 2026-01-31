@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,7 +14,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
-		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
 		<PackageReference Include="xunit.v3" />
 		<PackageReference Include="xunit.runner.visualstudio">
 			<PrivateAssets>all</PrivateAssets>
@@ -28,13 +28,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Domain\Aggregates\" />
-		<Folder Include="Domain\ValueObjects\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
-	  <ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
+		<ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
+		<ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
 	</ItemGroup>
 
 </Project>

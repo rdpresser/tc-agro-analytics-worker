@@ -11,12 +11,12 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Adapters/" />
-  <Folder Name="/src/Adapters/Inbound/">
-    <Project Path="src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.csproj" Id="b89a8724-0f57-4af1-a6b0-09f6aa61b28b" />
-  </Folder>
-  <Folder Name="/src/Adapters/Outbound/">
+  <Folder Name="/src/Adapters/Driven (Outbound)/">
     <File Path="src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.http" />
     <Project Path="src/Adapters/Outbound/TC.Agro.Analytics.Infrastructure/TC.Agro.Analytics.Infrastructure.csproj" Id="445e1fa3-6c6f-4b34-9d75-a107c69fe12f" />
+  </Folder>
+  <Folder Name="/src/Adapters/Driver (Inbound)/">
+    <Project Path="src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.csproj" Id="b89a8724-0f57-4af1-a6b0-09f6aa61b28b" />
   </Folder>
   <Folder Name="/src/Core/">
     <Project Path="src/Core/TC.Agro.Analytics.Application/TC.Agro.Analytics.Application.csproj" Id="42bfaf06-6b78-4006-ab58-d06cd27f3c65" />

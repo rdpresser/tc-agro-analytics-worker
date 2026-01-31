@@ -1,8 +1,13 @@
+using TC.Agro.Analytics.Application;
+using TC.Agro.Analytics.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Add Application layer (with configuration)
+builder.Services.AddApplication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -19,7 +24,7 @@ app.MapGet("/health", () =>
     {
         status = "Healthy",
         timestamp = DateTime.UtcNow,
-        service = "Identity Service"
+        service = "Analytics Worker Service"
     });
 })
     .Produces(StatusCodes.Status200OK)
