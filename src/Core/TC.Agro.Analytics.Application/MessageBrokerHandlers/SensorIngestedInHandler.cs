@@ -64,6 +64,10 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 //3. Persist domain aggregate with uncommitted events
                 await _sensorReadingRepository.SaveAsync(aggregate, cancellationToken).ConfigureAwait(false);
 
+                // NOTE: Marten automatically publishes domain events to subscribed handlers
+                // No need to manually publish domain events here
+                // Projection handlers will be invoked automatically by Marten
+
                 //4. Publish integration events (map domain events -> integration events)
                 await PublishIntegrationEventsAsync(aggregate).ConfigureAwait(false);
 

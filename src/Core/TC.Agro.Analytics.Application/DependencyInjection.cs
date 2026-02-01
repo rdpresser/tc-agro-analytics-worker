@@ -14,6 +14,8 @@ namespace TC.Agro.Analytics.Application
             services.Configure<AlertThresholdsOptions>(
                 configuration.GetSection(AlertThresholdsOptions.SectionName));
 
+            // Note: Query Handlers are registered in Infrastructure layer
+
             return services;
         }
     }

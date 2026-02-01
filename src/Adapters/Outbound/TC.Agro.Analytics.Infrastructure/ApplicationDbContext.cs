@@ -1,3 +1,5 @@
+using TC.Agro.Analytics.Domain.Entities;
+
 namespace TC.Agro.Analytics.Infrastructure
 {
     [ExcludeFromCodeCoverage]
@@ -10,6 +12,11 @@ namespace TC.Agro.Analytics.Infrastructure
         {
             _dbConnectionFactory = dbConnectionFactory;
         }
+
+        /// <summary>
+        /// Alerts read model (projected from domain events)
+        /// </summary>
+        public DbSet<Alert> Alerts { get; set; } = default!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

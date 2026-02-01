@@ -1,0 +1,194 @@
+### ============================================
+### TC.Agro Analytics - Teste E2E Completo
+### ============================================
+### 
+### PASSO 1: Executar test-data-e2e.sql no Supabase
+### PASSO 2: Executar a API: dotnet run
+### PASSO 3: Executar cada teste abaixo (Send Request)
+###
+### ============================================
+
+@baseUrl = http://localhost:5174
+@plotId = ae57f8d7-d491-4899-bb39-30124093e683
+
+### ============================================
+### 1. HEALTH CHECK
+### ============================================
+GET {{baseUrl}}/health
+Accept: application/json
+
+### Resultado esperado:
+### {
+###   "status": "Healthy",
+###   "timestamp": "2026-02-01T22:00:00Z",
+###   "service": "Analytics Worker Service"
+### }
+
+### ============================================
+### 2. GET PENDING ALERTS (todos os tipos)
+### ============================================
+GET {{baseUrl}}/alerts/pending
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 5 (3 HighTemp + 1 LowMoisture + 1 LowBattery)
+### - Todos com status: "Pending"
+### - Ordenados por created_at DESC
+
+###
+
+### ============================================
+### 3. GET ALERT HISTORY (últimos 30 dias)
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 10 (todos, incluindo o de 10 dias atrás)
+### - Todos os status: Pending, Acknowledged, Resolved
+### - Ordenados por created_at DESC
+
+###
+
+### ============================================
+### 4. GET ALERT HISTORY (últimos 7 dias)
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=7
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 9 (exclui o alerta de 10 dias atrás)
+### - Sem o alerta SENSOR-E2E-010
+
+###
+
+### ============================================
+### 5. FILTRAR POR TIPO: HighTemperature
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&alertType=HighTemperature
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 4
+### - Apenas HighTemperature
+### - Status variados: Pending, Acknowledged, Resolved
+
+###
+
+### ============================================
+### 6. FILTRAR POR TIPO: LowSoilMoisture
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&alertType=LowSoilMoisture
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 3
+### - Apenas LowSoilMoisture
+### - 2 Pending + 1 Resolved
+
+###
+
+### ============================================
+### 7. FILTRAR POR TIPO: LowBattery
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&alertType=LowBattery
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 3
+### - Apenas LowBattery
+### - 1 Pending + 1 Acknowledged + 1 Resolved
+
+###
+
+### ============================================
+### 8. FILTRAR POR STATUS: Pending
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&status=Pending
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 5
+### - Apenas Pending
+### - 2 HighTemp + 2 LowMoisture + 1 LowBattery
+
+###
+
+### ============================================
+### 9. FILTRAR POR STATUS: Resolved
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&status=Resolved
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 3
+### - Apenas Resolved
+### - 1 HighTemp + 1 LowMoisture + 1 LowBattery
+
+###
+
+### ============================================
+### 10. FILTRO COMBINADO: HighTemp + Pending
+### ============================================
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30&alertType=HighTemperature&status=Pending
+Accept: application/json
+
+### Resultado esperado:
+### - totalCount: 2
+### - Apenas HighTemperature + Pending
+### - SENSOR-E2E-001 (Critical)
+### - SENSOR-E2E-002 (High)
+
+###
+
+### ============================================
+### 11. GET PLOT STATUS (agregado)
+### ============================================
+GET {{baseUrl}}/plots/{{plotId}}/status
+Accept: application/json
+
+### Resultado esperado:
+### {
+###   "plotId": "ae57f8d7-d491-4899-bb39-30124093e683",
+###   "pendingAlertsCount": 5,
+###   "totalAlertsLast24Hours": 8,  // todos exceto os de 1+ dias
+###   "totalAlertsLast7Days": 9,     // todos exceto o de 10 dias
+###   "mostRecentAlert": {
+###     "sensorId": "SENSOR-E2E-007",  // LowBattery 8% (20 min atrás)
+###     "alertType": "LowBattery",
+###     "severity": "High"
+###   },
+###   "alertsByType": {
+###     "HighTemperature": 3,     // dentro de 7 dias
+###     "LowSoilMoisture": 3,
+###     "LowBattery": 3
+###   },
+###   "alertsBySeverity": {
+###     "Critical": 2,   // 1 HighTemp + 1 LowMoisture
+###     "High": 3,       // 1 HighTemp + 1 LowMoisture + 1 LowBattery
+###     "Medium": 2,     // 1 HighTemp + 1 LowBattery
+###     "Low": 1         // 1 LowBattery
+###   },
+###   "overallStatus": "Critical"  // tem alertas Critical pendentes
+### }
+
+###
+
+### ============================================
+### 12. SWAGGER UI (abrir no browser)
+### ============================================
+# http://localhost:5174/swagger
+
+###
+
+### ============================================
+### VALIDAÇÃO FINAL
+### ============================================
+### ✅ Todos os endpoints retornaram dados corretos?
+### ✅ Filtros funcionando corretamente?
+### ✅ Agregações no /plots/{id}/status corretas?
+### ✅ Paginação funcionando?
+### 
+### Se SIM para todos: PARABÉNS! 🎉
+### Seu Analytics Worker está 100% funcional!
+### ============================================

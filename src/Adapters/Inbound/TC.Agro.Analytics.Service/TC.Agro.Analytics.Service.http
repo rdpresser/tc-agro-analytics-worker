@@ -1,6 +1,46 @@
-@TC.Agro.Analytics.Service_HostAddress = http://localhost:5174
+### TC.Agro Analytics Service - HTTP Requests
+### NOTE: Make sure the service is running: dotnet run
+@baseUrl = http://localhost:5174
 
-GET {{TC.Agro.Analytics.Service_HostAddress}}/weatherforecast/
+### 1. Health Check
+GET {{baseUrl}}/health
 Accept: application/json
+
+###
+
+### 2. Get Pending Alerts
+GET {{baseUrl}}/alerts/pending
+Accept: application/json
+
+###
+
+### 3. Get Alert History for a Plot (replace with your PlotId)
+# Use the PlotId from your test data in Supabase
+@plotId = ae57f8d7-d491-4899-bb39-30124093e683
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=30
+Accept: application/json
+
+###
+
+### 4. Get Alert History with Filters (HighTemperature only)
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=7&alertType=HighTemperature&status=Pending
+Accept: application/json
+
+###
+
+### 5. Get Alert History with Filters (LowSoilMoisture only)
+GET {{baseUrl}}/alerts/history/{{plotId}}?days=7&alertType=LowSoilMoisture
+Accept: application/json
+
+###
+
+### 6. Get Plot Status Summary
+GET {{baseUrl}}/plots/{{plotId}}/status
+Accept: application/json
+
+###
+
+### 7. Swagger UI (open in browser)
+# Open this URL in your browser: http://localhost:5174/swagger
 
 ###

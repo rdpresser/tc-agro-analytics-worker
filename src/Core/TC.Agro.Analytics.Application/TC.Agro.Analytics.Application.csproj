@@ -18,6 +18,8 @@
 	
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
+		<Folder Include="Projections\" />
+		<Folder Include="Queries\" />
 	</ItemGroup>
 
 </Project>
