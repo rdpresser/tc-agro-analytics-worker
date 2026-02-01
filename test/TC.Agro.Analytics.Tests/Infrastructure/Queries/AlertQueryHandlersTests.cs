@@ -1,6 +1,7 @@
 using FakeItEasy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using TC.Agro.Analytics.Domain.Entities;
 using TC.Agro.Analytics.Infrastructure;
 using TC.Agro.Analytics.Infrastructure.Queries;
@@ -13,9 +14,15 @@ public class AlertQueryHandlersTests : IDisposable
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly Guid _testPlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683");
+    private readonly CultureInfo _originalCulture;
 
     public AlertQueryHandlersTests()
     {
+        // Save original culture and set to InvariantCulture for consistent number formatting
+        _originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -513,6 +520,10 @@ public class AlertQueryHandlersTests : IDisposable
 
     public void Dispose()
     {
+        // Restore original culture
+        CultureInfo.CurrentCulture = _originalCulture;
+        CultureInfo.CurrentUICulture = _originalCulture;
+
         _dbContext.Database.EnsureDeleted();
         _dbContext.Dispose();
     }

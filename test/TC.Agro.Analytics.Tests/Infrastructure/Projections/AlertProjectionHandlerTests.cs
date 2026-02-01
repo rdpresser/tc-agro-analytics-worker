@@ -1,6 +1,7 @@
 using FakeItEasy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using TC.Agro.Analytics.Domain.Entities;
 using TC.Agro.Analytics.Infrastructure;
 using TC.Agro.Analytics.Infrastructure.Projections;
@@ -15,9 +16,15 @@ public class AlertProjectionHandlerTests : IDisposable
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<AlertProjectionHandler> _logger;
     private readonly AlertProjectionHandler _sut;
+    private readonly CultureInfo _originalCulture;
 
     public AlertProjectionHandlerTests()
     {
+        // Save original culture and set to InvariantCulture for consistent number formatting
+        _originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -262,7 +269,7 @@ public class AlertProjectionHandlerTests : IDisposable
         var alert = await _dbContext.Alerts.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
         alert.ShouldNotBeNull();
         alert.Message.ShouldContain("temperature");
-        (alert.Message.Contains("42.5") || alert.Message.Contains("42,5")).ShouldBeTrue();
+        alert.Message.ShouldContain("42.5");
     }
 
     [Fact]
@@ -282,7 +289,7 @@ public class AlertProjectionHandlerTests : IDisposable
         var alert = await _dbContext.Alerts.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
         alert.ShouldNotBeNull();
         alert.Message.ShouldContain("moisture");
-        (alert.Message.Contains("12.5") || alert.Message.Contains("12,5")).ShouldBeTrue();
+        alert.Message.ShouldContain("12.5");
     }
 
     [Fact]
@@ -302,7 +309,7 @@ public class AlertProjectionHandlerTests : IDisposable
         var alert = await _dbContext.Alerts.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
         alert.ShouldNotBeNull();
         alert.Message.ShouldContain("battery");
-        (alert.Message.Contains("8.5") || alert.Message.Contains("8,5")).ShouldBeTrue();
+        alert.Message.ShouldContain("8.5");
     }
 
     [Fact]
@@ -335,6 +342,10 @@ public class AlertProjectionHandlerTests : IDisposable
 
     public void Dispose()
     {
+        // Restore original culture
+        CultureInfo.CurrentCulture = _originalCulture;
+        CultureInfo.CurrentUICulture = _originalCulture;
+
         _dbContext.Database.EnsureDeleted();
         _dbContext.Dispose();
     }
