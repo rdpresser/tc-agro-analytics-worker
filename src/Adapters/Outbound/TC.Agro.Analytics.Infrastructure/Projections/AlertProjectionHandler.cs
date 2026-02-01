@@ -41,7 +41,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 AlertType = AlertTypes.HighTemperature,
                 Message = $"High temperature detected: {domainEvent.Temperature:F1}°C",
                 Status = AlertStatus.Pending,
-                Severity = DetermineSeverity(domainEvent.Temperature, 35.0),
+                Severity = DetermineSeverity(35.0, domainEvent.Temperature),
                 Value = domainEvent.Temperature,
                 Threshold = 35.0,
                 CreatedAt = domainEvent.OccurredOn.DateTime,
