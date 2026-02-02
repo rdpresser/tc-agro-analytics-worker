@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,31 +8,27 @@ using TC.Agro.Analytics.Application.Configuration;
 using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Domain.Aggregates;
 using TC.Agro.Analytics.Domain.ValueObjects;
-using TC.Agro.Contracts.Events;
 using TC.Agro.Contracts.Events.Analytics;
-using TC.Agro.SharedKernel.Domain.Events;
-using TC.Agro.SharedKernel.Infrastructure.Messaging;
 using Wolverine;
-using Wolverine.Marten;
 
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 {
-    public class SensorIngestedHandler : IWolverineHandler
+    public class SensorIngestedHandler
     {
         private readonly ISensorReadingRepository _sensorReadingRepository;
         private readonly ILogger<SensorIngestedHandler> _logger;
-        private readonly IMartenOutbox _outbox;
         private readonly AlertThresholds _alertThresholds;
+        private readonly IMessageBus _messageBus; // Wolverine Message Bus para publicar eventos
 
         public SensorIngestedHandler(
             ISensorReadingRepository sensorReadingRepository,
-            IMartenOutbox outbox,
             ILogger<SensorIngestedHandler> logger,
-            IOptions<AlertThresholdsOptions> alertThresholdsOptions)
+            IOptions<AlertThresholdsOptions> alertThresholdsOptions,
+            IMessageBus messageBus)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _sensorReadingRepository = sensorReadingRepository ?? throw new ArgumentNullException(nameof(sensorReadingRepository));
-            _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+            _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
 
             // Map configuration options to domain value object
             var options = alertThresholdsOptions?.Value ?? throw new ArgumentNullException(nameof(alertThresholdsOptions));
@@ -42,67 +37,68 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 minSoilMoisture: options.MinSoilMoisture,
                 minBatteryLevel: options.MinBatteryLevel);
         }
-        public async Task HandleAsync(EventContext<SensorIngestedIntegrationEvent> @event, CancellationToken cancellationToken = default)
+        public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
         {
             try
             {
+                _logger.LogInformation(
+                    "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
+                    message.SensorId, 
+                    message.PlotId);
+
                 //1. Check for existing aggregate to avoid duplicates
-                var existingAggregate = await _sensorReadingRepository.GetByIdAsync(@event.EventData.AggregateId, cancellationToken);
-                
+                var existingAggregate = await _sensorReadingRepository.GetByIdAsync(message.AggregateId, cancellationToken);
+
                 if (existingAggregate != null)
                 {
-                    _logger.LogWarning("Duplicate event detected: {MessageId}", @event.MessageId);
+                    _logger.LogWarning("Duplicate event detected: {AggregateId}", message.AggregateId);
                     return; // Idempotent
                 }
 
-                //1. Map event to domain aggregate
-                var aggregate = MapEventToAggregate(@event);
+                //2. Map event to domain aggregate
+                var aggregate = MapEventToAggregate(message);
 
-                //2. Evaluate alerts using configured thresholds (Domain logic - DDD)
+                //3. Evaluate alerts using configured thresholds (Domain logic - DDD)
                 aggregate.EvaluateAlerts(_alertThresholds);
 
-                //3. Persist domain aggregate with uncommitted events
+                //4. Persist domain aggregate with uncommitted events
                 await _sensorReadingRepository.SaveAsync(aggregate, cancellationToken).ConfigureAwait(false);
 
-                // NOTE: Marten automatically publishes domain events to subscribed handlers
-                // No need to manually publish domain events here
-                // Projection handlers will be invoked automatically by Marten
+                //5. PUBLICAR Domain Events para Wolverine ANTES do commit (Transactional Outbox)
+                await PublishDomainEventsAsync(aggregate);
 
-                //4. Publish integration events (map domain events -> integration events)
-                await PublishIntegrationEventsAsync(aggregate).ConfigureAwait(false);
-
-                //5. Commit transaction with outbox pattern
+                //6. Commit transaction with outbox pattern
                 await _sensorReadingRepository.CommitAsync(aggregate, cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation(
-                    "Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
+                    "✅ Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
                     aggregate.SensorId, 
                     aggregate.PlotId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, 
-                    "Error processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
-                    @event.EventData.SensorId,
-                    @event.EventData.PlotId);
+                    "❌ Error processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
+                    message.SensorId,
+                    message.PlotId);
 
                 throw new InvalidOperationException(
-                    $"Failed to process sensor reading for Sensor {@event.EventData.SensorId}, Plot {@event.EventData.PlotId}", 
+                    $"Failed to process sensor reading for Sensor {message.SensorId}, Plot {message.PlotId}", 
                     ex);
             }
         }
 
-        private static SensorReadingAggregate MapEventToAggregate(EventContext<SensorIngestedIntegrationEvent> @event)
+        private static SensorReadingAggregate MapEventToAggregate(SensorIngestedIntegrationEvent message)
         {
             var result = SensorReadingAggregate.Create(
-                sensorId: @event.EventData.SensorId,
-                plotId: @event.EventData.PlotId,
-                time: @event.EventData.Time,
-                temperature: @event.EventData.Temperature,
-                humidity: @event.EventData.Humidity,
-                soilMoisture: @event.EventData.SoilMoisture,
-                rainfall: @event.EventData.Rainfall,
-                batteryLevel: @event.EventData.BatteryLevel
+                sensorId: message.SensorId,
+                plotId: message.PlotId,
+                time: message.Time,
+                temperature: message.Temperature,
+                humidity: message.Humidity,
+                soilMoisture: message.SoilMoisture,
+                rainfall: message.Rainfall,
+                batteryLevel: message.BatteryLevel
             );
 
             if (!result.IsSuccess)
@@ -113,113 +109,25 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             return result.Value;
         }
 
-        protected async Task PublishIntegrationEventsAsync(SensorReadingAggregate aggregate)
+
+        /// <summary>
+        /// Publica Domain Events para Wolverine via Transactional Outbox
+        /// </summary>
+        private async Task PublishDomainEventsAsync(SensorReadingAggregate aggregate)
         {
-            // Map domain events to integration events and publish
-            var mappings = new Dictionary<Type, Func<BaseDomainEvent, BaseIntegrationEvent>>
+            var domainEvents = aggregate.UncommittedEvents?.ToList();
+            if (domainEvents == null || !domainEvents.Any())
+                return;
+
+            foreach (var domainEvent in domainEvents)
             {
-                { typeof(SensorReadingAggregate.HighTemperatureDetectedDomainEvent), 
-                  e => MapToHighTemperatureIntegrationEvent((SensorReadingAggregate.HighTemperatureDetectedDomainEvent)e) },
-                { typeof(SensorReadingAggregate.LowSoilMoistureDetectedDomainEvent), 
-                  e => MapToLowSoilMoistureIntegrationEvent((SensorReadingAggregate.LowSoilMoistureDetectedDomainEvent)e) },
-                { typeof(SensorReadingAggregate.BatteryLowWarningDomainEvent), 
-                  e => MapToBatteryLowWarningIntegrationEvent((SensorReadingAggregate.BatteryLowWarningDomainEvent)e) }
-            };
+                _logger.LogInformation("📤 Publishing domain event: {EventType}", domainEvent.GetType().Name);
 
-            var integrationEvents = aggregate.UncommittedEvents
-                .Where(e => e is SensorReadingAggregate.HighTemperatureDetectedDomainEvent 
-                         or SensorReadingAggregate.LowSoilMoistureDetectedDomainEvent 
-                         or SensorReadingAggregate.BatteryLowWarningDomainEvent)
-                .Select(domainEvent =>
-                {
-                    var eventType = domainEvent.GetType();
-                    return mappings.TryGetValue(eventType, out var mapper) ? mapper(domainEvent) : null;
-                })
-                .Where(evt => evt != null);
-
-            foreach (var evt in integrationEvents)
-            {
-                await _outbox.PublishAsync(evt!).ConfigureAwait(false);
-
-                // Log alert publication
-                _logger.LogWarning(
-                    "Alert published: {EventType} for Sensor {SensorId}",
-                    evt!.GetType().Name,
-                    GetSensorIdFromEvent(evt));
+                // Wolverine Transactional Outbox - eventos serão publicados após commit
+                await _messageBus.PublishAsync(domainEvent);
             }
+
+            _logger.LogInformation("✅ Published {Count} domain event(s) to Wolverine", domainEvents.Count);
         }
-
-        private static string GetSensorIdFromEvent(BaseIntegrationEvent evt)
-        {
-            return evt switch
-            {
-                HighTemperatureDetectedIntegrationEvent e => e.SensorId,
-                LowSoilMoistureDetectedIntegrationEvent e => e.SensorId,
-                BatteryLowWarningIntegrationEvent e => e.SensorId,
-                _ => "Unknown"
-            };
-        }
-
-        private static HighTemperatureDetectedIntegrationEvent MapToHighTemperatureIntegrationEvent(
-            SensorReadingAggregate.HighTemperatureDetectedDomainEvent domainEvent)
-            => new(
-                EventId: Guid.NewGuid(),
-                AggregateId: domainEvent.AggregateId,
-                OccurredOn: domainEvent.OccurredOn,
-                EventName: nameof(HighTemperatureDetectedIntegrationEvent),
-                RelatedIds: new Dictionary<string, Guid>
-                {
-                    { "SensorReadingId", domainEvent.AggregateId },
-                    { "PlotId", domainEvent.PlotId }
-                },
-                SensorId: domainEvent.SensorId,
-                PlotId: domainEvent.PlotId,
-                Time: domainEvent.Time,
-                Temperature: domainEvent.Temperature,
-                Humidity: domainEvent.Humidity,
-                SoilMoisture: domainEvent.SoilMoisture,
-                Rainfall: domainEvent.Rainfall,
-                BatteryLevel: domainEvent.BatteryLevel
-            );
-
-        private static LowSoilMoistureDetectedIntegrationEvent MapToLowSoilMoistureIntegrationEvent(
-            SensorReadingAggregate.LowSoilMoistureDetectedDomainEvent domainEvent)
-            => new(
-                EventId: Guid.NewGuid(),
-                AggregateId: domainEvent.AggregateId,
-                OccurredOn: domainEvent.OccurredOn,
-                EventName: nameof(LowSoilMoistureDetectedIntegrationEvent),
-                RelatedIds: new Dictionary<string, Guid>
-                {
-                    { "SensorReadingId", domainEvent.AggregateId },
-                    { "PlotId", domainEvent.PlotId }
-                },
-                SensorId: domainEvent.SensorId,
-                PlotId: domainEvent.PlotId,
-                Time: domainEvent.Time,
-                Temperature: domainEvent.Temperature,
-                Humidity: domainEvent.Humidity,
-                SoilMoisture: domainEvent.SoilMoisture,
-                Rainfall: domainEvent.Rainfall,
-                BatteryLevel: domainEvent.BatteryLevel
-            );
-
-        private static BatteryLowWarningIntegrationEvent MapToBatteryLowWarningIntegrationEvent(
-            SensorReadingAggregate.BatteryLowWarningDomainEvent domainEvent)
-            => new(
-                EventId: Guid.NewGuid(),
-                AggregateId: domainEvent.AggregateId,
-                OccurredOn: domainEvent.OccurredOn,
-                EventName: nameof(BatteryLowWarningIntegrationEvent),
-                RelatedIds: new Dictionary<string, Guid>
-                {
-                    { "SensorReadingId", domainEvent.AggregateId },
-                    { "PlotId", domainEvent.PlotId }
-                },
-                SensorId: domainEvent.SensorId,
-                PlotId: domainEvent.PlotId,
-                BatteryLevel: domainEvent.BatteryLevel,
-                Threshold: domainEvent.Threshold
-            );
     }
 }

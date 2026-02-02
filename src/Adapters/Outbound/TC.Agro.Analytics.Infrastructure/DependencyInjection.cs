@@ -1,5 +1,7 @@
 using TC.Agro.Analytics.Infrastructure.Projections;
 using TC.Agro.Analytics.Infrastructure.Queries;
+using TC.Agro.Analytics.Infrastructure.Repositores;
+using TC.Agro.Analytics.Domain.Abstractions.Ports;
 
 namespace TC.Agro.Analytics.Infrastructure
 {
@@ -12,6 +14,9 @@ namespace TC.Agro.Analytics.Infrastructure
             services.AddDbContext<ApplicationDbContext>(contextLifetime: ServiceLifetime.Scoped, optionsLifetime: ServiceLifetime.Scoped);
 
             SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
+
+            // Register Repositories
+            services.AddScoped<ISensorReadingRepository, SensorReadingRepository>();
 
             // Register Projection Handlers (Wolverine will auto-discover them)
             services.AddScoped<AlertProjectionHandler>();

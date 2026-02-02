@@ -4,8 +4,63 @@ using TC.Agro.Analytics.Application;
 using TC.Agro.Analytics.Infrastructure;
 using TC.Agro.SharedKernel.Infrastructure.Middleware;
 using ZiggyCreatures.Caching.Fusion;
+using Wolverine;
+using Wolverine.RabbitMQ;
+using Wolverine.Marten;
+using Marten;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Marten (Event Store + Document DB)
+var postgresConfig = builder.Configuration.GetSection("Database:Postgres");
+var connectionString = $"Host={postgresConfig["Host"]};Port={postgresConfig["Port"]};Database={postgresConfig["Database"]};Username={postgresConfig["UserName"]};Password={postgresConfig["Password"]};SearchPath={postgresConfig["Schema"]};";
+
+builder.Services.AddMarten(opts =>
+{
+    opts.Connection(connectionString);
+
+    // Configure schema
+    opts.DatabaseSchemaName = postgresConfig["Schema"] ?? "analytics";
+
+    // Configure event store
+    opts.Events.DatabaseSchemaName = postgresConfig["Schema"] ?? "analytics";
+})
+.IntegrateWithWolverine(); // Integração com Wolverine para Outbox pattern
+
+// Configure Wolverine for message handling
+builder.Host.UseWolverine(opts =>
+{
+    // Configure RabbitMQ transport
+    var rabbitMqConfig = builder.Configuration.GetSection("Messaging:RabbitMQ");
+    var host = rabbitMqConfig["Host"] ?? "localhost";
+    var port = int.Parse(rabbitMqConfig["Port"] ?? "5672");
+    var username = rabbitMqConfig["UserName"] ?? "guest";
+    var password = rabbitMqConfig["Password"] ?? "guest";
+
+    // Configure RabbitMQ and declare queue in one step
+    var rabbitMq = opts.UseRabbitMq(rabbit =>
+    {
+        rabbit.HostName = host;
+        rabbit.Port = port;
+        rabbit.UserName = username;
+        rabbit.Password = password;
+    });
+
+    // Declare queue with proper configuration
+    rabbitMq.DeclareQueue("analytics.sensor.ingested.queue", queue =>
+    {
+        queue.IsDurable = true;
+        queue.IsExclusive = false;
+        queue.AutoDelete = false;
+    });
+
+    // Listen to the queue (Wolverine will create it if doesn't exist)
+    opts.ListenToRabbitQueue("analytics.sensor.ingested.queue");
+
+    // Auto-discover handlers in Application AND Infrastructure layers
+    opts.Discovery.IncludeAssembly(typeof(TC.Agro.Analytics.Application.DependencyInjection).Assembly);
+    opts.Discovery.IncludeAssembly(typeof(TC.Agro.Analytics.Infrastructure.DependencyInjection).Assembly);
+});
 
 // Add services to the container.
 builder.Services.AddOpenApi();

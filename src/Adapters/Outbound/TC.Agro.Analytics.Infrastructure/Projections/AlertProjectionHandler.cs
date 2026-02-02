@@ -44,7 +44,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 Severity = DetermineSeverity(35.0, domainEvent.Temperature),
                 Value = domainEvent.Temperature,
                 Threshold = 35.0,
-                CreatedAt = domainEvent.OccurredOn.DateTime,
+                CreatedAt = domainEvent.OccurredOn.UtcDateTime, // PostgreSQL requer UTC
                 Metadata = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     domainEvent.Humidity,
@@ -85,7 +85,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 Severity = DetermineSeverity(20.0, domainEvent.SoilMoisture),
                 Value = domainEvent.SoilMoisture,
                 Threshold = 20.0,
-                CreatedAt = domainEvent.OccurredOn.DateTime,
+                CreatedAt = domainEvent.OccurredOn.UtcDateTime, // PostgreSQL requer UTC
                 Metadata = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     domainEvent.Temperature,
@@ -126,7 +126,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 Severity = DetermineSeverity(domainEvent.Threshold, domainEvent.BatteryLevel),
                 Value = domainEvent.BatteryLevel,
                 Threshold = domainEvent.Threshold,
-                CreatedAt = domainEvent.OccurredOn.DateTime,
+                CreatedAt = domainEvent.OccurredOn.UtcDateTime, // PostgreSQL requer UTC
                 Metadata = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     Threshold = domainEvent.Threshold
