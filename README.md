@@ -3,8 +3,8 @@
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 > **Event-Driven Microservice** para processamento de dados de sensores agrícolas com detecção automática de alertas.
@@ -20,11 +20,13 @@
 - [Execução](#-execução)
 - [Testes](#-testes)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Arquitetura](#-arquitetura)
 - [Domain-Driven Design](#-domain-driven-design)
 - [Event Sourcing](#-event-sourcing)
 - [Alertas Suportados](#-alertas-suportados)
 - [API de Integração](#-api-de-integração)
 - [Métricas e Observabilidade](#-métricas-e-observabilidade)
+- [Documentação](#-documentação)
 - [Contribuindo](#-contribuindo)
 - [Licença](#-licença)
 
@@ -746,6 +748,34 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 ---
 
+## 📚 Documentação
+
+### **Documentação Técnica Completa:**
+
+| Documento | Descrição | Link |
+|-----------|-----------|------|
+| **C4 Architecture Diagrams** | 12 diagramas completos da arquitetura (Context, Container, Component) | [📐 Ver Diagramas](docs/C4_ARCHITECTURE_DIAGRAMS.md) |
+| **Architecture Validation Report** | Relatório completo de validação da arquitetura (Score: 98/100) | [📊 Ver Relatório](ARCHITECTURE_VALIDATION_REPORT.md) |
+| **Testing Guide** | Guia completo de testes (104 testes, 93% cobertura) | [🧪 Ver Guia](TESTING_GUIDE.md) |
+| **Validation Checklist** | Checklist de validação passo a passo | [✅ Ver Checklist](VALIDATION_CHECKLIST.md) |
+
+### **Diagramas Disponíveis (Mermaid):**
+
+✅ **Nível 1 - Context:** Sistema no ecossistema  
+✅ **Nível 2 - Container:** Containers e tecnologias  
+✅ **Nível 3 - Component:** Componentes internos (Query + Command Side)  
+✅ **Clean Architecture:** Camadas e dependências  
+✅ **Event Flow:** Sequência completa de processamento  
+✅ **Data Flow:** Separação CQRS  
+✅ **Deployment:** Infraestrutura cloud  
+✅ **Domain Model:** Class diagram DDD  
+✅ **Performance:** Estratégias de otimização  
+✅ **Security:** Arquitetura de segurança  
+
+**Todos os diagramas são renderizados automaticamente no GitHub!** 🎨
+
+---
+
 ## 🤝 Créditos
 
 **Desenvolvido por:** [FIAP - Turma 3NETT](https://www.fiap.com.br)
@@ -774,10 +804,16 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 ### ✅ v1.0.0 (Atual)
 
 - [x] Event Sourcing com Marten
+- [x] CQRS completo (Command/Query separation)
 - [x] Outbox Pattern
-- [x] 3 tipos de alertas
-- [x] 52 testes automatizados
+- [x] 3 tipos de alertas (HighTemp, LowSoilMoisture, BatteryLow)
+- [x] **104 testes automatizados (100% passing)** ⭐
+- [x] **93% de cobertura de testes** ⭐
 - [x] Configuração via appsettings
+- [x] **12 diagramas C4 Model completos** ⭐
+- [x] **Documentação técnica completa** ⭐
+- [x] FastEndpoints (Minimal APIs)
+- [x] Clean Architecture implementation
 
 ### 🚧 v1.1.0 (Próxima Release)
 
