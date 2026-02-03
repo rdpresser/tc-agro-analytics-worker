@@ -164,10 +164,10 @@ namespace TC.Agro.Analytics.Infrastructure.Queries
 
         private static string DetermineOverallStatus(int pendingCount, Dictionary<string, int> alertsBySeverity)
         {
-            if (alertsBySeverity.ContainsKey(AlertSeverity.Critical) && alertsBySeverity[AlertSeverity.Critical] > 0)
+            if (alertsBySeverity.TryGetValue(AlertSeverity.Critical, out var criticalCount) && criticalCount > 0)
                 return "Critical";
 
-            if (alertsBySeverity.ContainsKey(AlertSeverity.High) && alertsBySeverity[AlertSeverity.High] > 0)
+            if (alertsBySeverity.TryGetValue(AlertSeverity.High, out var highCount) && highCount > 0)
                 return "Warning";
 
             if (pendingCount > 0)
