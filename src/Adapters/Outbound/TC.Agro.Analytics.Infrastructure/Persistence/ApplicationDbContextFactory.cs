@@ -44,7 +44,10 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence
             var connectionString = dbConnectionFactory.ConnectionString;
 
             // Log connection string (sem senha) para debug
-            Console.WriteLine($"[DEBUG] Connection String: {connectionString.Replace(postgresOptions.Password, "***")}");
+            var maskedConnectionString = string.IsNullOrEmpty(postgresOptions.Password) 
+                ? connectionString 
+                : connectionString.Replace(postgresOptions.Password, "***");
+            Console.WriteLine($"[DEBUG] Connection String: {maskedConnectionString}");
 
             // Create DbContextOptions
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
