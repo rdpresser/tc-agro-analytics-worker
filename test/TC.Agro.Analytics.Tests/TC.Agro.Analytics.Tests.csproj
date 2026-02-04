@@ -34,4 +34,9 @@
 		<ProjectReference Include="..\..\src\Adapters\Outbound\TC.Agro.Analytics.Infrastructure\TC.Agro.Analytics.Infrastructure.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Infrastructure\Projections\" />
+	  <Folder Include="Infrastructure\Queries\" />
+	</ItemGroup>
+
 </Project>
