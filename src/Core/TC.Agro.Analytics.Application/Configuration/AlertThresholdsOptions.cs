@@ -2,11 +2,23 @@ namespace TC.Agro.Analytics.Application.Configuration
 {
     /// <summary>
     /// Configuration options for alert thresholds.
-    /// Bound from appsettings.json "AlertThresholds" section.
+    /// Configured via appsettings.json under "Alerts:Thresholds" section.
+    /// Example:
+    /// {
+    ///   "Alerts": {
+    ///     "Thresholds": {
+    ///       "MaxTemperature": 35.0,
+    ///       "MinSoilMoisture": 20.0,
+    ///       "MinBatteryLevel": 15.0
+    ///     }
+    ///   }
+    /// }
     /// </summary>
     public sealed class AlertThresholdsOptions
     {
-        public const string SectionName = "AlertThresholds";
+        private const string SectionName = "Alerts:Thresholds";
+
+        public static string ConfigurationSection => SectionName;
 
         /// <summary>
         /// Maximum temperature in Celsius before triggering high temperature alert.

@@ -1,25 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Marten;
 using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Domain.Aggregates;
+using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
 
-namespace TC.Agro.Analytics.Infrastructure.Repositores
+namespace TC.Agro.Analytics.Infrastructure.Repositores;
+
+/// <summary>
+/// EF Core repository for SensorReadingAggregate.
+/// Follows the same pattern as Identity-Service (EF Core, not Marten).
+/// </summary>
+public class SensorReadingRepository 
+    : BaseRepository<SensorReadingAggregate, ApplicationDbContext>, 
+      ISensorReadingRepository
 {
-    public class SensorReadingRepository : BaseRepository<SensorReadingAggregate>, ISensorReadingRepository
+    public SensorReadingRepository(ApplicationDbContext dbContext)
+        : base(dbContext)
     {
-        public SensorReadingRepository(IDocumentSession session)
-            : base(session)
-        {
-        }
-
-        public override async Task<IEnumerable<SensorReadingAggregate>> GetAllAsync(CancellationToken cancellationToken = default)
-        {
-            return await Marten.QueryableExtensions.ToListAsync(Session.Query<SensorReadingAggregate>(), cancellationToken);
-        }
     }
 }

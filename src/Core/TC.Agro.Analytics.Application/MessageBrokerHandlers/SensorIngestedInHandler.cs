@@ -9,34 +9,38 @@ using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Domain.Aggregates;
 using TC.Agro.Analytics.Domain.ValueObjects;
 using TC.Agro.Contracts.Events.Analytics;
-using Wolverine;
+using TC.Agro.SharedKernel.Application.Ports;
 
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 {
+    /// <summary>
+    /// Handler for processing sensor data ingestion events.
+    /// Uses EF Core + Wolverine Transactional Outbox (same pattern as Identity-Service).
+    /// </summary>
     public class SensorIngestedHandler
     {
-        private readonly ISensorReadingRepository _sensorReadingRepository;
+        private readonly ISensorReadingRepository _repository;
+        private readonly ITransactionalOutbox _outbox;
         private readonly ILogger<SensorIngestedHandler> _logger;
         private readonly AlertThresholds _alertThresholds;
-        private readonly IMessageBus _messageBus; // Wolverine Message Bus para publicar eventos
 
         public SensorIngestedHandler(
-            ISensorReadingRepository sensorReadingRepository,
+            ISensorReadingRepository repository,
+            ITransactionalOutbox outbox,
             ILogger<SensorIngestedHandler> logger,
-            IOptions<AlertThresholdsOptions> alertThresholdsOptions,
-            IMessageBus messageBus)
+            IOptions<AlertThresholdsOptions> alertThresholdsOptions)
         {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _sensorReadingRepository = sensorReadingRepository ?? throw new ArgumentNullException(nameof(sensorReadingRepository));
-            _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
 
-            // Map configuration options to domain value object
             var options = alertThresholdsOptions?.Value ?? throw new ArgumentNullException(nameof(alertThresholdsOptions));
             _alertThresholds = new AlertThresholds(
                 maxTemperature: options.MaxTemperature,
                 minSoilMoisture: options.MinSoilMoisture,
                 minBatteryLevel: options.MinBatteryLevel);
         }
+
         public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
         {
             try
@@ -46,29 +50,31 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                     message.SensorId, 
                     message.PlotId);
 
-                //1. Check for existing aggregate to avoid duplicates
-                var existingAggregate = await _sensorReadingRepository.GetByIdAsync(message.AggregateId, cancellationToken);
-
+                // 1. Check for existing aggregate (idempotency)
+                var existingAggregate = await _repository.GetByIdAsync(message.AggregateId, cancellationToken);
                 if (existingAggregate != null)
                 {
                     _logger.LogWarning("Duplicate event detected: {AggregateId}", message.AggregateId);
-                    return; // Idempotent
+                    return;
                 }
 
-                //2. Map event to domain aggregate
+                // 2. Map event to domain aggregate
                 var aggregate = MapEventToAggregate(message);
 
-                //3. Evaluate alerts using configured thresholds (Domain logic - DDD)
+                // 3. Evaluate alerts (domain logic)
                 aggregate.EvaluateAlerts(_alertThresholds);
 
-                //4. Persist domain aggregate with uncommitted events
-                await _sensorReadingRepository.SaveAsync(aggregate, cancellationToken).ConfigureAwait(false);
+                // 4. Persist aggregate (marks as Added in EF Core DbContext)
+                _repository.Add(aggregate);
 
-                //5. PUBLICAR Domain Events para Wolverine ANTES do commit (Transactional Outbox)
-                await PublishDomainEventsAsync(aggregate);
+                // 5. Publish domain events to Wolverine Outbox
+                await PublishDomainEventsAsync(aggregate, cancellationToken);
 
-                //6. Commit transaction with outbox pattern
-                await _sensorReadingRepository.CommitAsync(aggregate, cancellationToken).ConfigureAwait(false);
+                // 6. Commit (single transaction: EF Core SaveChanges + Wolverine Outbox Flush)
+                await _outbox.SaveChangesAsync(cancellationToken);
+
+                // 7. Mark events as committed
+                aggregate.MarkEventsAsCommitted();
 
                 _logger.LogInformation(
                     "✅ Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
@@ -90,10 +96,15 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 
         private static SensorReadingAggregate MapEventToAggregate(SensorIngestedIntegrationEvent message)
         {
+            // Ensure DateTime is UTC (PostgreSQL timestamptz requires UTC)
+            var timeUtc = message.Time.Kind == DateTimeKind.Utc 
+                ? message.Time 
+                : message.Time.ToUniversalTime();
+
             var result = SensorReadingAggregate.Create(
                 sensorId: message.SensorId,
                 plotId: message.PlotId,
-                time: message.Time,
+                time: timeUtc,
                 temperature: message.Temperature,
                 humidity: message.Humidity,
                 soilMoisture: message.SoilMoisture,
@@ -109,11 +120,13 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             return result.Value;
         }
 
-
         /// <summary>
-        /// Publica Domain Events para Wolverine via Transactional Outbox
+        /// Enqueue domain events to Wolverine Transactional Outbox.
+        /// Events will be published AFTER EF Core commits successfully.
         /// </summary>
-        private async Task PublishDomainEventsAsync(SensorReadingAggregate aggregate)
+        private async Task PublishDomainEventsAsync(
+            SensorReadingAggregate aggregate, 
+            CancellationToken cancellationToken)
         {
             var domainEvents = aggregate.UncommittedEvents?.ToList();
             if (domainEvents == null || !domainEvents.Any())
@@ -121,13 +134,17 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 
             foreach (var domainEvent in domainEvents)
             {
-                _logger.LogInformation("📤 Publishing domain event: {EventType}", domainEvent.GetType().Name);
+                _logger.LogInformation(
+                    "📤 Enqueuing domain event: {EventType}", 
+                    domainEvent.GetType().Name);
 
-                // Wolverine Transactional Outbox - eventos serão publicados após commit
-                await _messageBus.PublishAsync(domainEvent);
+                // Wolverine Transactional Outbox (EF Core integration)
+                await _outbox.EnqueueAsync(domainEvent, cancellationToken);
             }
 
-            _logger.LogInformation("✅ Published {Count} domain event(s) to Wolverine", domainEvents.Count);
+            _logger.LogInformation(
+                "✅ Enqueued {Count} domain event(s) to Wolverine Outbox", 
+                domainEvents.Count);
         }
     }
 }

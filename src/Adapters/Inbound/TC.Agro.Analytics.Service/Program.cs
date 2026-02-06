@@ -9,16 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure all Analytics Worker services
 // ========================================
 builder.Services.AddAnalyticsServices(builder);
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Apply EF Core migrations automatically (same pattern as Identity-Service)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    await app.ApplyMigrations();
+}
 
 // ========================================
 // Configure HTTP request pipeline
 // ========================================
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwaggerGen();
 }
 

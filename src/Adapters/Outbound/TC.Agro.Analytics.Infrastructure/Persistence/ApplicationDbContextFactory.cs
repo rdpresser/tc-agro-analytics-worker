@@ -55,7 +55,7 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence
                     npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "analytics"))
                 .UseSnakeCaseNamingConvention();
 
-            return new ApplicationDbContext(optionsBuilder.Options, dbConnectionFactory);
+            return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
 }

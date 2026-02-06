@@ -1,3 +1,4 @@
+using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
 
 namespace TC.Agro.Analytics.Tests.Builders;

@@ -21,7 +21,7 @@ namespace TC.Agro.Analytics.Tests.Application.Configuration
         public void SectionName_ShouldBeAlertThresholds()
         {
             // Arrange & Act & Assert
-            AlertThresholdsOptions.SectionName.ShouldBe("AlertThresholds");
+            AlertThresholdsOptions.ConfigurationSection.ShouldBe("Alerts:Thresholds");
         }
 
         [Fact]

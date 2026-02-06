@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
+using TC.Agro.SharedKernel.Infrastructure.Database;
 
 namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
 {
@@ -11,8 +13,8 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Alert> builder)
         {
-            // Table
-            builder.ToTable("alerts", "analytics");
+            // Table (using public schema from SharedKernel)
+            builder.ToTable("alerts", DefaultSchemas.Default);
 
             // Primary Key
             builder.HasKey(a => a.Id);

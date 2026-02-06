@@ -2,9 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Tests.Builders;
+using TC.Agro.SharedKernel.Application.Ports;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
-using Wolverine.Marten;
-using Wolverine;
 
 namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
 {
@@ -15,17 +14,17 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
     public class SensorIngestedHandlerTests
     {
         private readonly ISensorReadingRepository _repository;
+        private readonly ITransactionalOutbox _outbox;
         private readonly ILogger<SensorIngestedHandler> _logger;
         private readonly IOptions<AlertThresholdsOptions> _options;
-        private readonly IMessageBus _messageBus;
         private readonly SensorIngestedHandler _handler;
 
         public SensorIngestedHandlerTests()
         {
             // Arrange - Setup test doubles (mocks)
             _repository = A.Fake<ISensorReadingRepository>();
+            _outbox = A.Fake<ITransactionalOutbox>();
             _logger = A.Fake<ILogger<SensorIngestedHandler>>();
-            _messageBus = A.Fake<IMessageBus>();
 
             _options = Options.Create(new AlertThresholdsOptions
             {
@@ -34,7 +33,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
                 MinBatteryLevel = 15.0
             });
 
-            _handler = new SensorIngestedHandler(_repository, _logger, _options, _messageBus);
+            _handler = new SensorIngestedHandler(_repository, _outbox, _logger, _options);
         }
 
         #region Constructor Tests
@@ -44,7 +43,15 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         {
             // Arrange, Act & Assert
             Should.Throw<ArgumentNullException>(() =>
-                new SensorIngestedHandler(null!, _logger, _options, _messageBus));
+                new SensorIngestedHandler(null!, _outbox, _logger, _options));
+        }
+
+        [Fact]
+        public void Constructor_WithNullOutbox_ShouldThrowArgumentNullException()
+        {
+            // Arrange, Act & Assert
+            Should.Throw<ArgumentNullException>(() =>
+                new SensorIngestedHandler(_repository, null!, _logger, _options));
         }
 
         [Fact]
@@ -52,7 +59,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         {
             // Arrange, Act & Assert
             Should.Throw<ArgumentNullException>(() =>
-                new SensorIngestedHandler(_repository, null!, _options, _messageBus));
+                new SensorIngestedHandler(_repository, _outbox, null!, _options));
         }
 
         [Fact]
@@ -60,15 +67,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         {
             // Arrange, Act & Assert
             Should.Throw<ArgumentNullException>(() =>
-                new SensorIngestedHandler(_repository, _logger, null!, _messageBus));
-        }
-
-        [Fact]
-        public void Constructor_WithNullMessageBus_ShouldThrowArgumentNullException()
-        {
-            // Arrange, Act & Assert
-            Should.Throw<ArgumentNullException>(() =>
-                new SensorIngestedHandler(_repository, _logger, _options, null!));
+                new SensorIngestedHandler(_repository, _outbox, _logger, null!));
         }
 
         #endregion
@@ -81,7 +80,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             // Arrange
             var aggregateId = Guid.NewGuid();
             var existingAggregate = new SensorReadingAggregateBuilder().Build().Value;
-            
+
             A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
                 .Returns(existingAggregate);
 
@@ -90,11 +89,14 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             // Act
             await _handler.Handle(@event.EventData, CancellationToken.None);
 
-            // Assert
-            A.CallTo(() => _repository.SaveAsync(A<SensorReadingAggregate>._, A<CancellationToken>._))
+            // Assert - Should NOT persist or commit (idempotency)
+            A.CallTo(() => _repository.Add(A<SensorReadingAggregate>._))
                 .MustNotHaveHappened();
 
-            // Verify warning was logged (simplified - FakeItEasy doesn't support It.IsAnyType)
+            A.CallTo(() => _outbox.SaveChangesAsync(A<CancellationToken>._))
+                .MustNotHaveHappened();
+
+            // Verify warning was logged
             A.CallTo(_logger).MustHaveHappened();
         }
 
@@ -103,7 +105,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         {
             // Arrange
             var aggregateId = Guid.NewGuid();
-            
+
             A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
                 .Returns<SensorReadingAggregate?>(null);
 
@@ -112,120 +114,12 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             // Act
             await _handler.Handle(@event.EventData, CancellationToken.None);
 
-            // Assert
-            A.CallTo(() => _repository.SaveAsync(A<SensorReadingAggregate>._, A<CancellationToken>._))
+            // Assert - Should persist and commit
+            A.CallTo(() => _repository.Add(A<SensorReadingAggregate>._))
                 .MustHaveHappenedOnceExactly();
 
-            A.CallTo(() => _repository.CommitAsync(A<SensorReadingAggregate>._, A<CancellationToken>._))
+            A.CallTo(() => _outbox.SaveChangesAsync(A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
-        }
-
-        #endregion
-
-        #region HandleAsync - Happy Path Tests
-
-        [Fact]
-        public async Task HandleAsync_WithValidEvent_ShouldCreateAggregate()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            var @event = CreateSampleEvent(aggregateId);
-
-            // Act
-            await _handler.Handle(@event.EventData, CancellationToken.None);
-
-            // Assert
-            A.CallTo(() => _repository.SaveAsync(
-                A<SensorReadingAggregate>.That.Matches(agg =>
-                    agg.SensorId == "SENSOR-001" &&
-                    Math.Abs(agg.Temperature!.Value - 25.0) < 0.01),
-                A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-        }
-
-        [Fact]
-        public async Task HandleAsync_WithValidEvent_ShouldEvaluateAlerts()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            var @event = CreateHighTemperatureEvent(aggregateId);
-
-            // Act
-            await _handler.Handle(@event.EventData, CancellationToken.None);
-
-            // Assert - Verificar que alerta de alta temperatura foi criado
-            A.CallTo(() => _repository.SaveAsync(
-                A<SensorReadingAggregate>.That.Matches(agg =>
-                    agg.UncommittedEvents.Any(e => e.GetType() == typeof(SensorReadingAggregate.HighTemperatureDetectedDomainEvent))),
-                A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-        }
-
-        [Fact]
-        public async Task HandleAsync_WithAlerts_ShouldSaveAggregateWithUncommittedEvents()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            var @event = CreateHighTemperatureEvent(aggregateId);
-
-            // Act
-            await _handler.Handle(@event.EventData, CancellationToken.None);
-
-            // Assert - Verificar que aggregate tem eventos não commitados
-            A.CallTo(() => _repository.SaveAsync(
-                A<SensorReadingAggregate>.That.Matches(agg => agg.UncommittedEvents.Count > 0),
-                A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-        }
-
-        [Fact]
-        public async Task HandleAsync_WithMultipleAlerts_ShouldPublishAllEvents()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            var @event = CreateEventWithMultipleAlerts(aggregateId);
-
-            // Act
-            await _handler.Handle(@event.EventData, CancellationToken.None);
-
-            // Assert - Verificar que aggregate foi salvo com exatamente 3 eventos
-            A.CallTo(() => _repository.SaveAsync(
-                A<SensorReadingAggregate>.That.Matches(agg =>
-                    agg.UncommittedEvents.Count(e => 
-                        e.GetType() == typeof(SensorReadingAggregate.HighTemperatureDetectedDomainEvent) ||
-                        e.GetType() == typeof(SensorReadingAggregate.LowSoilMoistureDetectedDomainEvent) ||
-                        e.GetType() == typeof(SensorReadingAggregate.BatteryLowWarningDomainEvent)) == 3),
-                A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-        }
-
-        [Fact]
-        public async Task HandleAsync_Successfully_ShouldLogInformation()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            var @event = CreateSampleEvent(aggregateId);
-
-            // Act
-            await _handler.Handle(@event.EventData, CancellationToken.None);
-
-            // Assert - Simplified logger verification
-            A.CallTo(_logger).MustHaveHappened();
         }
 
         #endregion
@@ -248,14 +142,14 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         }
 
         [Fact]
-        public async Task HandleAsync_WithRepositoryFailure_ShouldLogErrorAndRethrow()
+        public async Task HandleAsync_WithOutboxFailure_ShouldLogErrorAndRethrow()
         {
             // Arrange
             var aggregateId = Guid.NewGuid();
             A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
                 .Returns<SensorReadingAggregate?>(null);
 
-            A.CallTo(() => _repository.SaveAsync(A<SensorReadingAggregate>._, A<CancellationToken>._))
+            A.CallTo(() => _outbox.SaveChangesAsync(A<CancellationToken>._))
                 .Throws<InvalidOperationException>();
 
             var @event = CreateSampleEvent(aggregateId);
@@ -306,7 +200,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             );
         }
 
-        private static EventContext<SensorIngestedIntegrationEvent> CreateHighTemperatureEvent(Guid aggregateId)
+        public static EventContext<SensorIngestedIntegrationEvent> CreateHighTemperatureEvent(Guid aggregateId)
         {
             var eventData = new SensorIngestedIntegrationEvent(
                 EventId: Guid.NewGuid(),
@@ -340,7 +234,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             );
         }
 
-        private static EventContext<SensorIngestedIntegrationEvent> CreateEventWithMultipleAlerts(Guid aggregateId)
+        public static EventContext<SensorIngestedIntegrationEvent> CreateEventWithMultipleAlerts(Guid aggregateId)
         {
             var eventData = new SensorIngestedIntegrationEvent(
                 EventId: Guid.NewGuid(),

@@ -45,11 +45,12 @@
     <!-- Wolverine -->
     <!-- ========================= -->
     <PackageVersion Include="Weasel.Core" Version="8.5.0" />
-    <PackageVersion Include="WolverineFx" Version="5.12.0" />
-    <PackageVersion Include="WolverineFx.Postgresql" Version="5.12.0" />
-    <PackageVersion Include="WolverineFx.RabbitMQ" Version="5.12.0" />
-    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.12.0" />
-    <PackageVersion Include="WolverineFx.Marten" Version="5.12.0" />
+    <PackageVersion Include="Weasel.Postgresql" Version="8.5.0" />
+    <PackageVersion Include="WolverineFx" Version="5.12.1" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="5.12.1" />
+    <PackageVersion Include="WolverineFx.RabbitMQ" Version="5.12.1" />
+    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.12.1" />
+    <PackageVersion Include="WolverineFx.Marten" Version="5.12.1" />
     <PackageVersion Include="RabbitMQ.Client" Version="6.8.1" />
     <!-- ========================= -->
     <!-- OpenTelemetry -->
@@ -84,7 +85,6 @@
     <!-- ========================= -->
     <PackageVersion Include="Ardalis.Result" Version="10.1.0" />
     <PackageVersion Include="Ardalis.Result.AspNetCore" Version="10.1.0" />
-    <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <!-- ========================= -->
     <!-- Visual Studio / Containers -->

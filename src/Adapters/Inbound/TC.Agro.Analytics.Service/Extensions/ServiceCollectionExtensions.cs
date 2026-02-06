@@ -1,14 +1,15 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Marten;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Newtonsoft.Json.Converters;
 using TC.Agro.Analytics.Application;
 using TC.Agro.Analytics.Infrastructure;
+using TC.Agro.SharedKernel.Infrastructure.Database;
 using TC.Agro.SharedKernel.Infrastructure.Middleware;
 using Wolverine;
-using Wolverine.Marten;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -21,7 +22,6 @@ internal static class ServiceCollectionExtensions
     {
         if (!builder.Environment.IsEnvironment("Testing"))
         {
-            builder.AddMartenEventStore();
             builder.AddWolverineMessaging();
         }
 
@@ -37,22 +37,6 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
-    private static WebApplicationBuilder AddMartenEventStore(this WebApplicationBuilder builder)
-    {
-        var postgresConfig = builder.Configuration.GetSection("Database:Postgres");
-        var connectionString = $"Host={postgresConfig["Host"]};Port={postgresConfig["Port"]};Database={postgresConfig["Database"]};Username={postgresConfig["UserName"]};Password={postgresConfig["Password"]};SearchPath={postgresConfig["Schema"]};";
-
-        builder.Services.AddMarten(opts =>
-        {
-            opts.Connection(connectionString);
-            opts.DatabaseSchemaName = postgresConfig["Schema"] ?? "analytics";
-            opts.Events.DatabaseSchemaName = postgresConfig["Schema"] ?? "analytics";
-        })
-        .IntegrateWithWolverine();
-
-        return builder;
-    }
-
     private static WebApplicationBuilder AddWolverineMessaging(this WebApplicationBuilder builder)
     {
         builder.Host.UseWolverine(opts =>
@@ -63,6 +47,17 @@ internal static class ServiceCollectionExtensions
 
             opts.Discovery.IncludeAssembly(typeof(Application.DependencyInjection).Assembly);
             opts.Discovery.IncludeAssembly(typeof(Infrastructure.DependencyInjection).Assembly);
+
+            // Configure Wolverine Durability (Message Persistence) with PostgreSQL
+            // Uses the same database as EF Core, but separate schema (wolverine)
+            opts.Durability.MessageStorageSchemaName = DefaultSchemas.Wolverine;
+
+            opts.PersistMessagesWithPostgresql(
+                PostgresHelper.Build(builder.Configuration).ConnectionString,
+                DefaultSchemas.Wolverine);
+
+            // Enable EF Core transactions integration (Transactional Outbox)
+            opts.UseEntityFrameworkCoreTransactions();
 
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
@@ -191,11 +186,7 @@ internal static class ServiceCollectionExtensions
                     ? HealthCheckResult.Healthy($"Memory usage: {mb} MB")
                     : HealthCheckResult.Degraded($"High memory usage: {mb} MB");
             },
-                tags: ["memory", "system", "live"])
-
-            .AddCheck("Marten-EventStore", () =>
-                HealthCheckResult.Healthy("Marten Event Store is configured"),
-                tags: ["eventstore", "marten", "live"]);
+                tags: ["memory", "system", "live"]);
 
         return services;
     }

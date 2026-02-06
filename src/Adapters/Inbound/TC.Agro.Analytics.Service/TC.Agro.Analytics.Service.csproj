@@ -9,12 +9,9 @@
 		<PackageReference Include="Ardalis.Result.AspNetCore" />
 		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
-		<PackageReference Include="Bogus" />
-		<PackageReference Include="DotNetEnv" />
 
 		<PackageReference Include="FastEndpoints" />
 		<PackageReference Include="FastEndpoints.Swagger" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 			<PrivateAssets>all</PrivateAssets>
@@ -43,12 +40,13 @@
 		<PackageReference Include="Serilog.Enrichers.Span" />
 		<PackageReference Include="Serilog.Sinks.Grafana.Loki" />
 
-		<!-- Wolverine - ES / MessageBroker / Outbox -->
+		<!-- Wolverine - MessageBroker / Outbox -->
 		<PackageReference Include="Weasel.Core" />
+		<PackageReference Include="Weasel.Postgresql" />
 		<PackageReference Include="WolverineFx" />
 		<PackageReference Include="WolverineFx.EntityFrameworkCore" />
+		<PackageReference Include="WolverineFx.Postgresql" />
 		<PackageReference Include="WolverineFx.RabbitMQ" />
-		<PackageReference Include="WolverineFx.Marten" />
 
 	</ItemGroup>
 

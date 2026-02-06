@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
 		<PackageReference Include="Dapper" />
@@ -11,9 +11,14 @@
 		<PackageReference Include="WolverineFx.EntityFrameworkCore" />
 	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
-    <ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />		
-  </ItemGroup>
+		<ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
+		<ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Queries\" />
+	</ItemGroup>
 
 </Project>

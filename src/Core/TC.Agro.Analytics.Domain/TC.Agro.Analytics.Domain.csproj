@@ -2,7 +2,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Ardalis.Result" />
-		<PackageReference Include="BCrypt.Net-Next" />
 	</ItemGroup>
 
 	<ItemGroup>

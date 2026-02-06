@@ -23,6 +23,74 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TC.Agro.Analytics.Domain.Aggregates.SensorReadingAggregate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<double>("BatteryLevel")
+                        .HasColumnType("double precision")
+                        .HasColumnName("battery_level");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<double>("Humidity")
+                        .HasColumnType("double precision")
+                        .HasColumnName("humidity");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("PlotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("plot_id");
+
+                    b.Property<double>("Rainfall")
+                        .HasColumnType("double precision")
+                        .HasColumnName("rainfall");
+
+                    b.Property<string>("SensorId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("sensor_id");
+
+                    b.Property<double>("SoilMoisture")
+                        .HasColumnType("double precision")
+                        .HasColumnName("soil_moisture");
+
+                    b.Property<double>("Temperature")
+                        .HasColumnType("double precision")
+                        .HasColumnName("temperature");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("time");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sensor_readings");
+
+                    b.HasIndex("PlotId")
+                        .HasDatabaseName("ix_sensor_readings_plot_id");
+
+                    b.HasIndex("SensorId")
+                        .HasDatabaseName("ix_sensor_readings_sensor_id");
+
+                    b.HasIndex("Time")
+                        .HasDatabaseName("ix_sensor_readings_time");
+
+                    b.ToTable("sensor_readings", "public");
+                });
+
             modelBuilder.Entity("TC.Agro.Analytics.Domain.Entities.Alert", b =>
                 {
                     b.Property<Guid>("Id")
@@ -144,7 +212,7 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
                     b.HasIndex("PlotId", "Status", "CreatedAt")
                         .HasDatabaseName("ix_alerts_plot_status_created");
 
-                    b.ToTable("alerts", "analytics");
+                    b.ToTable("alerts", "public");
                 });
 #pragma warning restore 612, 618
         }

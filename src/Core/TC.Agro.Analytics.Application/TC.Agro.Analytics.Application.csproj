@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
@@ -11,15 +11,13 @@
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-		<PackageReference Include="Marten" />
-		<PackageReference Include="WolverineFx.Marten" />
 		<PackageReference Include="WolverineFx" />
 	</ItemGroup>
 	
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
 		<Folder Include="Projections\" />
-		<Folder Include="Queries\" />
+		<Folder Include="Queries\GetPlotStatus\" />
 	</ItemGroup>
 
 </Project>

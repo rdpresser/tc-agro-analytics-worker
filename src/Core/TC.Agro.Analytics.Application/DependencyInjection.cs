@@ -10,11 +10,12 @@ namespace TC.Agro.Analytics.Application
         {
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
-            // Configure AlertThresholds from appsettings.json
+            // Configure AlertThresholds from appsettings.json (Alerts:Thresholds section)
             services.Configure<AlertThresholdsOptions>(
-                configuration.GetSection(AlertThresholdsOptions.SectionName));
+                configuration.GetSection(AlertThresholdsOptions.ConfigurationSection));
 
-            // Note: Query Handlers are registered in Infrastructure layer
+            // Query Handlers are registered automatically by SharedKernel
+            // (via reflection - all classes implementing BaseQueryHandler)
 
             return services;
         }
