@@ -1,5 +1,0 @@
-# 📦 **REQUIREMENTS.TXT - DEPENDÊNCIAS PYTHON**
-
-# Para executar publish_message.py
-
-pika==1.3.2  # RabbitMQ client
