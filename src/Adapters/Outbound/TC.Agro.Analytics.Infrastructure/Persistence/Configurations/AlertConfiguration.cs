@@ -6,99 +6,88 @@ using TC.Agro.SharedKernel.Infrastructure.Database;
 namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
 {
     /// <summary>
-    /// Entity Framework configuration for Alert entity
+    /// EF Core configuration for Alert read model entity.
+    /// Alert is a read model (not an aggregate root), so it doesn't inherit from BaseEntityConfiguration.
+    /// Column names are automatically converted to snake_case by UseSnakeCaseNamingConvention().
     /// </summary>
-    internal class AlertConfiguration : IEntityTypeConfiguration<Alert>
+    internal sealed class AlertConfiguration : IEntityTypeConfiguration<Alert>
     {
         public void Configure(EntityTypeBuilder<Alert> builder)
         {
-            // Table (using public schema from SharedKernel)
             builder.ToTable("alerts", DefaultSchemas.Default);
 
             // Primary Key
             builder.HasKey(a => a.Id);
-
-            // Properties
             builder.Property(a => a.Id)
-                .HasColumnName("id")
                 .IsRequired();
 
+            // Foreign Keys
             builder.Property(a => a.SensorReadingId)
-                .HasColumnName("sensor_reading_id")
                 .IsRequired();
 
             builder.Property(a => a.SensorId)
-                .HasColumnName("sensor_id")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(a => a.PlotId)
-                .HasColumnName("plot_id")
                 .IsRequired();
 
+            // Alert Properties
             builder.Property(a => a.AlertType)
-                .HasColumnName("alert_type")
                 .HasMaxLength(50)
                 .IsRequired();
 
             builder.Property(a => a.Message)
-                .HasColumnName("message")
                 .HasMaxLength(500)
                 .IsRequired();
 
             builder.Property(a => a.Status)
-                .HasColumnName("status")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("Pending");
 
             builder.Property(a => a.Severity)
-                .HasColumnName("severity")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("Medium");
 
             builder.Property(a => a.Value)
-                .HasColumnName("value")
                 .HasColumnType("double precision");
 
             builder.Property(a => a.Threshold)
-                .HasColumnName("threshold")
                 .HasColumnType("double precision");
 
+            // Audit Fields
             builder.Property(a => a.CreatedAt)
-                .HasColumnName("created_at")
                 .IsRequired()
-                .HasDefaultValueSql("now()");
+                .HasColumnType("timestamptz")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Property(a => a.AcknowledgedAt)
-                .HasColumnName("acknowledged_at");
+                .HasColumnType("timestamptz");
 
             builder.Property(a => a.AcknowledgedBy)
-                .HasColumnName("acknowledged_by")
                 .HasMaxLength(100);
 
             builder.Property(a => a.ResolvedAt)
-                .HasColumnName("resolved_at");
+                .HasColumnType("timestamptz");
 
             builder.Property(a => a.ResolvedBy)
-                .HasColumnName("resolved_by")
                 .HasMaxLength(100);
 
             builder.Property(a => a.ResolutionNotes)
-                .HasColumnName("resolution_notes")
                 .HasMaxLength(1000);
 
+            // Metadata (JSON)
             builder.Property(a => a.Metadata)
-                .HasColumnName("metadata")
                 .HasColumnType("jsonb");
 
+            // Concurrency Token
             builder.Property(a => a.RowVersion)
-                .HasColumnName("row_version")
                 .IsRowVersion()
                 .IsConcurrencyToken();
 
-            // Indexes (performance optimization)
+            // Indexes for query performance
             builder.HasIndex(a => a.SensorReadingId)
                 .HasDatabaseName("ix_alerts_sensor_reading_id");
 
@@ -118,7 +107,7 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
                 .HasDatabaseName("ix_alerts_created_at")
                 .IsDescending();
 
-            // Composite index for common query (pending alerts by plot)
+            // Composite index for common query pattern (pending alerts by plot)
             builder.HasIndex(a => new { a.PlotId, a.Status, a.CreatedAt })
                 .HasDatabaseName("ix_alerts_plot_status_created");
         }
