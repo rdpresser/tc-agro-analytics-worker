@@ -1,10 +1,11 @@
 using TC.Agro.Analytics.Application.Abstractions.Ports;
 using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Infrastructure.Messaging;
-using TC.Agro.Analytics.Infrastructure.Projections;
 using TC.Agro.Analytics.Infrastructure.Repositores;
 using TC.Agro.Analytics.Infrastructure.Stores;
 using TC.Agro.SharedKernel.Application.Ports;
+using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
+using Wolverine.EntityFrameworkCore;
 
 namespace TC.Agro.Analytics.Infrastructure
 {
@@ -14,9 +15,12 @@ namespace TC.Agro.Analytics.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
         {
-            // Register DbContext with explicit Npgsql provider configuration
-            // Wolverine will integrate automatically via UseEntityFrameworkCoreTransactions()
-            services.AddDbContext<ApplicationDbContext>((sp, opts) =>
+            // -------------------------------
+            // EF Core with Wolverine Integration
+            // IMPORTANT: Use AddDbContextWithWolverineIntegration instead of AddDbContext
+            // This enables the transactional outbox pattern with Wolverine
+            // -------------------------------
+            services.AddDbContextWithWolverineIntegration<ApplicationDbContext>((sp, opts) =>
             {
                 var dbFactory = sp.GetRequiredService<DbConnectionFactory>();
 
@@ -31,9 +35,10 @@ namespace TC.Agro.Analytics.Infrastructure
                     opts.EnableSensitiveDataLogging(true);
                     opts.EnableDetailedErrors();
                 }
-            }, 
-            contextLifetime: ServiceLifetime.Scoped, 
-            optionsLifetime: ServiceLifetime.Scoped);
+            });
+
+            // Register ApplicationDbContext as IApplicationDbContext (required for ApplyMigrations)
+            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
             SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
 
@@ -44,12 +49,10 @@ namespace TC.Agro.Analytics.Infrastructure
             services.AddScoped<IAlertReadStore, AlertReadStore>();
 
             // Register Transactional Outbox (Wolverine + EF Core)
-            services.AddScoped<ITransactionalOutbox, WolverineEfCoreOutbox>();
-
-            // Register Projection Handlers (Wolverine will auto-discover them)
-            services.AddScoped<AlertProjectionHandler>();
+            services.AddScoped<ITransactionalOutbox, AnalyticsOutbox>();
 
             return services;
         }
     }
+
 }

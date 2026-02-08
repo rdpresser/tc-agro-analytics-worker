@@ -27,9 +27,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
 }
 
-app.UseCors();
+app.UseCors("DefaultCorsPolicy");
 app.UseMiddleware<CorrelationMiddleware>();
 app.UseFastEndpoints();
+
+////app.UseAuthentication()
+////  .UseAuthorization()
+////  .UseCustomFastEndpoints(app.Configuration);
+
 app.MapAnalyticsHealthChecks();
+
+
 
 await app.RunAsync();

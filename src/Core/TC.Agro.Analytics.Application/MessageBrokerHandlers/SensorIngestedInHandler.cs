@@ -15,7 +15,11 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 {
     /// <summary>
     /// Handler for processing sensor data ingestion events.
-    /// Uses EF Core + Wolverine Transactional Outbox (same pattern as Identity-Service).
+    /// Pattern: Similar to CreatePlotCommandHandler and CreateUserCommandHandler
+    /// - Maps event to aggregate
+    /// - Validates business rules
+    /// - Persists aggregate and related entities (alerts) in a single transaction
+    /// - Does NOT publish domain events to external systems
     /// </summary>
     public class SensorIngestedHandler
     {
@@ -50,27 +54,28 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                     message.SensorId, 
                     message.PlotId);
 
-                // 1. Check for existing aggregate (idempotency)
-                var existingAggregate = await _repository.GetByIdAsync(message.AggregateId, cancellationToken);
-                if (existingAggregate != null)
+                // 1. Map event to domain aggregate
+                var aggregate = await MapAsync(message);
+
+                // 2. Validate (idempotency check)
+                var validationResult = await ValidateAsync(aggregate, cancellationToken);
+                if (!validationResult)
                 {
-                    _logger.LogWarning("Duplicate event detected: {AggregateId}", message.AggregateId);
-                    return;
+                    return; // Duplicate detected, skip processing
                 }
 
-                // 2. Map event to domain aggregate
-                var aggregate = MapEventToAggregate(message);
-
-                // 3. Evaluate alerts (domain logic)
+                // 3. Execute business logic (evaluate alerts)
                 aggregate.EvaluateAlerts(_alertThresholds);
 
-                // 4. Persist aggregate (marks as Added in EF Core DbContext)
+                // 4. Persist aggregate
                 _repository.Add(aggregate);
 
-                // 5. Publish domain events to Wolverine Outbox
-                await PublishDomainEventsAsync(aggregate, cancellationToken);
+                // 5. Create related entities (alerts) - following the pattern
+                //    Domain: generates events
+                //    Application: creates read models from those events
+                await CreateRelatedEntitiesAsync(aggregate, cancellationToken);
 
-                // 6. Commit (single transaction: EF Core SaveChanges + Wolverine Outbox Flush)
+                // 6. Commit transaction
                 await _outbox.SaveChangesAsync(cancellationToken);
 
                 // 7. Mark events as committed
@@ -94,9 +99,12 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             }
         }
 
-        private static SensorReadingAggregate MapEventToAggregate(SensorIngestedIntegrationEvent message)
+        /// <summary>
+        /// Maps integration event to domain aggregate.
+        /// Similar to MapAsync in BaseCommandHandler.
+        /// </summary>
+        private static Task<SensorReadingAggregate> MapAsync(SensorIngestedIntegrationEvent message)
         {
-            // Ensure DateTime is UTC (PostgreSQL timestamptz requires UTC)
             var timeUtc = message.Time.Kind == DateTimeKind.Utc 
                 ? message.Time 
                 : message.Time.ToUniversalTime();
@@ -114,37 +122,70 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 
             if (!result.IsSuccess)
             {
-                throw new InvalidOperationException($"Failed to create SensorReadingAggregate: {string.Join(", ", result.ValidationErrors.Select(e => e.ErrorMessage))}");
+                throw new InvalidOperationException(
+                    $"Failed to create SensorReadingAggregate: {string.Join(", ", result.ValidationErrors.Select(e => e.ErrorMessage))}");
             }
 
-            return result.Value;
+            return Task.FromResult(result.Value);
         }
 
         /// <summary>
-        /// Enqueue domain events to Wolverine Transactional Outbox.
-        /// Events will be published AFTER EF Core commits successfully.
+        /// Validates business rules (idempotency).
+        /// Similar to ValidateAsync in BaseCommandHandler.
         /// </summary>
-        private async Task PublishDomainEventsAsync(
+        private async Task<bool> ValidateAsync(
             SensorReadingAggregate aggregate, 
             CancellationToken cancellationToken)
         {
-            var domainEvents = aggregate.UncommittedEvents?.ToList();
-            if (domainEvents == null || !domainEvents.Any())
-                return;
-
-            foreach (var domainEvent in domainEvents)
+            // Check for existing aggregate (idempotency)
+            var existingAggregate = await _repository.GetByIdAsync(aggregate.Id, cancellationToken);
+            if (existingAggregate != null)
             {
-                _logger.LogInformation(
-                    "📤 Enqueuing domain event: {EventType}", 
-                    domainEvent.GetType().Name);
-
-                // Wolverine Transactional Outbox (EF Core integration)
-                await _outbox.EnqueueAsync(domainEvent, cancellationToken);
+                _logger.LogWarning("Duplicate event detected: {AggregateId}", aggregate.Id);
+                return false;
             }
 
-            _logger.LogInformation(
-                "✅ Enqueued {Count} domain event(s) to Wolverine Outbox", 
-                domainEvents.Count);
+            return true;
+        }
+
+        /// <summary>
+        /// Creates related entities (alerts) from domain events.
+        /// Pattern: Domain logic generates events, Application layer creates read models.
+        /// This is similar to how CreatePlotCommandHandler persists the aggregate,
+        /// but here we also create related Alert entities in the same transaction.
+        /// 
+        /// Note: We don't publish these as integration events because:
+        /// - Alerts are tightly coupled to sensor readings
+        /// - No other services need to be notified about individual alerts
+        /// - This simplifies the architecture (YAGNI principle)
+        /// </summary>
+        private async Task CreateRelatedEntitiesAsync(
+            SensorReadingAggregate aggregate, 
+            CancellationToken cancellationToken)
+        {
+            // Get alerts from domain events (Domain → Application boundary)
+            var alerts = aggregate.GetPendingAlerts();
+
+            if (!alerts.Any())
+            {
+                return;
+            }
+
+            foreach (var alert in alerts)
+            {
+                await _repository.AddAlertAsync(alert, cancellationToken);
+
+                _logger.LogInformation(
+                    "📝 Created {AlertType} alert (Severity: {Severity}) for Sensor {SensorId}",
+                    alert.AlertType,
+                    alert.Severity,
+                    alert.SensorId);
+            }
+
+            _logger.LogDebug(
+                "Created {Count} alerts for SensorReading {AggregateId}",
+                alerts.Count,
+                aggregate.Id);
         }
     }
 }

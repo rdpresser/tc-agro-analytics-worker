@@ -27,10 +27,14 @@
     <!-- ========================= -->
     <!-- Logging -->
     <!-- ========================= -->
-    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
-    <PackageVersion Include="Serilog.Enrichers.Sensitive" Version="2.1.0" />
-    <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
-    <PackageVersion Include="Serilog.Sinks.Grafana.Loki" Version="8.3.2" />
+	<PackageVersion Include="Serilog" Version="4.1.1" />
+	<PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+	<PackageVersion Include="Serilog.Enrichers.Sensitive" Version="2.1.0" />
+	<PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
+	<PackageVersion Include="Serilog.Formatting.Compact" Version="3.0.0" />
+	<PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+	<PackageVersion Include="Serilog.Sinks.Grafana.Loki" Version="8.3.2" />
+	<PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <!-- ========================= -->
     <!-- Misc -->
     <!-- ========================= -->
@@ -50,8 +54,6 @@
     <PackageVersion Include="WolverineFx.Postgresql" Version="5.12.1" />
     <PackageVersion Include="WolverineFx.RabbitMQ" Version="5.12.1" />
     <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.12.1" />
-    <PackageVersion Include="WolverineFx.Marten" Version="5.12.1" />
-    <PackageVersion Include="RabbitMQ.Client" Version="6.8.1" />
     <!-- ========================= -->
     <!-- OpenTelemetry -->
     <!-- ========================= -->
@@ -64,6 +66,13 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.14.0-beta.1" />
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.1" />
     <PackageVersion Include="ZiggyCreatures.FusionCache.OpenTelemetry" Version="2.5.0" />
+	<!-- ========================= -->
+	<!-- Caching (FusionCache) -->
+	<!-- ========================= -->
+	<PackageVersion Include="ZiggyCreatures.FusionCache" Version="2.5.0" />
+	<PackageVersion Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.5.0" />
+	<PackageVersion Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" Version="2.5.0" />
+	<PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.2" />
     <!-- ========================= -->
     <!-- EF Core / DB -->
     <!-- ========================= -->
@@ -93,15 +102,13 @@
     <!-- ========================= -->
     <!-- Testing -->
     <!-- ========================= -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="FakeItEasy" Version="9.0.1" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-
-
-	<PackageVersion Include="Marten" Version="8.19.0" />
-
+	<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+	<PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.1.0" />
+	<PackageVersion Include="Microsoft.Testing.Extensions.Telemetry" Version="2.1.0" />
+	<PackageVersion Include="xunit.v3" Version="3.2.2" />
+	<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+	<PackageVersion Include="Shouldly" Version="4.3.0" />
+	<PackageVersion Include="FakeItEasy" Version="9.0.1" />
+	<PackageVersion Include="coverlet.collector" Version="6.0.4" />
   </ItemGroup>
 </Project>

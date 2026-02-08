@@ -1,5 +1,6 @@
 using TC.Agro.Analytics.Domain.Abstractions.Ports;
 using TC.Agro.Analytics.Domain.Aggregates;
+using TC.Agro.Analytics.Domain.Entities;
 using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
 
 namespace TC.Agro.Analytics.Infrastructure.Repositores;
@@ -15,5 +16,10 @@ public class SensorReadingRepository
     public SensorReadingRepository(ApplicationDbContext dbContext)
         : base(dbContext)
     {
+    }
+
+    public async Task AddAlertAsync(Alert alert, CancellationToken cancellationToken = default)
+    {
+        await DbContext.Alerts.AddAsync(alert, cancellationToken);
     }
 }

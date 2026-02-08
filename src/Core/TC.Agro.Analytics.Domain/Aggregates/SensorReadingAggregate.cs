@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TC.Agro.Analytics.Domain.Entities;
 using TC.Agro.Analytics.Domain.ValueObjects;
 
 namespace TC.Agro.Analytics.Domain.Aggregates
@@ -300,6 +301,110 @@ namespace TC.Agro.Analytics.Domain.Aggregates
                 < 20 => AlertSeverity.High,      // Battery very low
                 < 30 => AlertSeverity.Medium,    // Battery low
                 _ => AlertSeverity.Low           // Battery getting low
+            };
+        }
+
+        #endregion
+
+        #region Alert Creation (for read model)
+
+        /// <summary>
+        /// Creates Alert entities based on domain events.
+        /// This method is used by the application layer to create read models.
+        /// Following the pattern: Domain logic generates events, Application layer creates read models.
+        /// </summary>
+        public IReadOnlyList<Alert> GetPendingAlerts()
+        {
+            var alerts = new List<Alert>();
+
+            foreach (var domainEvent in UncommittedEvents ?? Enumerable.Empty<BaseDomainEvent>())
+            {
+                Alert? alert = domainEvent switch
+                {
+                    HighTemperatureDetectedDomainEvent e => CreateHighTemperatureAlert(e),
+                    LowSoilMoistureDetectedDomainEvent e => CreateLowSoilMoistureAlert(e),
+                    BatteryLowWarningDomainEvent e => CreateBatteryLowAlert(e),
+                    _ => null
+                };
+
+                if (alert != null)
+                {
+                    alerts.Add(alert);
+                }
+            }
+
+            return alerts.AsReadOnly();
+        }
+
+        private static Alert CreateHighTemperatureAlert(HighTemperatureDetectedDomainEvent e)
+        {
+            return new Alert
+            {
+                Id = Guid.NewGuid(),
+                SensorReadingId = e.AggregateId,
+                SensorId = e.SensorId,
+                PlotId = e.PlotId,
+                AlertType = AlertType.HighTemperature,
+                Message = $"High temperature detected: {e.Temperature:F1}°C",
+                Status = AlertStatus.Pending,
+                Severity = e.Severity,
+                Value = e.Temperature,
+                Threshold = 35.0,
+                CreatedAt = e.OccurredOn.UtcDateTime,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    e.Humidity,
+                    e.SoilMoisture,
+                    e.Rainfall,
+                    e.BatteryLevel
+                })
+            };
+        }
+
+        private static Alert CreateLowSoilMoistureAlert(LowSoilMoistureDetectedDomainEvent e)
+        {
+            return new Alert
+            {
+                Id = Guid.NewGuid(),
+                SensorReadingId = e.AggregateId,
+                SensorId = e.SensorId,
+                PlotId = e.PlotId,
+                AlertType = AlertType.LowSoilMoisture,
+                Message = $"Low soil moisture detected: {e.SoilMoisture:F1}% - Irrigation may be needed",
+                Status = AlertStatus.Pending,
+                Severity = e.Severity,
+                Value = e.SoilMoisture,
+                Threshold = 20.0,
+                CreatedAt = e.OccurredOn.UtcDateTime,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    e.Temperature,
+                    e.Humidity,
+                    e.Rainfall,
+                    e.BatteryLevel
+                })
+            };
+        }
+
+        private static Alert CreateBatteryLowAlert(BatteryLowWarningDomainEvent e)
+        {
+            return new Alert
+            {
+                Id = Guid.NewGuid(),
+                SensorReadingId = e.AggregateId,
+                SensorId = e.SensorId,
+                PlotId = e.PlotId,
+                AlertType = AlertType.LowBattery,
+                Message = $"Low battery warning: {e.BatteryLevel:F1}% - Sensor maintenance required",
+                Status = AlertStatus.Pending,
+                Severity = e.Severity,
+                Value = e.BatteryLevel,
+                Threshold = e.Threshold,
+                CreatedAt = e.OccurredOn.UtcDateTime,
+                Metadata = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    Threshold = e.Threshold
+                })
             };
         }
 
