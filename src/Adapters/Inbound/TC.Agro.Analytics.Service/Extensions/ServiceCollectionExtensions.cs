@@ -51,8 +51,10 @@ internal static class ServiceCollectionExtensions
         services
             .AddHttpClient()
             .AddCorrelationIdGenerator()
+            //     .AddValidatorsFromAssemblyContaining<XXXXCommandValidator>()
             .AddCaching()
             .AddCustomCors(builder.Configuration)
+            //.AddCustomAuthentication(builder.Configuration)
             .AddCustomFastEndpoints()
             .AddCustomHealthChecks()
             .AddApplication(builder.Configuration)
@@ -352,20 +354,16 @@ internal static class ServiceCollectionExtensions
 
 
 
-
+            //// Deixar parametrizado, appsettings para quando precisar consumir eventos de outros serviços
             rabbitOpts.DeclareQueue("analytics.sensor.ingested.queue", queue =>
             {
                 queue.IsDurable = mqConnectionFactory.Durable;
                 queue.IsExclusive = false;
                 queue.AutoDelete = false;
             });
-
             opts.ListenToRabbitQueue("analytics.sensor.ingested.queue")
                 .UseDurableInbox(); // Ensures deduplication and reliable processing
 
-            // -------------------------------
-            // Publishing example - Domain events to integration events
-            // -------------------------------
         });
 
         // -------------------------------
