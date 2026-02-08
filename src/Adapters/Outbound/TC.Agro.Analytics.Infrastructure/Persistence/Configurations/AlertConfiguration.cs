@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
 using TC.Agro.SharedKernel.Infrastructure.Database;
 
@@ -51,13 +50,13 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
                 .HasColumnName("status")
                 .HasMaxLength(20)
                 .IsRequired()
-                .HasDefaultValue(AlertStatus.Pending);
+                .HasDefaultValue("Pending");
 
             builder.Property(a => a.Severity)
                 .HasColumnName("severity")
                 .HasMaxLength(20)
                 .IsRequired()
-                .HasDefaultValue(AlertSeverity.Medium);
+                .HasDefaultValue("Medium");
 
             builder.Property(a => a.Value)
                 .HasColumnName("value")

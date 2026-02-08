@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
-using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Aggregates;
 using TC.Agro.Analytics.Domain.Entities;
+using TC.Agro.Analytics.Domain.ValueObjects;
 using static TC.Agro.Analytics.Domain.Aggregates.SensorReadingAggregate;
 
 namespace TC.Agro.Analytics.Infrastructure.Projections
@@ -39,7 +39,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 SensorReadingId = domainEvent.AggregateId,
                 SensorId = domainEvent.SensorId,
                 PlotId = domainEvent.PlotId,
-                AlertType = AlertTypes.HighTemperature,
+                AlertType = AlertType.HighTemperature,
                 Message = $"High temperature detected: {domainEvent.Temperature:F1}°C",
                 Status = AlertStatus.Pending,
                 Severity = DetermineSeverity(35.0, domainEvent.Temperature),
@@ -80,7 +80,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 SensorReadingId = domainEvent.AggregateId,
                 SensorId = domainEvent.SensorId,
                 PlotId = domainEvent.PlotId,
-                AlertType = AlertTypes.LowSoilMoisture,
+                AlertType = AlertType.LowSoilMoisture,
                 Message = $"Low soil moisture detected: {domainEvent.SoilMoisture:F1}% - Irrigation may be needed",
                 Status = AlertStatus.Pending,
                 Severity = DetermineSeverity(20.0, domainEvent.SoilMoisture),
@@ -121,7 +121,7 @@ namespace TC.Agro.Analytics.Infrastructure.Projections
                 SensorReadingId = domainEvent.AggregateId,
                 SensorId = domainEvent.SensorId,
                 PlotId = domainEvent.PlotId,
-                AlertType = AlertTypes.LowBattery,
+                AlertType = AlertType.LowBattery,
                 Message = $"Low battery warning: {domainEvent.BatteryLevel:F1}% - Sensor maintenance required",
                 Status = AlertStatus.Pending,
                 Severity = DetermineSeverity(domainEvent.Threshold, domainEvent.BatteryLevel),

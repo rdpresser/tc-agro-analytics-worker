@@ -1,5 +1,5 @@
-using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
+using TC.Agro.Analytics.Domain.ValueObjects;
 
 namespace TC.Agro.Analytics.Tests.Builders;
 
@@ -12,7 +12,7 @@ public class AlertBuilder
     private Guid _sensorReadingId = Guid.NewGuid();
     private string _sensorId = "SENSOR-TEST-001";
     private Guid _plotId = Guid.NewGuid();
-    private string _alertType = AlertTypes.HighTemperature;
+    private string _alertType = AlertType.HighTemperature;
     private string _message = "Test alert message";
     private string _status = AlertStatus.Pending;
     private string _severity = AlertSeverity.High;
@@ -52,7 +52,7 @@ public class AlertBuilder
 
     public AlertBuilder WithHighTemperature(double temperature, double threshold = 35.0)
     {
-        _alertType = AlertTypes.HighTemperature;
+        _alertType = AlertType.HighTemperature;
         _message = $"High temperature detected: {temperature:F1}°C";
         _value = temperature;
         _threshold = threshold;
@@ -61,7 +61,7 @@ public class AlertBuilder
 
     public AlertBuilder WithLowSoilMoisture(double soilMoisture, double threshold = 20.0)
     {
-        _alertType = AlertTypes.LowSoilMoisture;
+        _alertType = AlertType.LowSoilMoisture;
         _message = $"Low soil moisture detected: {soilMoisture:F1}%";
         _value = soilMoisture;
         _threshold = threshold;
@@ -70,7 +70,7 @@ public class AlertBuilder
 
     public AlertBuilder WithLowBattery(double batteryLevel, double threshold = 15.0)
     {
-        _alertType = AlertTypes.LowBattery;
+        _alertType = AlertType.LowBattery;
         _message = $"Low battery warning: {batteryLevel:F1}%";
         _value = batteryLevel;
         _threshold = threshold;

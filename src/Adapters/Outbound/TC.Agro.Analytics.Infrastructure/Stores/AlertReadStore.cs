@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TC.Agro.Analytics.Application.Abstractions.Ports;
-using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
+using TC.Agro.Analytics.Domain.ValueObjects;
 
 namespace TC.Agro.Analytics.Infrastructure.Stores;
 

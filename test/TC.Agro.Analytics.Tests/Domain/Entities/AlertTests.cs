@@ -1,5 +1,5 @@
-using TC.Agro.Analytics.Domain.Abstractions.Constants;
 using TC.Agro.Analytics.Domain.Entities;
+using TC.Agro.Analytics.Domain.ValueObjects;
 
 namespace TC.Agro.Analytics.Tests.Domain.Entities;
 
@@ -21,7 +21,7 @@ public class AlertTests
             SensorReadingId = sensorReadingId,
             SensorId = "SENSOR-001",
             PlotId = plotId,
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Message = "High temperature detected: 38.5°C",
             Status = AlertStatus.Pending,
             Severity = AlertSeverity.High,
@@ -36,7 +36,7 @@ public class AlertTests
         alert.SensorReadingId.ShouldBe(sensorReadingId);
         alert.SensorId.ShouldBe("SENSOR-001");
         alert.PlotId.ShouldBe(plotId);
-        alert.AlertType.ShouldBe(AlertTypes.HighTemperature);
+        alert.AlertType.ShouldBe(AlertType.HighTemperature);
         alert.Message.ShouldBe("High temperature detected: 38.5°C");
         alert.Status.ShouldBe(AlertStatus.Pending);
         alert.Severity.ShouldBe(AlertSeverity.High);
@@ -52,7 +52,7 @@ public class AlertTests
         var alert = new Alert
         {
             Id = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
             Status = AlertStatus.Pending,
@@ -61,7 +61,7 @@ public class AlertTests
         };
 
         // Assert
-        alert.AlertType.ShouldBe(AlertTypes.HighTemperature);
+        alert.AlertType.ShouldBe(AlertType.HighTemperature);
         alert.AlertType.ShouldBe("HighTemperature");
     }
 
@@ -72,7 +72,7 @@ public class AlertTests
         var alert = new Alert
         {
             Id = Guid.NewGuid(),
-            AlertType = AlertTypes.LowSoilMoisture,
+            AlertType = AlertType.LowSoilMoisture,
             SensorId = "SENSOR-002",
             PlotId = Guid.NewGuid(),
             Status = AlertStatus.Pending,
@@ -81,7 +81,7 @@ public class AlertTests
         };
 
         // Assert
-        alert.AlertType.ShouldBe(AlertTypes.LowSoilMoisture);
+        alert.AlertType.ShouldBe(AlertType.LowSoilMoisture);
         alert.AlertType.ShouldBe("LowSoilMoisture");
     }
 
@@ -92,7 +92,7 @@ public class AlertTests
         var alert = new Alert
         {
             Id = Guid.NewGuid(),
-            AlertType = AlertTypes.LowBattery,
+            AlertType = AlertType.LowBattery,
             SensorId = "SENSOR-003",
             PlotId = Guid.NewGuid(),
             Status = AlertStatus.Pending,
@@ -101,14 +101,14 @@ public class AlertTests
         };
 
         // Assert
-        alert.AlertType.ShouldBe(AlertTypes.LowBattery);
+        alert.AlertType.ShouldBe(AlertType.LowBattery);
         alert.AlertType.ShouldBe("LowBattery");
     }
 
     [Theory]
-    [InlineData(AlertStatus.Pending)]
-    [InlineData(AlertStatus.Acknowledged)]
-    [InlineData(AlertStatus.Resolved)]
+    [InlineData("Pending")]
+    [InlineData("Acknowledged")]
+    [InlineData("Resolved")]
     public void Alert_WithDifferentStatuses_ShouldSetCorrectStatus(string status)
     {
         // Arrange & Act
@@ -117,7 +117,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = status,
             Severity = AlertSeverity.High,
             CreatedAt = DateTime.UtcNow
@@ -128,10 +128,10 @@ public class AlertTests
     }
 
     [Theory]
-    [InlineData(AlertSeverity.Low)]
-    [InlineData(AlertSeverity.Medium)]
-    [InlineData(AlertSeverity.High)]
-    [InlineData(AlertSeverity.Critical)]
+    [InlineData("Low")]
+    [InlineData("Medium")]
+    [InlineData("High")]
+    [InlineData("Critical")]
     public void Alert_WithDifferentSeverities_ShouldSetCorrectSeverity(string severity)
     {
         // Arrange & Act
@@ -140,7 +140,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = AlertStatus.Pending,
             Severity = severity,
             CreatedAt = DateTime.UtcNow
@@ -159,7 +159,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = AlertStatus.Pending,
             Severity = AlertSeverity.High,
             CreatedAt = DateTime.UtcNow
@@ -188,7 +188,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = AlertStatus.Acknowledged,
             Severity = AlertSeverity.High,
             CreatedAt = DateTime.UtcNow,
@@ -225,7 +225,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = AlertStatus.Pending,
             Severity = AlertSeverity.High,
             Metadata = metadata,
@@ -247,7 +247,7 @@ public class AlertTests
             Id = Guid.NewGuid(),
             SensorId = "SENSOR-001",
             PlotId = Guid.NewGuid(),
-            AlertType = AlertTypes.HighTemperature,
+            AlertType = AlertType.HighTemperature,
             Status = AlertStatus.Pending,
             Severity = AlertSeverity.Critical,
             Value = 45.0,

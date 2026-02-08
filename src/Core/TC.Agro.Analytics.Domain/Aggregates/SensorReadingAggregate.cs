@@ -176,6 +176,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates
             Guid PlotId,
             DateTime Time,
             double Temperature,
+            AlertSeverity Severity,
             double? Humidity,
             double? SoilMoisture,
             double? Rainfall,
@@ -190,6 +191,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates
             double? Temperature,
             double? Humidity,
             double SoilMoisture,
+            AlertSeverity Severity,
             double? Rainfall,
             double? BatteryLevel,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
@@ -200,6 +202,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates
             Guid PlotId,
             double BatteryLevel,
             double Threshold,
+            AlertSeverity Severity,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
         #endregion
@@ -209,12 +212,15 @@ namespace TC.Agro.Analytics.Domain.Aggregates
         {
             if (Temperature.HasValue && Temperature.Value > thresholds.MaxTemperature)
             {
+                var severity = CalculateTemperatureSeverity(Temperature.Value, thresholds.MaxTemperature);
+
                 AddNewEvent(new HighTemperatureDetectedDomainEvent(
                     AggregateId: Id,
                     SensorId: SensorId,
                     PlotId: PlotId,
                     Time: Time,
                     Temperature: Temperature.Value,
+                    Severity: severity,
                     Humidity: Humidity,
                     SoilMoisture: SoilMoisture,
                     Rainfall: Rainfall,
@@ -225,6 +231,8 @@ namespace TC.Agro.Analytics.Domain.Aggregates
 
             if (SoilMoisture.HasValue && SoilMoisture.Value < thresholds.MinSoilMoisture)
             {
+                var severity = CalculateSoilMoistureSeverity(SoilMoisture.Value, thresholds.MinSoilMoisture);
+
                 AddNewEvent(new LowSoilMoistureDetectedDomainEvent(
                     AggregateId: Id,
                     SensorId: SensorId,
@@ -233,6 +241,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates
                     Temperature: Temperature,
                     Humidity: Humidity,
                     SoilMoisture: SoilMoisture.Value,
+                    Severity: severity,
                     Rainfall: Rainfall,
                     BatteryLevel: BatteryLevel,
                     OccurredOn: DateTimeOffset.UtcNow
@@ -241,15 +250,59 @@ namespace TC.Agro.Analytics.Domain.Aggregates
 
             if (BatteryLevel.HasValue && BatteryLevel.Value < thresholds.MinBatteryLevel)
             {
+                var severity = CalculateBatterySeverity(BatteryLevel.Value);
+
                 AddNewEvent(new BatteryLowWarningDomainEvent(
                     AggregateId: Id,
                     SensorId: SensorId,
                     PlotId: PlotId,
                     BatteryLevel: BatteryLevel.Value,
                     Threshold: thresholds.MinBatteryLevel,
+                    Severity: severity,
                     OccurredOn: DateTimeOffset.UtcNow
                 ));
             }
         }
+
+        #region Severity Calculation
+
+        private static AlertSeverity CalculateTemperatureSeverity(double temperature, double threshold)
+        {
+            var excess = temperature - threshold;
+
+            return excess switch
+            {
+                >= 15 => AlertSeverity.Critical,  // 15+ degrees above threshold
+                >= 10 => AlertSeverity.High,      // 10-15 degrees above threshold
+                >= 5 => AlertSeverity.Medium,     // 5-10 degrees above threshold
+                _ => AlertSeverity.Low            // Just above threshold
+            };
+        }
+
+        private static AlertSeverity CalculateSoilMoistureSeverity(double soilMoisture, double threshold)
+        {
+            var deficit = threshold - soilMoisture;
+
+            return deficit switch
+            {
+                >= 30 => AlertSeverity.Critical,  // 30+ points below threshold
+                >= 20 => AlertSeverity.High,      // 20-30 points below threshold
+                >= 10 => AlertSeverity.Medium,    // 10-20 points below threshold
+                _ => AlertSeverity.Low            // Just below threshold
+            };
+        }
+
+        private static AlertSeverity CalculateBatterySeverity(double batteryLevel)
+        {
+            return batteryLevel switch
+            {
+                < 10 => AlertSeverity.Critical,  // Battery critically low
+                < 20 => AlertSeverity.High,      // Battery very low
+                < 30 => AlertSeverity.Medium,    // Battery low
+                _ => AlertSeverity.Low           // Battery getting low
+            };
+        }
+
+        #endregion
     }
 }
