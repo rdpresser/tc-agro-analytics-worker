@@ -9,7 +9,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
 internal sealed class GetAlertHistoryQueryHandler 
-    : SharedKernel.Application.Handlers.BaseQueryHandler<GetAlertHistoryQuery, AlertListResponse>
+    : SharedKernel.Application.Handlers.BaseHandler<GetAlertHistoryQuery, AlertListResponse>
 {
     private readonly IAlertReadStore _alertReadStore;
 
@@ -22,18 +22,25 @@ internal sealed class GetAlertHistoryQueryHandler
         GetAlertHistoryQuery query,
         CancellationToken ct = default)
     {
-        var alerts = await _alertReadStore.GetAlertHistoryAsync(
+        var allAlerts = await _alertReadStore.GetAlertHistoryAsync(
             query.PlotId,
             query.Days,
             query.AlertType,
             query.Status,
             ct);
 
+        // Apply pagination
+        var totalCount = allAlerts.Count;
+        var paginatedAlerts = allAlerts
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
         var response = GetAlertHistoryMapper.ToListResponse(
-            alerts,
-            totalCount: alerts.Count,
-            pageNumber: 1,
-            pageSize: alerts.Count);
+            paginatedAlerts,
+            totalCount: totalCount,
+            pageNumber: query.PageNumber,
+            pageSize: query.PageSize);
 
         return Result.Success(response);
     }

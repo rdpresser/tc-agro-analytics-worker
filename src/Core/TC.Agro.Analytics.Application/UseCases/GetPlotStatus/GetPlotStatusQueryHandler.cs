@@ -9,7 +9,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
 internal sealed class GetPlotStatusQueryHandler 
-    : SharedKernel.Application.Handlers.BaseQueryHandler<GetPlotStatusQuery, PlotStatusResponse>
+    : SharedKernel.Application.Handlers.BaseHandler<GetPlotStatusQuery, PlotStatusResponse>
 {
     private readonly IAlertReadStore _alertReadStore;
 

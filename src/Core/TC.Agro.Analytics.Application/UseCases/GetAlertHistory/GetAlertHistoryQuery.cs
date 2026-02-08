@@ -4,7 +4,7 @@ using TC.Agro.SharedKernel.Application.Queries;
 namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 
 /// <summary>
-/// Query to retrieve alert history for a specific plot.
+/// Query to retrieve alert history for a specific plot with pagination.
 /// </summary>
 public sealed record GetAlertHistoryQuery : IBaseQuery<AlertListResponse>
 {
@@ -12,4 +12,6 @@ public sealed record GetAlertHistoryQuery : IBaseQuery<AlertListResponse>
     public int Days { get; init; } = 30;
     public string? AlertType { get; init; }
     public string? Status { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = PaginationParams.DefaultPageSize;
 }

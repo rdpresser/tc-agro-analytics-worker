@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
 /// Endpoint to retrieve alert history for a specific plot.
-/// GET /alerts/history/{plotId}?days=30&alertType=HighTemperature&status=Pending
+/// GET /alerts/history/{plotId}?days=30&alertType=HighTemperature&status=Pending&pageNumber=1&pageSize=100
 /// </summary>
 public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQuery, AlertListResponse>
 {
@@ -18,11 +18,13 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
         Summary(s =>
         {
             s.Summary = "Get alert history for a plot";
-            s.Description = "Retrieves historical alerts for a specific plot with optional filters";
+            s.Description = "Retrieves historical alerts for a specific plot with optional filters and pagination";
             s.Params["plotId"] = "Plot ID (GUID)";
             s.Params["days"] = "Number of days to look back (default: 30)";
             s.Params["alertType"] = "Filter by alert type (optional): HighTemperature, LowSoilMoisture, LowBattery";
             s.Params["status"] = "Filter by status (optional): Pending, Acknowledged, Resolved";
+            s.Params["pageNumber"] = "Page number (default: 1)";
+            s.Params["pageSize"] = "Page size (default: 100, max: 500)";
         });
 
         Description(d => d

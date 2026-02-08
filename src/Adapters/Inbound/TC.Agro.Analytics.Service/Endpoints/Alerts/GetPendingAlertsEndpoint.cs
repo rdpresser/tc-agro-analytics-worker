@@ -1,12 +1,13 @@
-using TC.Agro.Analytics.Application.UseCases.Shared;
+using FastEndpoints;
 using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
+using TC.Agro.Analytics.Application.UseCases.Shared;
 using TC.Agro.SharedKernel.Api.Endpoints;
 
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
 /// Endpoint to retrieve all pending alerts across all plots.
-/// GET /alerts/pending
+/// GET /alerts/pending?pageNumber=1&pageSize=100
 /// </summary>
 public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQuery, AlertListResponse>
 {
@@ -19,6 +20,8 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         {
             s.Summary = "Get all pending alerts";
             s.Description = "Retrieves all alerts with status 'Pending' across all plots, ordered by creation date (most recent first)";
+            s.Params["pageNumber"] = "Page number (default: 1)";
+            s.Params["pageSize"] = "Page size (default: 100, max: 500)";
         });
 
         Description(d => d

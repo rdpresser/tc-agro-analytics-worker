@@ -18,6 +18,9 @@
 		<Folder Include="Abstractions\Mappers\" />
 		<Folder Include="Projections\" />
 		<Folder Include="Queries\GetPlotStatus\" />
+		<Folder Include="UseCases\Alerts\AcknowledgeAlert\" />
+		<Folder Include="UseCases\Alerts\ResolveAlert\" />
+		<Folder Include="Validators\" />
 	</ItemGroup>
 
 </Project>
