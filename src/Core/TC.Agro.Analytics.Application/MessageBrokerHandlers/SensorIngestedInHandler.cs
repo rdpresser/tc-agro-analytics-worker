@@ -1,27 +1,14 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using TC.Agro.Analytics.Application.Configuration;
-using TC.Agro.Analytics.Domain.Abstractions.Ports;
-using TC.Agro.Analytics.Domain.Aggregates;
-using TC.Agro.Analytics.Domain.ValueObjects;
-using TC.Agro.Contracts.Events.Analytics;
-using TC.Agro.SharedKernel.Application.Ports;
+namespace TC.Agro.Analytics.Application.MessageBrokerHandlers;
 
-namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
-{
-    /// <summary>
-    /// Handler for processing sensor data ingestion events.
-    /// Pattern: Similar to CreatePlotCommandHandler and CreateUserCommandHandler
-    /// - Maps event to aggregate
-    /// - Validates business rules
-    /// - Persists aggregate and related entities (alerts) in a single transaction
-    /// - Does NOT publish domain events to external systems
-    /// </summary>
-    public class SensorIngestedHandler
+/// <summary>
+/// Handler for processing sensor data ingestion events.
+/// Pattern: Similar to CreatePlotCommandHandler and CreateUserCommandHandler
+/// - Maps event to aggregate
+/// - Validates business rules
+/// - Persists aggregate and related entities (alerts) in a single transaction
+/// - Does NOT publish domain events to external systems
+/// </summary>
+public class SensorIngestedHandler
     {
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
@@ -188,4 +175,3 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 aggregate.Id);
         }
     }
-}

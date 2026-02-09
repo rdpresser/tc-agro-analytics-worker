@@ -1,16 +1,7 @@
-using TC.Agro.Analytics.Application.Abstractions.Ports;
-using TC.Agro.Analytics.Domain.Abstractions.Ports;
-using TC.Agro.Analytics.Infrastructure.Messaging;
-using TC.Agro.Analytics.Infrastructure.Repositores;
-using TC.Agro.Analytics.Infrastructure.Stores;
-using TC.Agro.SharedKernel.Application.Ports;
-using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
-using Wolverine.EntityFrameworkCore;
+namespace TC.Agro.Analytics.Infrastructure;
 
-namespace TC.Agro.Analytics.Infrastructure
-{
-    [ExcludeFromCodeCoverage]
-    public static class DependencyInjection
+[ExcludeFromCodeCoverage]
+public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
@@ -54,5 +45,3 @@ namespace TC.Agro.Analytics.Infrastructure
             return services;
         }
     }
-
-}

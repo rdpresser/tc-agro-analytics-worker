@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using TC.Agro.Analytics.Domain.Entities;
-using TC.Agro.Analytics.Domain.ValueObjects;
+namespace TC.Agro.Analytics.Domain.Aggregates;
 
-namespace TC.Agro.Analytics.Domain.Aggregates
-{
-    public sealed class SensorReadingAggregate : BaseAggregateRoot
+public sealed class SensorReadingAggregate : BaseAggregateRoot
     {
         public string SensorId { get; private set; } = default!;
         public Guid PlotId { get; private set; }
@@ -410,4 +404,3 @@ namespace TC.Agro.Analytics.Domain.Aggregates
 
         #endregion
     }
-}

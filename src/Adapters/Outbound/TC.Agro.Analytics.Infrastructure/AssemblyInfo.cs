@@ -1,3 +1,11 @@
+// Global usings for TC.Agro.Analytics.Infrastructure
+global using System;
+global using System.Collections.Generic;
+global using System.Diagnostics.CodeAnalysis;
+global using System.Linq;
+global using System.Runtime.CompilerServices;
+global using System.Threading;
+global using System.Threading.Tasks;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -6,19 +14,24 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Serilog;
-global using System.Diagnostics.CodeAnalysis;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
-
+global using TC.Agro.Analytics.Domain.Abstractions.Ports;
+global using TC.Agro.Analytics.Domain.Aggregates;
+global using TC.Agro.Analytics.Domain.Entities;
+global using TC.Agro.Analytics.Infrastructure.Messaging;
 global using TC.Agro.Analytics.Infrastructure.Repositores;
+global using TC.Agro.Analytics.Infrastructure.Stores;
 global using TC.Agro.SharedKernel.Application.Ports;
+global using TC.Agro.SharedKernel.Domain;
 global using TC.Agro.SharedKernel.Domain.Aggregate;
 global using TC.Agro.SharedKernel.Infrastructure.Authentication;
 global using TC.Agro.SharedKernel.Infrastructure.Caching.Provider;
 global using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 global using TC.Agro.SharedKernel.Infrastructure.Clock;
 global using TC.Agro.SharedKernel.Infrastructure.Database;
+global using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
+global using Wolverine.EntityFrameworkCore;
 
-//**//
-using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("TC.Agro.Analytics.Unit.Tests")]
+[assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
