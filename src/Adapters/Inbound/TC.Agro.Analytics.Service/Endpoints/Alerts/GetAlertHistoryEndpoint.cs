@@ -25,6 +25,60 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
             s.Params["status"] = "Filter by status (optional): Pending, Acknowledged, Resolved";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
+
+            s.ExampleRequest = new GetAlertHistoryQuery
+            {
+                PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                Days = 30,
+                AlertType = "HighTemperature",
+                Status = "Pending",
+                PageNumber = 1,
+                PageSize = 20
+            };
+
+            s.ResponseExamples[200] = new AlertListResponse
+            {
+                Alerts = new List<AlertResponse>
+                {
+                    new AlertResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        SensorReadingId = Guid.NewGuid(),
+                        SensorId = "SENSOR-TEST-001",
+                        PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        AlertType = "HighTemperature",
+                        Message = "High temperature detected: 42.5°C",
+                        Status = "Pending",
+                        Severity = "High",
+                        Value = 42.5,
+                        Threshold = 35.0,
+                        CreatedAt = DateTime.UtcNow.AddHours(-2)
+                    },
+                    new AlertResponse
+                    {
+                        Id = Guid.NewGuid(),
+                        SensorReadingId = Guid.NewGuid(),
+                        SensorId = "SENSOR-TEST-001",
+                        PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        AlertType = "LowSoilMoisture",
+                        Message = "Low soil moisture detected: 12.0% - Irrigation may be needed",
+                        Status = "Pending",
+                        Severity = "Medium",
+                        Value = 12.0,
+                        Threshold = 20.0,
+                        CreatedAt = DateTime.UtcNow.AddHours(-1)
+                    }
+                },
+                TotalCount = 2,
+                PageNumber = 1,
+                PageSize = 20
+            };
+
+            s.Responses[200] = "Returned when alerts are found for the plot.";
+            s.Responses[400] = "Returned when the request is invalid (e.g., invalid GUID format).";
+            s.Responses[401] = "Returned when the request is made without a valid user token.";
+            s.Responses[403] = "Returned when the caller lacks the required role.";
+            s.Responses[404] = "Returned when no alerts are found for the given plot ID.";
         });
 
         Description(d => d
@@ -37,6 +91,6 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
     public override async Task HandleAsync(GetAlertHistoryQuery req, CancellationToken ct)
     {
         var response = await req.ExecuteAsync(ct: ct);
-        await MatchResultAsync(response, ct);
+        await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
