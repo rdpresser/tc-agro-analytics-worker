@@ -1,6 +1,3 @@
-using TC.Agro.Analytics.Domain.Aggregates;
-using TC.Agro.Analytics.Domain.ValueObjects;
-
 namespace TC.Agro.Analytics.Tests.Domain.Aggregates;
 
 /// <summary>

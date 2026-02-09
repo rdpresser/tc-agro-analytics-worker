@@ -3,6 +3,7 @@ global using System;
 global using System.Collections.Generic;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Linq;
+global using System.Runtime.CompilerServices;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using Ardalis.Result;
@@ -21,8 +22,11 @@ global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.SharedKernel.Application.Handlers;
 global using TC.Agro.SharedKernel.Application.Ports;
+global using TC.Agro.SharedKernel.Application.Queries;
 global using TC.Agro.SharedKernel.Domain;
-using System.Runtime.CompilerServices;
+global using TC.Agro.SharedKernel.Domain.Aggregate;
+global using TC.Agro.SharedKernel.Domain.Events;
+global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]

@@ -15,6 +15,7 @@ global using TC.Agro.SharedKernel.Domain;
 global using TC.Agro.SharedKernel.Domain.Aggregate;
 global using TC.Agro.SharedKernel.Domain.Events;
 global using TC.Agro.SharedKernel.Domain.ValueObjects;
-
+global using TC.Agro.Analytics.Domain.Aggregates;
+global using TC.Agro.SharedKernel.Application.Ports;
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

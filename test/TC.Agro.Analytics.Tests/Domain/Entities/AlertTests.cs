@@ -1,6 +1,3 @@
-using TC.Agro.Analytics.Domain.Entities;
-using TC.Agro.Analytics.Domain.ValueObjects;
-
 namespace TC.Agro.Analytics.Tests.Domain.Entities;
 
 public class AlertTests

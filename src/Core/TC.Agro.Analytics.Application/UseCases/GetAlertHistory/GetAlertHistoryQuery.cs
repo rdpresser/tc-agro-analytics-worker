@@ -1,6 +1,3 @@
-using TC.Agro.Analytics.Application.UseCases.Shared;
-using TC.Agro.SharedKernel.Application.Queries;
-
 namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 
 /// <summary>

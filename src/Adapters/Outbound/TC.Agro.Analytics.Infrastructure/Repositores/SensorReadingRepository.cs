@@ -1,8 +1,3 @@
-using TC.Agro.Analytics.Domain.Abstractions.Ports;
-using TC.Agro.Analytics.Domain.Aggregates;
-using TC.Agro.Analytics.Domain.Entities;
-using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
-
 namespace TC.Agro.Analytics.Infrastructure.Repositores;
 
 /// <summary>

@@ -1,4 +1,3 @@
-using TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 
 namespace TC.Agro.Analytics.Tests.Application.UseCases.GetPlotStatus;
 

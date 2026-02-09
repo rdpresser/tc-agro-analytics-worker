@@ -1,7 +1,3 @@
-using Ardalis.Result;
-using TC.Agro.Analytics.Application.Abstractions.Ports;
-using TC.Agro.Analytics.Application.UseCases.Shared;
-
 namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 
 /// <summary>

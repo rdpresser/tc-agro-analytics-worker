@@ -1,12 +1,7 @@
-using TC.Agro.Analytics.Domain.Aggregates;
-using TC.Agro.Analytics.Domain.Entities;
-using TC.Agro.SharedKernel.Infrastructure.Database;
-using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
+namespace TC.Agro.Analytics.Infrastructure;
 
-namespace TC.Agro.Analytics.Infrastructure
-{
-    [ExcludeFromCodeCoverage]
-    public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
+[ExcludeFromCodeCoverage]
+public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -82,4 +77,3 @@ namespace TC.Agro.Analytics.Infrastructure
             return result;
         }
     }
-}

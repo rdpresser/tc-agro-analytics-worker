@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace TC.Agro.Analytics.Domain.ValueObjects
 {
     public sealed record AlertType

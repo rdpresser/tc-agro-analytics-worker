@@ -1,6 +1,3 @@
-using TC.Agro.SharedKernel.Infrastructure.Messaging.Outbox;
-using Wolverine.EntityFrameworkCore;
-
 namespace TC.Agro.Analytics.Infrastructure.Messaging;
 
 /// <summary>

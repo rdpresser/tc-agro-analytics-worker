@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using TC.Agro.SharedKernel.Domain.Aggregate;
-using TC.Agro.SharedKernel.Domain.Events;
-using TC.Agro.SharedKernel.Infrastructure.UserClaims;
-
 namespace TC.Agro.Analytics.Application.Abstractions.Mappers
 {
     public static class IntegrationEventMapper

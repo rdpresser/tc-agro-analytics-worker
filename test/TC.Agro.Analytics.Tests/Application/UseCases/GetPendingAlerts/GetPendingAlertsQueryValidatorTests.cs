@@ -1,6 +1,3 @@
-using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
-using TC.Agro.Analytics.Application.UseCases.Shared;
-
 namespace TC.Agro.Analytics.Tests.Application.UseCases.GetPendingAlerts;
 
 /// <summary>

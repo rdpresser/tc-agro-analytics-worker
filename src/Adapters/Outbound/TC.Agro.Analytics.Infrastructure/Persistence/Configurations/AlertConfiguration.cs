@@ -1,13 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TC.Agro.Analytics.Domain.Entities;
-using TC.Agro.SharedKernel.Infrastructure.Database;
+namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations;
 
-namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
-{
-    /// <summary>
-    /// EF Core configuration for Alert read model entity.
-    /// Alert is a read model (not an aggregate root), so it doesn't inherit from BaseEntityConfiguration.
+/// <summary>
+/// EF Core configuration for Alert read model entity.
+/// Alert is a read model (not an aggregate root), so it doesn't inherit from BaseEntityConfiguration.
     /// Column names are automatically converted to snake_case by UseSnakeCaseNamingConvention().
     /// </summary>
     internal sealed class AlertConfiguration : IEntityTypeConfiguration<Alert>
@@ -112,4 +107,3 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations
                 .HasDatabaseName("ix_alerts_plot_status_created");
         }
     }
-}

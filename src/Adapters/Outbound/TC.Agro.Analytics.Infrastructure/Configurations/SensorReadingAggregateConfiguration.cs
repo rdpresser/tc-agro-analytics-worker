@@ -1,9 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TC.Agro.Analytics.Domain.Aggregates;
-using TC.Agro.SharedKernel.Infrastructure.Database;
-using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
-
 namespace TC.Agro.Analytics.Infrastructure.Configurations;
 
 /// <summary>

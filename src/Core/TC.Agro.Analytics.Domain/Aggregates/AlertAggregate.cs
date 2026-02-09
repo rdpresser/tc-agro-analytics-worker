@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using TC.Agro.Analytics.Domain.ValueObjects;
-
 namespace TC.Agro.Analytics.Domain.Aggregates
 {
     public sealed class AlertAggregate : BaseAggregateRoot

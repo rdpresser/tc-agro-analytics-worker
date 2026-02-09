@@ -1,5 +1,3 @@
-using TC.Agro.Analytics.Tests.Builders;
-
 namespace TC.Agro.Analytics.Tests.Domain.Aggregates
 {
     /// <summary>

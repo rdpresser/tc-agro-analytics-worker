@@ -1,5 +1,3 @@
-using TC.Agro.Analytics.Domain.Entities;
-
 namespace TC.Agro.Analytics.Application.Abstractions.Ports;
 
 /// <summary>

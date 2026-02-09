@@ -1,5 +1,3 @@
-using TC.Agro.Analytics.Application.Abstractions;
-
 namespace TC.Agro.Analytics.Tests.Application.Abstractions;
 
 /// <summary>

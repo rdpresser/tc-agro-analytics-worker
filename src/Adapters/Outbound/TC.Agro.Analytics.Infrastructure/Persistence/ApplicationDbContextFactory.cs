@@ -1,15 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using TC.Agro.SharedKernel.Infrastructure.Database;
+namespace TC.Agro.Analytics.Infrastructure.Persistence;
 
-namespace TC.Agro.Analytics.Infrastructure.Persistence
-{
-    /// <summary>
-    /// Factory for creating ApplicationDbContext at design-time (for migrations)
-    /// </summary>
-    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+/// <summary>
+/// Factory for creating ApplicationDbContext at design-time (for migrations)
+/// </summary>
+public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
@@ -58,4 +52,3 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence
             return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
-}

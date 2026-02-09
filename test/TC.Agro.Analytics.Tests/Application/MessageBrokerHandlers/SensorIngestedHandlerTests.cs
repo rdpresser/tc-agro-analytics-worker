@@ -1,10 +1,3 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using TC.Agro.Analytics.Domain.Abstractions.Ports;
-using TC.Agro.Analytics.Tests.Builders;
-using TC.Agro.SharedKernel.Application.Ports;
-using TC.Agro.SharedKernel.Infrastructure.Messaging;
-
 namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
 {
     /// <summary>

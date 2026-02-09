@@ -1,10 +1,7 @@
-using Microsoft.Extensions.Configuration;
-using TC.Agro.Analytics.Application.Configuration;
+namespace TC.Agro.Analytics.Application;
 
-namespace TC.Agro.Analytics.Application
-{
-    [ExcludeFromCodeCoverage]
-    public static class DependencyInjection
+[ExcludeFromCodeCoverage]
+public static class DependencyInjection
     {
         public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
         {
@@ -20,4 +17,3 @@ namespace TC.Agro.Analytics.Application
             return services;
         }
     }
-}
