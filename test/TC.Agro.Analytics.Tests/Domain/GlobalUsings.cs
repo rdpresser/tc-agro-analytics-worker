@@ -4,7 +4,6 @@ global using Xunit;
 global using Shouldly;
 global using FakeItEasy;
 global using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
-global using TC.Agro.Analytics.Application.UseCases.Shared;
 global using TC.Agro.Analytics.Domain.Entities;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Analytics.Tests.Builders;

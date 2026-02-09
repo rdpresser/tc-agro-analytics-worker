@@ -1,12 +1,15 @@
-namespace TC.Agro.Analytics.Domain.Entities
-{
-    /// <summary>
-    /// Read model entity for alerts.
-    /// Projected from domain events for query optimization.
-    /// This is NOT an aggregate - it's a denormalized read model for dashboard queries.
-    /// Configuration is done via EntityTypeConfiguration in Infrastructure layer.
-    /// </summary>
-    public class Alert
+namespace TC.Agro.Analytics.Domain.Entities;
+
+/// <summary>
+/// Read model entity for alerts - database projection (CQRS pattern).
+/// While typically read models live in Infrastructure, this stays in Domain because:
+/// 1. SensorReadingAggregate creates it from domain events
+/// 2. It's a projection OF domain events (not infrastructure concern)
+/// 3. Identity Service does this differently (projects Aggregate → Response in ReadStore)
+/// 
+/// This is a valid CQRS pattern variation where the read model is domain-driven.
+/// </summary>
+public class Alert
     {
         public Guid Id { get; set; }
         public Guid SensorReadingId { get; set; }
@@ -27,4 +30,3 @@ namespace TC.Agro.Analytics.Domain.Entities
         public string? Metadata { get; set; }
         public byte[]? RowVersion { get; set; }
     }
-}

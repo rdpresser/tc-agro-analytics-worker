@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers;
 /// Handler for processing sensor data ingestion events.
 /// Pattern: Similar to CreatePlotCommandHandler and CreateUserCommandHandler
 /// - Maps event to aggregate
-/// - Validates business rules
+/// - Validates business rules (using injected global AlertThresholds)
 /// - Persists aggregate and related entities (alerts) in a single transaction
 /// - Does NOT publish domain events to external systems
 /// </summary>
@@ -51,7 +51,7 @@ public class SensorIngestedHandler
                     return; // Duplicate detected, skip processing
                 }
 
-                // 3. Execute business logic (evaluate alerts)
+                // 3. Execute business logic (evaluate alerts with GLOBAL thresholds from config)
                 aggregate.EvaluateAlerts(_alertThresholds);
 
                 // 4. Persist aggregate

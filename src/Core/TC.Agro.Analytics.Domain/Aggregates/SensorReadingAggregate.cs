@@ -202,7 +202,11 @@ public sealed class SensorReadingAggregate : BaseAggregateRoot
 
         #endregion
 
-        // ✅ SensorReadingAggregate.cs (Domain Layer)
+        /// <summary>
+        /// Evaluates sensor readings against configured thresholds and raises domain events for alerts.
+        /// Thresholds are injected (global configuration from appsettings.json).
+        /// This is the CORRECT pattern - thresholds are NOT a property of individual readings.
+        /// </summary>
         public void EvaluateAlerts(AlertThresholds thresholds)
         {
             if (Temperature.HasValue && Temperature.Value > thresholds.MaxTemperature)

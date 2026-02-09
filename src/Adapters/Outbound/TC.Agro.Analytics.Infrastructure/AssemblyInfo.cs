@@ -17,6 +17,9 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using Serilog;
+global using GetAlertHistory = TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
+global using GetPendingAlerts = TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
+global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
@@ -35,6 +38,7 @@ global using TC.Agro.SharedKernel.Infrastructure.Clock;
 global using TC.Agro.SharedKernel.Infrastructure.Database;
 global using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
 global using TC.Agro.SharedKernel.Infrastructure.Messaging.Outbox;
+global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 global using Wolverine.EntityFrameworkCore;
 

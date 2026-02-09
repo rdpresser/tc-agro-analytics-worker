@@ -2,44 +2,39 @@ namespace TC.Agro.Analytics.Application.Abstractions.Ports;
 
 /// <summary>
 /// Read-only store for querying Alert projections.
+/// Following Identity Service pattern: ReadStore returns Response DTOs directly.
+/// Uses PaginatedResponse from SharedKernel for consistency.
 /// Separates read concerns from write concerns (CQRS pattern).
 /// </summary>
 public interface IAlertReadStore
 {
     /// <summary>
-    /// Get all pending alerts (last 100, ordered by creation date descending)
+    /// Get all pending alerts with pagination.
+    /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
-    Task<List<Alert>> GetPendingAlertsAsync(CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<GetPendingAlerts.PendingAlertResponse>> GetPendingAlertsAsync(
+        int pageNumber = 1,
+        int pageSize = 100,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get alert history for a specific plot with optional filters
+    /// Get alert history for a specific plot with optional filters and pagination.
+    /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
-    Task<List<Alert>> GetAlertHistoryAsync(
+    Task<PaginatedResponse<GetAlertHistory.AlertHistoryResponse>> GetAlertHistoryAsync(
         Guid plotId,
         int days = 30,
         string? alertType = null,
         string? status = null,
+        int pageNumber = 1,
+        int pageSize = 100,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get aggregated status metrics for a specific plot
+    /// Get aggregated status metrics for a specific plot.
+    /// Returns ready-to-use Response object (no mapping needed in handlers).
     /// </summary>
-    Task<PlotStatusResult> GetPlotStatusAsync(
+    Task<GetPlotStatus.GetPlotStatusResponse> GetPlotStatusAsync(
         Guid plotId,
         CancellationToken cancellationToken = default);
-}
-
-/// <summary>
-/// Result object for plot status query (internal use, not exposed to API)
-/// </summary>
-public record PlotStatusResult
-{
-    public Guid PlotId { get; init; }
-    public int PendingAlertsCount { get; init; }
-    public int TotalAlertsLast24Hours { get; init; }
-    public int TotalAlertsLast7Days { get; init; }
-    public Alert? MostRecentAlert { get; init; }
-    public Dictionary<string, int> AlertsByType { get; init; } = new();
-    public Dictionary<string, int> AlertsBySeverity { get; init; } = new();
-    public string OverallStatus { get; init; } = "OK";
 }

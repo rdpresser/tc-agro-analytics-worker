@@ -3,8 +3,9 @@ namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 /// <summary>
 /// Endpoint to retrieve alert history for a specific plot.
 /// GET /alerts/history/{plotId}?days=30&alertType=HighTemperature&status=Pending&pageNumber=1&pageSize=100
+/// Uses PaginatedResponse from SharedKernel (standard pattern).
 /// </summary>
-public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQuery, AlertListResponse>
+public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>
 {
     public override void Configure()
     {
@@ -18,11 +19,11 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
         //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         //// TOD0: Enable caching when ICachedQuery is implemented
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, AlertListResponse>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, AlertListResponse>>();
+        //// PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
+        //// PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
 
         Description(
-            d => d.Produces<AlertListResponse>(200, "application/json")
+            d => d.Produces<PaginatedResponse<AlertHistoryResponse>>(200, "application/json")
                   .ProducesProblemDetails()
                   .Produces(404)
                   .WithTags("Alerts"));
@@ -48,43 +49,47 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                 PageSize = 20
             };
 
-            s.ResponseExamples[200] = new AlertListResponse
-            {
-                Alerts = new List<AlertResponse>
+            s.ResponseExamples[200] = new PaginatedResponse<AlertHistoryResponse>(
+                new List<AlertHistoryResponse>
                 {
-                    new AlertResponse
-                    {
-                        Id = Guid.NewGuid(),
-                        SensorReadingId = Guid.NewGuid(),
-                        SensorId = "SENSOR-TEST-001",
-                        PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
-                        AlertType = "HighTemperature",
-                        Message = "High temperature detected: 42.5°C",
-                        Status = "Pending",
-                        Severity = "High",
-                        Value = 42.5,
-                        Threshold = 35.0,
-                        CreatedAt = DateTime.UtcNow.AddHours(-2)
-                    },
-                    new AlertResponse
-                    {
-                        Id = Guid.NewGuid(),
-                        SensorReadingId = Guid.NewGuid(),
-                        SensorId = "SENSOR-TEST-001",
-                        PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
-                        AlertType = "LowSoilMoisture",
-                        Message = "Low soil moisture detected: 12.0% - Irrigation may be needed",
-                        Status = "Pending",
-                        Severity = "Medium",
-                        Value = 12.0,
-                        Threshold = 20.0,
-                        CreatedAt = DateTime.UtcNow.AddHours(-1)
-                    }
+                    new AlertHistoryResponse(
+                        Guid.NewGuid(),
+                        Guid.NewGuid(),
+                        "SENSOR-TEST-001",
+                        Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        "HighTemperature",
+                        "High temperature detected: 42.5°C",
+                        "Pending",
+                        "High",
+                        42.5,
+                        35.0,
+                        DateTime.UtcNow.AddHours(-2),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                    new AlertHistoryResponse(
+                        Guid.NewGuid(),
+                        Guid.NewGuid(),
+                        "SENSOR-TEST-001",
+                        Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        "LowSoilMoisture",
+                        "Low soil moisture detected: 12.0% - Irrigation may be needed",
+                        "Pending",
+                        "Medium",
+                        12.0,
+                        20.0,
+                        DateTime.UtcNow.AddHours(-1),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null)
                 },
-                TotalCount = 2,
-                PageNumber = 1,
-                PageSize = 20
-            };
+                totalCount: 2,
+                pageNumber: 1,
+                pageSize: 20);
 
             s.Responses[200] = "Returned when alerts are found for the plot.";
             s.Responses[400] = "Returned when the request is invalid (e.g., invalid GUID format).";

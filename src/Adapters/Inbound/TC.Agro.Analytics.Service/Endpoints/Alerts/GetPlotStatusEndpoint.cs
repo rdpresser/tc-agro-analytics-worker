@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 /// Endpoint to get plot status summary with aggregated metrics.
 /// GET /plots/{plotId}/status
 /// </summary>
-public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, PlotStatusResponse>
+public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, GetPlotStatusResponse>
 {
     public override void Configure()
     {
@@ -14,8 +14,8 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
         //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         // TOD0: Enable caching when ICachedQuery is implemented (good candidate for caching)
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, PlotStatusResponse>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, PlotStatusResponse>>();
+        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
+        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
 
         Summary(s =>
         {
@@ -24,7 +24,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
             s.Params["plotId"] = "Plot ID (GUID)";
 
             Description(
-                d => d.Produces<PlotStatusResponse>(200, "application/json")
+                d => d.Produces<GetPlotStatusResponse>(200, "application/json")
                       .ProducesProblemDetails()
                       .Produces(404)
                       .WithTags("Plots"));
@@ -34,41 +34,36 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
                 PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683")
             };
 
-            s.ResponseExamples[200] = new PlotStatusResponse
-            {
-                PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
-                PendingAlertsCount = 12,
-                TotalAlertsLast24Hours = 8,
-                TotalAlertsLast7Days = 45,
-                OverallStatus = "Warning",
-                AlertsByType = new Dictionary<string, int>
+            s.ResponseExamples[200] = new GetPlotStatusResponse(
+                Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                PendingAlertsCount: 12,
+                TotalAlertsLast24Hours: 8,
+                TotalAlertsLast7Days: 45,
+                MostRecentAlert: new PlotStatusAlertResponse(
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    "SENSOR-TEST-001",
+                    "HighTemperature",
+                    "High temperature detected: 42.5°C",
+                    "Pending",
+                    "Critical",
+                    42.5,
+                    35.0,
+                    DateTime.UtcNow.AddHours(-2)),
+                AlertsByType: new Dictionary<string, int>
                 {
                     { "HighTemperature", 8 },
                     { "LowSoilMoisture", 4 },
                     { "LowBattery", 0 }
                 },
-                AlertsBySeverity = new Dictionary<string, int>
+                AlertsBySeverity: new Dictionary<string, int>
                 {
                     { "Critical", 3 },
                     { "High", 7 },
                     { "Medium", 2 },
                     { "Low", 0 }
                 },
-                MostRecentAlert = new AlertResponse
-                {
-                    Id = Guid.NewGuid(),
-                    SensorReadingId = Guid.NewGuid(),
-                    SensorId = "SENSOR-TEST-001",
-                    PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
-                    AlertType = "HighTemperature",
-                    Message = "High temperature detected: 42.5°C",
-                    Status = "Pending",
-                    Severity = "Critical",
-                    Value = 42.5,
-                    Threshold = 35.0,
-                    CreatedAt = DateTime.UtcNow.AddHours(-2)
-                }
-            };
+                OverallStatus: "Warning");
 
             s.Responses[200] = "Returned when the plot status is successfully retrieved.";
             s.Responses[400] = "Returned when the request is invalid (e.g., invalid GUID format).";

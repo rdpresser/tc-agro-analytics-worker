@@ -30,27 +30,31 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<double>("BatteryLevel")
+                    b.Property<double?>("BatteryLevel")
                         .HasColumnType("double precision")
                         .HasColumnName("battery_level");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<double>("Humidity")
+                    b.Property<double?>("Humidity")
                         .HasColumnType("double precision")
                         .HasColumnName("humidity");
 
                     b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
                     b.Property<Guid>("PlotId")
                         .HasColumnType("uuid")
                         .HasColumnName("plot_id");
 
-                    b.Property<double>("Rainfall")
+                    b.Property<double?>("Rainfall")
                         .HasColumnType("double precision")
                         .HasColumnName("rainfall");
 
@@ -60,20 +64,20 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("sensor_id");
 
-                    b.Property<double>("SoilMoisture")
+                    b.Property<double?>("SoilMoisture")
                         .HasColumnType("double precision")
                         .HasColumnName("soil_moisture");
 
-                    b.Property<double>("Temperature")
+                    b.Property<double?>("Temperature")
                         .HasColumnType("double precision")
                         .HasColumnName("temperature");
 
                     b.Property<DateTime>("Time")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("time");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id")
@@ -99,7 +103,7 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime?>("AcknowledgedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("acknowledged_at");
 
                     b.Property<string>("AcknowledgedBy")
@@ -115,9 +119,9 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -139,7 +143,7 @@ namespace TC.Agro.Analytics.Infrastructure.Persistence.Migrations
                         .HasColumnName("resolution_notes");
 
                     b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("resolved_at");
 
                     b.Property<string>("ResolvedBy")

@@ -1,15 +1,12 @@
-using Ardalis.Result;
-using TC.Agro.Analytics.Application.Abstractions.Ports;
-using TC.Agro.Analytics.Application.UseCases.Shared;
-
 namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 
 /// <summary>
 /// Handler for retrieving aggregated plot status.
+/// Following Identity Service pattern: ReadStore returns Response directly.
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
 internal sealed class GetPlotStatusQueryHandler 
-    : SharedKernel.Application.Handlers.BaseHandler<GetPlotStatusQuery, PlotStatusResponse>
+    : BaseHandler<GetPlotStatusQuery, GetPlotStatusResponse>
 {
     private readonly IAlertReadStore _alertReadStore;
 
@@ -18,12 +15,11 @@ internal sealed class GetPlotStatusQueryHandler
         _alertReadStore = alertReadStore ?? throw new ArgumentNullException(nameof(alertReadStore));
     }
 
-    public override async Task<Result<PlotStatusResponse>> ExecuteAsync(
+    public override async Task<Result<GetPlotStatusResponse>> ExecuteAsync(
         GetPlotStatusQuery query,
         CancellationToken ct = default)
     {
-        var plotStatus = await _alertReadStore.GetPlotStatusAsync(query.PlotId, ct);
-        var response = GetPlotStatusMapper.ToResponse(plotStatus);
+        var response = await _alertReadStore.GetPlotStatusAsync(query.PlotId, ct);
         return Result.Success(response);
     }
 }

@@ -2,10 +2,11 @@ namespace TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
 
 /// <summary>
 /// Handler for retrieving all pending alerts.
+/// Following Identity Service pattern: ReadStore returns PaginatedResponse from SharedKernel.
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
 internal sealed class GetPendingAlertsQueryHandler 
-    : SharedKernel.Application.Handlers.BaseHandler<GetPendingAlertsQuery, AlertListResponse>
+    : BaseHandler<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>
 {
     private readonly IAlertReadStore _alertReadStore;
 
@@ -14,24 +15,14 @@ internal sealed class GetPendingAlertsQueryHandler
         _alertReadStore = alertReadStore ?? throw new ArgumentNullException(nameof(alertReadStore));
     }
 
-    public override async Task<Result<AlertListResponse>> ExecuteAsync(
+    public override async Task<Result<PaginatedResponse<PendingAlertResponse>>> ExecuteAsync(
         GetPendingAlertsQuery query,
         CancellationToken ct = default)
     {
-        var allAlerts = await _alertReadStore.GetPendingAlertsAsync(ct);
-
-        // Apply pagination
-        var totalCount = allAlerts.Count;
-        var paginatedAlerts = allAlerts
-            .Skip((query.PageNumber - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
-
-        var response = GetPendingAlertsMapper.ToListResponse(
-            paginatedAlerts,
-            totalCount: totalCount,
-            pageNumber: query.PageNumber,
-            pageSize: query.PageSize);
+        var response = await _alertReadStore.GetPendingAlertsAsync(
+            query.PageNumber,
+            query.PageSize,
+            ct);
 
         return Result.Success(response);
     }

@@ -2,8 +2,9 @@ namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 
 /// <summary>
 /// Query to retrieve alert history for a specific plot with pagination.
+/// Uses PaginatedResponse from SharedKernel for consistency.
 /// </summary>
-public sealed record GetAlertHistoryQuery : IBaseQuery<AlertListResponse>
+public sealed record GetAlertHistoryQuery : IBaseQuery<PaginatedResponse<AlertHistoryResponse>>
 {
     public Guid PlotId { get; init; }
     public int Days { get; init; } = 30;

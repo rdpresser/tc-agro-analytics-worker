@@ -12,9 +12,12 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
+global using GetAlertHistory = TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
+global using GetPendingAlerts = TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
+global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
+global using TC.Agro.Analytics.Application.Abstractions;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Application.Configuration;
-global using TC.Agro.Analytics.Application.UseCases.Shared;
 global using TC.Agro.Analytics.Domain.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.Entities;
@@ -26,6 +29,7 @@ global using TC.Agro.SharedKernel.Application.Queries;
 global using TC.Agro.SharedKernel.Domain;
 global using TC.Agro.SharedKernel.Domain.Aggregate;
 global using TC.Agro.SharedKernel.Domain.Events;
+global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
