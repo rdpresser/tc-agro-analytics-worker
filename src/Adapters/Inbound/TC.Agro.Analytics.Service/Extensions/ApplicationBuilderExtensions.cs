@@ -1,17 +1,7 @@
-using FastEndpoints.Swagger;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.HttpOverrides;
-using NSwag.AspNetCore;
-using Serilog;
-using TC.Agro.SharedKernel.Extensions;
-using TC.Agro.SharedKernel.Infrastructure.Database;
-using TC.Agro.SharedKernel.Infrastructure.Middleware;
+namespace TC.Agro.Analytics.Service.Extensions;
 
-namespace TC.Agro.Analytics.Service.Extensions
-{
-    [ExcludeFromCodeCoverage]
-    internal static class ApplicationBuilderExtensions
+[ExcludeFromCodeCoverage]
+internal static class ApplicationBuilderExtensions
     {
         // Normalizes PathBase when the service runs behind an ingress with a path prefix (e.g. /farm)
         // CRITICAL: When nginx rewrite-target is used with X-Forwarded-Prefix header,
@@ -266,4 +256,3 @@ namespace TC.Agro.Analytics.Service.Extensions
             return $"/{trimmed}";
         }
     }
-}

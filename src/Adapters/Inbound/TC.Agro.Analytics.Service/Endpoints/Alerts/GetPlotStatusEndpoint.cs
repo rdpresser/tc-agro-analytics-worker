@@ -1,7 +1,3 @@
-using TC.Agro.Analytics.Application.UseCases.Shared;
-using TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
-using TC.Agro.SharedKernel.Api.Endpoints;
-
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>

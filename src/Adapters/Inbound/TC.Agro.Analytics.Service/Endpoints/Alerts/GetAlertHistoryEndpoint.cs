@@ -1,8 +1,3 @@
-using TC.Agro.Analytics.Application.UseCases.Shared;
-using TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
-using TC.Agro.SharedKernel.Api.Endpoints;
-using FastEndpoints;
-
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>

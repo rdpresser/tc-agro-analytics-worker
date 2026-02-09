@@ -1,9 +1,3 @@
-using FastEndpoints;
-using FastEndpoints.Swagger;
-using TC.Agro.Analytics.Service.Extensions;
-using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
-using TC.Agro.SharedKernel.Infrastructure.Middleware;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // ========================================
