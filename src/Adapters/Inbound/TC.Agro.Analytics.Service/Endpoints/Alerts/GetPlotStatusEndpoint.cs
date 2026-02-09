@@ -13,13 +13,25 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
     public override void Configure()
     {
         Get("/plots/{plotId}/status");
-        AllowAnonymous();
+
+        AllowAnonymous(); // TOD0: Add authentication when ready
+        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+
+        // TOD0: Enable caching when ICachedQuery is implemented (good candidate for caching)
+        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, PlotStatusResponse>>();
+        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, PlotStatusResponse>>();
 
         Summary(s =>
         {
             s.Summary = "Get plot status summary";
             s.Description = "Retrieves aggregated alert metrics for a plot (last 7 days)";
             s.Params["plotId"] = "Plot ID (GUID)";
+
+            Description(
+                d => d.Produces<PlotStatusResponse>(200, "application/json")
+                      .ProducesProblemDetails()
+                      .Produces(404)
+                      .WithTags("Plots"));
 
             s.ExampleRequest = new GetPlotStatusQuery
             {
@@ -68,12 +80,6 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
             s.Responses[403] = "Returned when the caller lacks the required role.";
             s.Responses[404] = "Returned when no plot is found with the given ID.";
         });
-
-        Description(d => d
-            .Produces<PlotStatusResponse>(200, "application/json")
-            .ProducesProblemDetails()
-            .Produces(404)
-            .WithTags("Plots"));
     }
 
     public override async Task HandleAsync(GetPlotStatusQuery req, CancellationToken ct)

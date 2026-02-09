@@ -17,6 +17,7 @@ using TC.Agro.Analytics.Application;
 using TC.Agro.Analytics.Infrastructure;
 using TC.Agro.Contracts.Events.Analytics;
 using TC.Agro.Contracts.Events.Identity;
+using TC.Agro.SharedKernel.Extensions;
 using TC.Agro.SharedKernel.Infrastructure.Authentication;
 using TC.Agro.SharedKernel.Infrastructure.Caching.HealthCheck;
 using TC.Agro.SharedKernel.Infrastructure.Caching.Provider;
@@ -212,12 +213,6 @@ internal static class ServiceCollectionExtensions
             .WithSerializer(new FusionCacheSystemTextJsonSerializer())
             .AsHybridCache();
 
-        return services;
-    }
-
-    private static IServiceCollection AddCorrelationIdGenerator(this IServiceCollection services)
-    {
-        services.AddScoped<ICorrelationIdGenerator, CorrelationIdGenerator>();
         return services;
     }
 

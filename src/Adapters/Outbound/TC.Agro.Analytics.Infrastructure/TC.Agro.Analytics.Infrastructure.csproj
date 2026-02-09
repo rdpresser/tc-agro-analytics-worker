@@ -17,8 +17,4 @@
 		<ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Queries\" />
-	</ItemGroup>
-
 </Project>

@@ -14,7 +14,16 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
     public override void Configure()
     {
         Get("/alerts/pending");
-        AllowAnonymous();
+
+        // Force FastEndpoints to bind query parameters (pagination)
+        RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
+
+        AllowAnonymous(); // TOD0: Add authentication when ready
+        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+
+        // TOD0: Enable caching when ICachedQuery is implemented (short TTL for real-time data)
+        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, AlertListResponse>>();
+        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, AlertListResponse>>();
 
         Summary(s =>
         {
@@ -22,6 +31,11 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
             s.Description = "Retrieves all alerts with status 'Pending' across all plots, ordered by creation date (most recent first)";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
+
+            Description(
+                d => d.Produces<AlertListResponse>(200, "application/json")
+                      .ProducesProblemDetails()
+                      .WithTags("Alerts"));
 
             s.ExampleRequest = new GetPendingAlertsQuery
             {
@@ -73,10 +87,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
             s.Responses[403] = "Returned when the caller lacks the required role.";
         });
 
-        Description(d => d
-            .Produces<AlertListResponse>(200, "application/json")
-            .ProducesProblemDetails()
-            .WithTags("Alerts"));
+
     }
 
     public override async Task HandleAsync(GetPendingAlertsQuery req, CancellationToken ct)

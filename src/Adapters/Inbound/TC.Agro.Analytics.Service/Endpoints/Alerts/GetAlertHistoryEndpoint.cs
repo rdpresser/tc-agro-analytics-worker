@@ -1,6 +1,7 @@
 using TC.Agro.Analytics.Application.UseCases.Shared;
 using TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 using TC.Agro.SharedKernel.Api.Endpoints;
+using FastEndpoints;
 
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
@@ -13,7 +14,23 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
     public override void Configure()
     {
         Get("/alerts/history/{plotId}");
+
+        // Force FastEndpoints to bind query parameters (days, alertType, status, pagination)
+        RequestBinder(new RequestBinder<GetAlertHistoryQuery>(BindingSource.QueryParams));
+
         AllowAnonymous();
+        //// TOD0: Add authentication when ready
+        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+
+        //// TOD0: Enable caching when ICachedQuery is implemented
+        //// PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, AlertListResponse>>();
+        //// PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, AlertListResponse>>();
+
+        Description(
+            d => d.Produces<AlertListResponse>(200, "application/json")
+                  .ProducesProblemDetails()
+                  .Produces(404)
+                  .WithTags("Alerts"));
 
         Summary(s =>
         {
@@ -80,12 +97,6 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
             s.Responses[403] = "Returned when the caller lacks the required role.";
             s.Responses[404] = "Returned when no alerts are found for the given plot ID.";
         });
-
-        Description(d => d
-            .Produces<AlertListResponse>(200, "application/json")
-            .ProducesProblemDetails()
-            .Produces(404)
-            .WithTags("Alerts"));
     }
 
     public override async Task HandleAsync(GetAlertHistoryQuery req, CancellationToken ct)
