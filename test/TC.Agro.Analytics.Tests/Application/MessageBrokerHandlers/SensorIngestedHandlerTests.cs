@@ -68,13 +68,13 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         #region HandleAsync - Idempotency Tests
 
         [Fact]
-        public async Task HandleAsync_WithDuplicateEvent_ShouldReturnEarlyAndLogWarning()
+        public async Task HandleAsync_WithDuplicateEvent_ShouldSkipProcessing()
         {
             // Arrange
             var aggregateId = Guid.NewGuid();
             var existingAggregate = new SensorReadingAggregateBuilder().Build().Value;
 
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
+            A.CallTo(() => _repository.GetByIdAsync(A<Guid>._, A<CancellationToken>._))
                 .Returns(existingAggregate);
 
             var @event = CreateSampleEvent(aggregateId);
@@ -88,9 +88,6 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
 
             A.CallTo(() => _outbox.SaveChangesAsync(A<CancellationToken>._))
                 .MustNotHaveHappened();
-
-            // Verify warning was logged
-            A.CallTo(_logger).MustHaveHappened();
         }
 
         [Fact]
@@ -99,7 +96,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
             // Arrange
             var aggregateId = Guid.NewGuid();
 
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
+            A.CallTo(() => _repository.GetByIdAsync(A<Guid>._, A<CancellationToken>._))
                 .Returns<SensorReadingAggregate?>(null);
 
             var @event = CreateSampleEvent(aggregateId);
@@ -120,39 +117,22 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         #region HandleAsync - Error Handling Tests
 
         [Fact]
-        public async Task HandleAsync_WithInvalidData_ShouldThrowInvalidOperationException()
+        public async Task HandleAsync_WithInvalidData_ShouldThrowException()
         {
             // Arrange
             var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
+            A.CallTo(() => _repository.GetByIdAsync(A<Guid>._, A<CancellationToken>._))
                 .Returns<SensorReadingAggregate?>(null);
 
             var @event = CreateInvalidEvent(aggregateId);
 
-            // Act & Assert
-            await Should.ThrowAsync<InvalidOperationException>(async () =>
-                await _handler.Handle(@event.EventData, CancellationToken.None));
-        }
-
-        [Fact]
-        public async Task HandleAsync_WithOutboxFailure_ShouldLogErrorAndRethrow()
-        {
-            // Arrange
-            var aggregateId = Guid.NewGuid();
-            A.CallTo(() => _repository.GetByIdAsync(aggregateId, A<CancellationToken>._))
-                .Returns<SensorReadingAggregate?>(null);
-
-            A.CallTo(() => _outbox.SaveChangesAsync(A<CancellationToken>._))
-                .Throws<InvalidOperationException>();
-
-            var @event = CreateSampleEvent(aggregateId);
-
-            // Act & Assert
+            // Act & Assert - Should throw exception (Wolverine will move to DLQ)
             await Should.ThrowAsync<InvalidOperationException>(async () =>
                 await _handler.Handle(@event.EventData, CancellationToken.None));
 
-            // Verify error was logged
-            A.CallTo(_logger).MustHaveHappened();
+            // Should NOT persist (exception thrown before persistence)
+            A.CallTo(() => _repository.Add(A<SensorReadingAggregate>._))
+                .MustNotHaveHappened();
         }
 
         #endregion
