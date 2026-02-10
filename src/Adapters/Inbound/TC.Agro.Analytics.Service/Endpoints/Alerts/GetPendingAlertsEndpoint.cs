@@ -86,7 +86,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
 
     public override async Task HandleAsync(GetPendingAlertsQuery req, CancellationToken ct)
     {
-        var response = await req.ExecuteAsync(ct: ct);
-        await MatchResultAsync(response, ct);
+        var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+        await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
