@@ -16,7 +16,6 @@
 	
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
-		<Folder Include="Projections\" />
 		<Folder Include="Queries\GetPlotStatus\" />
 		<Folder Include="Responses\" />
 		<Folder Include="UseCases\Alerts\AcknowledgeAlert\" />

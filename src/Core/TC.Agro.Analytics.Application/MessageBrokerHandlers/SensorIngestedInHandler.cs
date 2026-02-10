@@ -34,63 +34,69 @@ public class SensorIngestedHandler
 
         public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
         {
-            try
+            _logger.LogInformation(
+                "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
+                message.SensorId, 
+                message.PlotId);
+
+            // 1. Map event to domain aggregate
+            var mapResult = await MapAsync(message);
+            if (!mapResult.IsSuccess)
             {
-                _logger.LogInformation(
-                    "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
-                    message.SensorId, 
-                    message.PlotId);
-
-                // 1. Map event to domain aggregate
-                var aggregate = await MapAsync(message);
-
-                // 2. Validate (idempotency check)
-                var validationResult = await ValidateAsync(aggregate, cancellationToken);
-                if (!validationResult)
-                {
-                    return; // Duplicate detected, skip processing
-                }
-
-                // 3. Execute business logic (evaluate alerts with GLOBAL thresholds from config)
-                aggregate.EvaluateAlerts(_alertThresholds);
-
-                // 4. Persist aggregate
-                _repository.Add(aggregate);
-
-                // 5. Create related entities (alerts) - following the pattern
-                //    Domain: generates events
-                //    Application: creates read models from those events
-                await CreateRelatedEntitiesAsync(aggregate, cancellationToken);
-
-                // 6. Commit transaction
-                await _outbox.SaveChangesAsync(cancellationToken);
-
-                // 7. Mark events as committed
-                aggregate.MarkEventsAsCommitted();
-
-                _logger.LogInformation(
-                    "✅ Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
-                    aggregate.SensorId, 
-                    aggregate.PlotId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, 
-                    "❌ Error processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
+                _logger.LogError(
+                    "❌ Invalid event data for Sensor {SensorId}, Plot {PlotId}: {Errors}. Moving to DLQ.",
                     message.SensorId,
-                    message.PlotId);
+                    message.PlotId,
+                    string.Join(", ", mapResult.ValidationErrors.Select(e => e.ErrorMessage)));
 
+                // Throw to move event to DLQ (preserves for later analysis)
+                // This is different from business validation (duplicates) which should be skipped
                 throw new InvalidOperationException(
-                    $"Failed to process sensor reading for Sensor {message.SensorId}, Plot {message.PlotId}", 
-                    ex);
+                    $"Invalid sensor data for Sensor {message.SensorId}, Plot {message.PlotId}: " +
+                    $"{string.Join(", ", mapResult.ValidationErrors.Select(e => e.ErrorMessage))}");
             }
+
+            var aggregate = mapResult.Value;
+
+            // 2. Validate (idempotency check)
+            var validationResult = await ValidateAsync(aggregate, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "🔄 Duplicate event for SensorReading {AggregateId}. Skipping processing (idempotent).",
+                    aggregate.Id);
+                return; // Skip duplicates (idempotent)
+            }
+
+            // 3. Execute business logic (evaluate alerts with GLOBAL thresholds from config)
+            aggregate.EvaluateAlerts(_alertThresholds);
+
+            // 4. Persist aggregate
+            _repository.Add(aggregate);
+
+            // 5. Create related entities (alerts) - following the pattern
+            //    Domain: generates events
+            //    Application: creates read models from those events
+            await CreateRelatedEntitiesAsync(aggregate, cancellationToken);
+
+            // 6. Commit transaction
+            await _outbox.SaveChangesAsync(cancellationToken);
+
+            // 7. Mark events as committed
+            aggregate.MarkEventsAsCommitted();
+
+            _logger.LogInformation(
+                "✅ Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
+                aggregate.SensorId, 
+                aggregate.PlotId);
         }
 
         /// <summary>
         /// Maps integration event to domain aggregate.
         /// Similar to MapAsync in BaseCommandHandler.
+        /// Returns Result pattern - NO exceptions thrown for validation errors.
         /// </summary>
-        private static Task<SensorReadingAggregate> MapAsync(SensorIngestedIntegrationEvent message)
+        private static Task<Result<SensorReadingAggregate>> MapAsync(SensorIngestedIntegrationEvent message)
         {
             var timeUtc = message.Time.Kind == DateTimeKind.Utc 
                 ? message.Time 
@@ -107,20 +113,16 @@ public class SensorIngestedHandler
                 batteryLevel: message.BatteryLevel
             );
 
-            if (!result.IsSuccess)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to create SensorReadingAggregate: {string.Join(", ", result.ValidationErrors.Select(e => e.ErrorMessage))}");
-            }
-
-            return Task.FromResult(result.Value);
+            // ✅ Return Result directly - NO throw!
+            return Task.FromResult(result);
         }
 
         /// <summary>
         /// Validates business rules (idempotency).
         /// Similar to ValidateAsync in BaseCommandHandler.
+        /// Returns Result pattern - NO exceptions thrown.
         /// </summary>
-        private async Task<bool> ValidateAsync(
+        private async Task<Result> ValidateAsync(
             SensorReadingAggregate aggregate, 
             CancellationToken cancellationToken)
         {
@@ -129,10 +131,12 @@ public class SensorIngestedHandler
             if (existingAggregate != null)
             {
                 _logger.LogWarning("Duplicate event detected: {AggregateId}", aggregate.Id);
-                return false;
+                return Result.Invalid(new ValidationError(
+                    "Aggregate.Duplicate",
+                    $"Sensor reading with ID {aggregate.Id} already exists (idempotency check)"));
             }
 
-            return true;
+            return Result.Success();
         }
 
         /// <summary>
