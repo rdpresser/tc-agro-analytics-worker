@@ -14,10 +14,6 @@
 		<!-- Health Check -->
 		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
-		
-		<!-- Misc -->
-		<PackageReference Include="Bogus" />
-		<PackageReference Include="DotNetEnv" />
 	
 		<!-- EntityFramework Core (Design Tools) -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">

@@ -15,22 +15,24 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 // ========================================
 // Configure HTTP request pipeline
+// Pattern: Identity-Service architecture
 // ========================================
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerGen();
-}
 
+// 1. CORS (must be early in pipeline)
 app.UseCors("DefaultCorsPolicy");
-app.UseMiddleware<CorrelationMiddleware>();
-app.UseFastEndpoints();
 
-////app.UseAuthentication()
-////  .UseAuthorization()
-////  .UseCustomFastEndpoints(app.Configuration);
+// 2. Ingress PathBase handling (nginx rewrite-target support)
+app.UseIngressPathBase(app.Configuration);
 
-app.MapAnalyticsHealthChecks();
+// 3. Early-stage middlewares (exception handling, correlation, health checks)
+app.UseCustomMiddlewares();
 
+// Authentication/Authorization disabled (anonymous access for now)
 
+// 6. FastEndpoints with Swagger (handles routing + OpenAPI generation)
+app.UseCustomFastEndpoints(app.Configuration);
+
+// Health checks are already configured in UseCustomMiddlewares()
+// No need for MapAnalyticsHealthChecks() - using middleware approach like Identity Service
 
 await app.RunAsync();

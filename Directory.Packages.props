@@ -36,11 +36,6 @@
 	<PackageVersion Include="Serilog.Sinks.Grafana.Loki" Version="8.3.2" />
 	<PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <!-- ========================= -->
-    <!-- Misc -->
-    <!-- ========================= -->
-    <PackageVersion Include="DotNetEnv" Version="3.1.1" />
-    <PackageVersion Include="Bogus" Version="35.6.5" />
-    <!-- ========================= -->
     <!-- Health Checks -->
     <!-- ========================= -->
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
