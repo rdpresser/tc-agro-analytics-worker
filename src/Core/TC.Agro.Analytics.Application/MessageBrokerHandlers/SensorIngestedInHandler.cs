@@ -1,28 +1,32 @@
+using Wolverine;
+
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers;
 
 /// <summary>
 /// Handler for processing sensor data ingestion events.
-/// Pattern: Similar to CreatePlotCommandHandler and CreateUserCommandHandler
+/// Pattern: Similar to Farm Service OwnerSnapshotHandler
 /// - Maps event to aggregate
 /// - Validates business rules (using injected global AlertThresholds)
 /// - Persists aggregate and related entities (alerts) in a single transaction
-/// - Does NOT publish domain events to external systems
+/// - Does NOT publish domain events to external systems (alerts are query-only)
+/// - Uses IUnitOfWork (not ITransactionalOutbox) - no external event publishing needed
+/// Following Farm Service pattern: implements IWolverineHandler
 /// </summary>
-public class SensorIngestedHandler
+public class SensorIngestedHandler : IWolverineHandler
     {
         private readonly ISensorReadingRepository _repository;
-        private readonly ITransactionalOutbox _outbox;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SensorIngestedHandler> _logger;
         private readonly AlertThresholds _alertThresholds;
 
         public SensorIngestedHandler(
             ISensorReadingRepository repository,
-            ITransactionalOutbox outbox,
+            IUnitOfWork unitOfWork,
             ILogger<SensorIngestedHandler> logger,
             IOptions<AlertThresholdsOptions> alertThresholdsOptions)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var options = alertThresholdsOptions?.Value ?? throw new ArgumentNullException(nameof(alertThresholdsOptions));
@@ -34,6 +38,8 @@ public class SensorIngestedHandler
 
         public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(message);
+
             _logger.LogInformation(
                 "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}", 
                 message.SensorId, 
@@ -80,10 +86,7 @@ public class SensorIngestedHandler
             await CreateRelatedEntitiesAsync(aggregate, cancellationToken);
 
             // 6. Commit transaction
-            await _outbox.SaveChangesAsync(cancellationToken);
-
-            // 7. Mark events as committed
-            aggregate.MarkEventsAsCommitted();
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation(
                 "✅ Sensor reading processed successfully for Sensor {SensorId}, Plot {PlotId}", 
@@ -127,7 +130,7 @@ public class SensorIngestedHandler
             CancellationToken cancellationToken)
         {
             // Check for existing aggregate (idempotency)
-            var existingAggregate = await _repository.GetByIdAsync(aggregate.Id, cancellationToken);
+            var existingAggregate = await _repository.GetByIdAsync(aggregate.Id, cancellationToken).ConfigureAwait(false);
             if (existingAggregate != null)
             {
                 _logger.LogWarning("Duplicate event detected: {AggregateId}", aggregate.Id);
@@ -164,7 +167,7 @@ public class SensorIngestedHandler
 
             foreach (var alert in alerts)
             {
-                await _repository.AddAlertAsync(alert, cancellationToken);
+                await _repository.AddAlertAsync(alert, cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "📝 Created {AlertType} alert (Severity: {Severity}) for Sensor {SensorId}",

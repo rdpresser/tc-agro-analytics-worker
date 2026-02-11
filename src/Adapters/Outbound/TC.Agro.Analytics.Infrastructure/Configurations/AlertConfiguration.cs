@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Infrastructure.Persistence.Configurations;
+namespace TC.Agro.Analytics.Infrastructure.Configurations;
 
 /// <summary>
 /// EF Core configuration for Alert read model entity.

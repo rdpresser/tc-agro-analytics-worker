@@ -5,7 +5,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositores;
 /// Follows the same pattern as Identity-Service (EF Core, not Marten).
 /// </summary>
 public class SensorReadingRepository 
-    : BaseRepository<SensorReadingAggregate, ApplicationDbContext>, 
+    : BaseRepository<SensorReadingAggregate>, 
       ISensorReadingRepository
 {
     public SensorReadingRepository(ApplicationDbContext dbContext)
@@ -15,6 +15,6 @@ public class SensorReadingRepository
 
     public async Task AddAlertAsync(Alert alert, CancellationToken cancellationToken = default)
     {
-        await DbContext.Alerts.AddAsync(alert, cancellationToken);
+        await DbContext.Alerts.AddAsync(alert, cancellationToken).ConfigureAwait(false);
     }
 }

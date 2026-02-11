@@ -31,6 +31,9 @@ public static class DependencyInjection
             // Register ApplicationDbContext as IApplicationDbContext (required for ApplyMigrations)
             services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
+            // Unit of Work (for simple handlers that don't need outbox)
+            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
             SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
 
             // Register Repositories (Write side - CQRS)
@@ -38,9 +41,6 @@ public static class DependencyInjection
 
             // Register Read Stores (Read side - CQRS)
             services.AddScoped<IAlertReadStore, AlertReadStore>();
-
-            // Register Transactional Outbox (Wolverine + EF Core)
-            services.AddScoped<ITransactionalOutbox, AnalyticsOutbox>();
 
             return services;
         }

@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Infrastructure.Stores;
+namespace TC.Agro.Analytics.Infrastructure.Repositores;
 
 /// <summary>
 /// Read-only store implementation for Alert queries.

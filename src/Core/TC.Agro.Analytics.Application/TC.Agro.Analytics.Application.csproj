@@ -1,6 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Remove="Queries\**" />
+    <Compile Remove="Responses\**" />
+    <Compile Remove="UseCases\Alerts\**" />
+    <EmbeddedResource Remove="Queries\**" />
+    <EmbeddedResource Remove="Responses\**" />
+    <EmbeddedResource Remove="UseCases\Alerts\**" />
+    <None Remove="Queries\**" />
+    <None Remove="Responses\**" />
+    <None Remove="UseCases\Alerts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
     <ProjectReference Include="..\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
@@ -16,10 +28,6 @@
 	
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
-		<Folder Include="Queries\GetPlotStatus\" />
-		<Folder Include="Responses\" />
-		<Folder Include="UseCases\Alerts\AcknowledgeAlert\" />
-		<Folder Include="UseCases\Alerts\ResolveAlert\" />
 		<Folder Include="Validators\" />
 	</ItemGroup>
 
