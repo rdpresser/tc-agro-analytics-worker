@@ -23,7 +23,7 @@ global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.GetPlotStatu
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
-global using TC.Agro.Analytics.Domain.Entities;
+global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Analytics.Infrastructure.Repositores;
 global using TC.Agro.SharedKernel.Application.Ports;

@@ -9,7 +9,7 @@ global using System.Text.Json;
 global using System.Text.RegularExpressions;
 global using Ardalis.Result;
 global using TC.Agro.Analytics.Domain.Abstractions;
-global using TC.Agro.Analytics.Domain.Entities;
+global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.SharedKernel.Domain;
 global using TC.Agro.SharedKernel.Domain.Aggregate;

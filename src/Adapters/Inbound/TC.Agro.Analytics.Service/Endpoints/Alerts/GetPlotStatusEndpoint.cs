@@ -75,7 +75,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
 
     public override async Task HandleAsync(GetPlotStatusQuery req, CancellationToken ct)
     {
-        var response = await req.ExecuteAsync(ct: ct);
-        await MatchResultAsync(response, ct);
+        var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+        await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }

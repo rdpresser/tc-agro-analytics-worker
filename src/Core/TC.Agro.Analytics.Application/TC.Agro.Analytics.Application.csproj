@@ -4,12 +4,15 @@
     <Compile Remove="Queries\**" />
     <Compile Remove="Responses\**" />
     <Compile Remove="UseCases\Alerts\**" />
+    <Compile Remove="Validators\**" />
     <EmbeddedResource Remove="Queries\**" />
     <EmbeddedResource Remove="Responses\**" />
     <EmbeddedResource Remove="UseCases\Alerts\**" />
+    <EmbeddedResource Remove="Validators\**" />
     <None Remove="Queries\**" />
     <None Remove="Responses\**" />
     <None Remove="UseCases\Alerts\**" />
+    <None Remove="Validators\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +31,6 @@
 	
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
-		<Folder Include="Validators\" />
 	</ItemGroup>
 
 </Project>

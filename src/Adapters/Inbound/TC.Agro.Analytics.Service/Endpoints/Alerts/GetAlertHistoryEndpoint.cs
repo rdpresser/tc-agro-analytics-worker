@@ -101,7 +101,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
 
     public override async Task HandleAsync(GetAlertHistoryQuery req, CancellationToken ct)
     {
-        var response = await req.ExecuteAsync(ct: ct);
+        var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }

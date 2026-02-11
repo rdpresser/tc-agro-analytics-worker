@@ -117,7 +117,7 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
         #region HandleAsync - Error Handling Tests
 
         [Fact]
-        public async Task HandleAsync_WithInvalidData_ShouldThrowException()
+        public async Task HandleAsync_WithInvalidData_ShouldSkipProcessing()
         {
             // Arrange
             var aggregateId = Guid.NewGuid();
@@ -126,11 +126,10 @@ namespace TC.Agro.Analytics.Tests.Application.MessageBrokerHandlers
 
             var @event = CreateInvalidEvent(aggregateId);
 
-            // Act & Assert - Should throw exception (Wolverine will move to DLQ)
-            await Should.ThrowAsync<InvalidOperationException>(async () =>
-                await _handler.Handle(@event.EventData, CancellationToken.None));
+            // Act - Should skip processing (no throw)
+            await _handler.Handle(@event.EventData, CancellationToken.None);
 
-            // Should NOT persist (exception thrown before persistence)
+            // Assert - Should NOT persist (invalid data skipped)
             A.CallTo(() => _repository.Add(A<SensorReadingAggregate>._))
                 .MustNotHaveHappened();
         }

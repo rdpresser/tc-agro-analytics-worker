@@ -20,7 +20,7 @@ global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Application.Configuration;
 global using TC.Agro.Analytics.Domain.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
-global using TC.Agro.Analytics.Domain.Entities;
+global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.SharedKernel.Application.Handlers;

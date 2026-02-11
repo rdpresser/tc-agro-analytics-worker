@@ -1,8 +1,9 @@
-namespace TC.Agro.Analytics.Domain.Entities;
+namespace TC.Agro.Analytics.Domain.Snapshots;
 
 /// <summary>
-/// Read model entity for alerts - database projection (CQRS pattern).
-/// While typically read models live in Infrastructure, this stays in Domain because:
+/// Alert snapshot (read model) - database projection for alert queries (CQRS pattern).
+/// Following Farm Service pattern (OwnerSnapshot).
+/// This stays in Domain because:
 /// 1. SensorReadingAggregate creates it from domain events
 /// 2. It's a projection OF domain events (not infrastructure concern)
 /// 3. Identity Service does this differently (projects Aggregate → Response in ReadStore)

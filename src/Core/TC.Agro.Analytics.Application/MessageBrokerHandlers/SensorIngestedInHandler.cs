@@ -28,12 +28,12 @@ public class SensorIngestedHandler : IWolverineHandler
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            ArgumentNullException.ThrowIfNull(alertThresholdsOptions);
 
-            var options = alertThresholdsOptions?.Value ?? throw new ArgumentNullException(nameof(alertThresholdsOptions));
             _alertThresholds = new AlertThresholds(
-                maxTemperature: options.MaxTemperature,
-                minSoilMoisture: options.MinSoilMoisture,
-                minBatteryLevel: options.MinBatteryLevel);
+                maxTemperature: alertThresholdsOptions.Value.MaxTemperature,
+                minSoilMoisture: alertThresholdsOptions.Value.MinSoilMoisture,
+                minBatteryLevel: alertThresholdsOptions.Value.MinBatteryLevel);
         }
 
         public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
@@ -49,17 +49,16 @@ public class SensorIngestedHandler : IWolverineHandler
             var mapResult = await MapAsync(message);
             if (!mapResult.IsSuccess)
             {
-                _logger.LogError(
-                    "❌ Invalid event data for Sensor {SensorId}, Plot {PlotId}: {Errors}. Moving to DLQ.",
+                _logger.LogWarning(
+                    "⚠️ Invalid event data for Sensor {SensorId}, Plot {PlotId}: {Errors}. Skipping processing (idempotent).",
                     message.SensorId,
                     message.PlotId,
                     string.Join(", ", mapResult.ValidationErrors.Select(e => e.ErrorMessage)));
 
-                // Throw to move event to DLQ (preserves for later analysis)
-                // This is different from business validation (duplicates) which should be skipped
-                throw new InvalidOperationException(
-                    $"Invalid sensor data for Sensor {message.SensorId}, Plot {message.PlotId}: " +
-                    $"{string.Join(", ", mapResult.ValidationErrors.Select(e => e.ErrorMessage))}");
+                // Skip invalid events (idempotent) - NO throw new (following Result pattern)
+                // Per reviewer guidance: "nunca disparar throw new para regras de negocio"
+                // Only constructors (IoC) and required configs should throw
+                return;
             }
 
             var aggregate = mapResult.Value;
