@@ -1,5 +1,6 @@
 namespace TC.Agro.Analytics.Service.Extensions;
-
+using TC.Agro.Messaging.Extensions;
+using Wolverine.Postgresql;
 internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAnalyticsServices(this IServiceCollection services, WebApplicationBuilder builder)
@@ -259,15 +260,19 @@ internal static class ServiceCollectionExtensions
             // -------------------------------
             opts.Policies.UseDurableLocalQueues();
             opts.Policies.AutoApplyTransactions();
-
-            // IMPORTANT: Integrate with EF Core for transactional outbox
-            // This ensures messages are persisted atomically with database changes
             opts.UseEntityFrameworkCoreTransactions();
 
             // -------------------------------
             // OUTBOX (for sending)
             // -------------------------------
             opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+            // -------------------------------
+            // INBOX (for receiving) - optional but recommended
+            // -------------------------------
+            // This makes message consumption safe in face of retries/crashes.
+            // It gives "at-least-once safe" processing with deduplication.
+            opts.Policies.UseDurableInboxOnAllListeners();
 
             // -------------------------------
             // Load and configure message broker
@@ -299,29 +304,19 @@ internal static class ServiceCollectionExtensions
                 .BufferedInMemory()
                 .UseDurableOutbox();
 
-            // -------------------------------
-            // Receiving (Inbox) - FUTURE USE (commented for now)
-            // -------------------------------
-            // When you want to consume events from other services:
-            //
-            // opts.ListenToRabbitQueue("tc-agro.identity.queue")
-            //     .UseDurableInbox(); // ensures deduplication on receive
-            //
-            // Then create a handler class:
-            // public static Task Handle(FarmCreatedIntegrationEvent evt) { ... }
+            // ============================================================
+            // PUBLISHING - Farm Service Events (TOPIC Exchange)
+            // Farm publishes its own events (Property, Plot, Sensor)
+            // ============================================================
+            ////opts.PublishMessage<EventContext<PropertyCreatedIntegrationEvent>>()
+            ////    .ToRabbitExchange(exchangeName)
+            ////    .BufferedInMemory()
+            ////    .UseDurableOutbox();
 
-
-
-            //// Deixar parametrizado, appsettings para quando precisar consumir eventos de outros serviços
-            rabbitOpts.DeclareQueue("analytics.sensor.ingested.queue", queue =>
-            {
-                queue.IsDurable = mqConnectionFactory.Durable;
-                queue.IsExclusive = false;
-                queue.AutoDelete = false;
-            });
-            opts.ListenToRabbitQueue("analytics.sensor.ingested.queue")
-                .UseDurableInbox(); // Ensures deduplication and reliable processing
-
+            ////opts.ConfigureIdentityUserEventsConsumption(
+            ////     exchangeName: "identity.events-exchange",
+            ////     queueName: "farm-identity-user-events-queue"
+            //// );
         });
 
         // -------------------------------

@@ -21,11 +21,9 @@ global using GetAlertHistory = TC.Agro.Analytics.Application.UseCases.GetAlertHi
 global using GetPendingAlerts = TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
 global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
-global using TC.Agro.Analytics.Domain.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
-global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Analytics.Domain.ValueObjects;
-global using TC.Agro.Analytics.Infrastructure.Repositores;
+global using TC.Agro.Analytics.Infrastructure.Repositories;
 global using TC.Agro.SharedKernel.Application.Ports;
 global using TC.Agro.SharedKernel.Domain;
 global using TC.Agro.SharedKernel.Domain.Aggregate;

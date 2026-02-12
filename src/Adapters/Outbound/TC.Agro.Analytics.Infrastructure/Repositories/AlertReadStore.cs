@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Infrastructure.Repositores;
+namespace TC.Agro.Analytics.Infrastructure.Repositories;
 
 /// <summary>
 /// Read-only store implementation for Alert queries.
@@ -32,16 +32,16 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(pageSize)
             .Select(a => new GetPendingAlerts.PendingAlertResponse(
                 a.Id,
-                a.SensorReadingId,
+                a.Id, // AlertAggregate doesn't have SensorReadingId (removed ownership violation)
                 a.SensorId,
                 a.PlotId,
-                a.AlertType,
+                a.Type.Value,
                 a.Message,
-                a.Status,
-                a.Severity,
+                a.Status.Value,
+                a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt,
+                a.CreatedAt.DateTime,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy))
             .ToListAsync(cancellationToken);
@@ -62,7 +62,7 @@ public sealed class AlertReadStore : IAlertReadStore
         int pageSize = 100,
         CancellationToken cancellationToken = default)
     {
-        var cutoffDate = DateTime.UtcNow.AddDays(-days);
+        var cutoffDate = DateTimeOffset.UtcNow.AddDays(-days);
 
         var query = _dbContext.Alerts
             .AsNoTracking()
@@ -71,12 +71,12 @@ public sealed class AlertReadStore : IAlertReadStore
 
         if (!string.IsNullOrEmpty(alertType))
         {
-            query = query.Where(a => a.AlertType == alertType);
+            query = query.Where(a => a.Type.Value == alertType);
         }
 
         if (!string.IsNullOrEmpty(status))
         {
-            query = query.Where(a => a.Status == status);
+            query = query.Where(a => a.Status.Value == status);
         }
 
         query = query.OrderByDescending(a => a.CreatedAt);
@@ -88,16 +88,16 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(pageSize)
             .Select(a => new GetAlertHistory.AlertHistoryResponse(
                 a.Id,
-                a.SensorReadingId,
+                a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
                 a.PlotId,
-                a.AlertType,
+                a.Type.Value,
                 a.Message,
-                a.Status,
-                a.Severity,
+                a.Status.Value,
+                a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt,
+                a.CreatedAt.DateTime,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy,
                 a.ResolvedAt,
@@ -116,8 +116,8 @@ public sealed class AlertReadStore : IAlertReadStore
         Guid plotId,
         CancellationToken cancellationToken = default)
     {
-        var last7Days = DateTime.UtcNow.AddDays(-7);
-        var last24Hours = DateTime.UtcNow.AddDays(-1);
+        var last7Days = DateTimeOffset.UtcNow.AddDays(-7);
+        var last24Hours = DateTimeOffset.UtcNow.AddDays(-1);
 
         var allAlerts = await _dbContext.Alerts
             .AsNoTracking()
@@ -128,11 +128,11 @@ public sealed class AlertReadStore : IAlertReadStore
         var last24HoursCount = allAlerts.Count(a => a.CreatedAt >= last24Hours);
 
         var alertsByType = allAlerts
-            .GroupBy(a => a.AlertType)
+            .GroupBy(a => a.Type.Value)
             .ToDictionary(g => g.Key, g => g.Count());
 
         var alertsBySeverity = allAlerts
-            .GroupBy(a => a.Severity)
+            .GroupBy(a => a.Severity.Value)
             .ToDictionary(g => g.Key, g => g.Count());
 
         var mostRecent = allAlerts
@@ -142,15 +142,15 @@ public sealed class AlertReadStore : IAlertReadStore
         var mostRecentAlert = mostRecent != null
             ? new GetPlotStatus.PlotStatusAlertResponse(
                 mostRecent.Id,
-                mostRecent.SensorReadingId,
+                mostRecent.Id, // AlertAggregate doesn't have SensorReadingId
                 mostRecent.SensorId,
-                mostRecent.AlertType,
+                mostRecent.Type.Value,
                 mostRecent.Message,
-                mostRecent.Status,
-                mostRecent.Severity,
+                mostRecent.Status.Value,
+                mostRecent.Severity.Value,
                 mostRecent.Value,
                 mostRecent.Threshold,
-                mostRecent.CreatedAt)
+                mostRecent.CreatedAt.DateTime)
             : null;
 
         var overallStatus = pendingCount switch

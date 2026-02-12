@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/common/">
     <Project Path="../../common/src/TC.Agro.Contracts/TC.Agro.Contracts.csproj" />
+    <Project Path="../../common/src/TC.Agro.Messaging/TC.Agro.Messaging.csproj" />
     <Project Path="../../common/src/TC.Agro.SharedKernel/TC.Agro.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
@@ -12,7 +13,6 @@
   <Folder Name="/src/" />
   <Folder Name="/src/Adapters/" />
   <Folder Name="/src/Adapters/Driven (Outbound)/">
-    <File Path="src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.http" />
     <Project Path="src/Adapters/Outbound/TC.Agro.Analytics.Infrastructure/TC.Agro.Analytics.Infrastructure.csproj" Id="445e1fa3-6c6f-4b34-9d75-a107c69fe12f" />
   </Folder>
   <Folder Name="/src/Adapters/Driver (Inbound)/">

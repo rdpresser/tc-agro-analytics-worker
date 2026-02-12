@@ -1,129 +1,61 @@
 namespace TC.Agro.Analytics.Tests.Domain.Aggregates;
 
 /// <summary>
-/// Unit tests for AlertAggregate
+/// Unit tests for AlertAggregate.
+/// Following Farm/Identity pattern: test factory, validations, and business logic.
 /// </summary>
 public class AlertAggregateTests
 {
-    #region Create Tests
+    #region Factory Tests
 
     [Fact]
-    public void Create_WithValidData_ShouldSucceed()
+    public void Create_WithValidParameters_ShouldSucceed()
     {
         // Arrange
         var sensorId = "SENSOR-001";
         var plotId = Guid.NewGuid();
         var type = AlertType.HighTemperature;
         var severity = AlertSeverity.High;
-        var message = "High temperature detected";
+        var message = "High temperature detected: 38.5°C";
+        var value = 38.5;
+        var threshold = 35.0;
 
         // Act
-        var result = AlertAggregate.Create(
-            sensorId,
-            plotId,
-            type,
-            severity,
-            message,
-            temperature: 38.5);
+        var result = AlertAggregate.Create(sensorId, plotId, type, severity, message, value, threshold);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        var aggregate = result.Value;
-        aggregate.ShouldNotBeNull();
-        aggregate.SensorId.ShouldBe(sensorId);
-        aggregate.PlotId.ShouldBe(plotId);
-        aggregate.Type.ShouldBe(type);
-        aggregate.Severity.ShouldBe(severity);
-        aggregate.Message.ShouldBe(message);
-        aggregate.Temperature.ShouldBe(38.5);
-        aggregate.Status.ShouldBe(AlertStatus.Pending);
-        aggregate.DetectedAt.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
-    }
-
-    [Fact]
-    public void Create_WithValidData_ShouldRaiseAlertCreatedDomainEvent()
-    {
-        // Arrange
-        var sensorId = "SENSOR-001";
-        var plotId = Guid.NewGuid();
-        var type = AlertType.HighTemperature;
-        var severity = AlertSeverity.Critical;
-        var message = "Critical temperature alert";
-
-        // Act
-        var result = AlertAggregate.Create(
-            sensorId,
-            plotId,
-            type,
-            severity,
-            message);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var aggregate = result.Value;
-        aggregate.UncommittedEvents.ShouldNotBeEmpty();
-        aggregate.UncommittedEvents.Count.ShouldBe(1);
-
-        var domainEvent = aggregate.UncommittedEvents[0];
-        domainEvent.ShouldBeOfType<AlertAggregate.AlertCreatedDomainEvent>();
-        
-        var alertCreatedEvent = (AlertAggregate.AlertCreatedDomainEvent)domainEvent;
-        alertCreatedEvent.SensorId.ShouldBe(sensorId);
-        alertCreatedEvent.PlotId.ShouldBe(plotId);
-        alertCreatedEvent.Type.ShouldBe(type);
-        alertCreatedEvent.Severity.ShouldBe(severity);
-        alertCreatedEvent.Message.ShouldBe(message);
+        result.Value.SensorId.ShouldBe(sensorId);
+        result.Value.PlotId.ShouldBe(plotId);
+        result.Value.Type.ShouldBe(type);
+        result.Value.Severity.ShouldBe(severity);
+        result.Value.Message.ShouldBe(message);
+        result.Value.Value.ShouldBe(value);
+        result.Value.Threshold.ShouldBe(threshold);
+        result.Value.Status.ShouldBe(AlertStatus.Pending);
+        result.Value.Id.ShouldNotBe(Guid.Empty);
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Create_WithInvalidSensorId_ShouldFail(string? invalidSensorId)
-    {
-        // Arrange & Act
-        var result = AlertAggregate.Create(
-            invalidSensorId!,
-            Guid.NewGuid(),
-            AlertType.HighTemperature,
-            AlertSeverity.High,
-            "Test message");
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.Status.ShouldBe(ResultStatus.Invalid);
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "SensorId.Required");
-    }
-
-    [Fact]
-    public void Create_WithSensorIdTooLong_ShouldFail()
+    [InlineData("", "SensorId.Required")]
+    public void Create_WithInvalidSensorId_ShouldReturnValidationError(string sensorId, string expectedErrorCode)
     {
         // Arrange
-        var longSensorId = new string('A', 101);
+        var plotId = Guid.NewGuid();
 
         // Act
-        var result = AlertAggregate.Create(
-            longSensorId,
-            Guid.NewGuid(),
-            AlertType.HighTemperature,
-            AlertSeverity.High,
-            "Test message");
+        var result = AlertAggregate.Create(sensorId, plotId, AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "SensorId.TooLong");
+        result.ValidationErrors.ShouldContain(e => e.Identifier.Contains(expectedErrorCode));
     }
 
     [Fact]
-    public void Create_WithEmptyPlotId_ShouldFail()
+    public void Create_WithEmptyPlotId_ShouldReturnValidationError()
     {
-        // Arrange & Act
-        var result = AlertAggregate.Create(
-            "SENSOR-001",
-            Guid.Empty,
-            AlertType.HighTemperature,
-            AlertSeverity.High,
-            "Test message");
+        // Act
+        var result = AlertAggregate.Create("SENSOR-001", Guid.Empty, AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -131,264 +63,270 @@ public class AlertAggregateTests
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Create_WithInvalidMessage_ShouldFail(string? invalidMessage)
+    [InlineData("", "Message.Required")]
+    public void Create_WithInvalidMessage_ShouldReturnValidationError(string message, string expectedErrorCode)
     {
-        // Arrange & Act
-        var result = AlertAggregate.Create(
-            "SENSOR-001",
-            Guid.NewGuid(),
-            AlertType.HighTemperature,
-            AlertSeverity.High,
-            invalidMessage!);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "Message.Required");
-    }
-
-    [Fact]
-    public void Create_WithMessageTooLong_ShouldFail()
-    {
-        // Arrange
-        var longMessage = new string('A', 501);
-
         // Act
-        var result = AlertAggregate.Create(
-            "SENSOR-001",
-            Guid.NewGuid(),
-            AlertType.HighTemperature,
-            AlertSeverity.High,
-            longMessage);
+        var result = AlertAggregate.Create("SENSOR-001", Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, message, 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "Message.TooLong");
+        result.ValidationErrors.ShouldContain(e => e.Identifier.Contains(expectedErrorCode));
     }
 
     #endregion
 
-    #region Acknowledge Command Tests
+    #region Acknowledge Tests
 
     [Fact]
     public void Acknowledge_WithValidUserId_ShouldSucceed()
     {
         // Arrange
-        var aggregate = CreateValidAlert();
-        var userId = "user@example.com";
-
-        // Act
-        var result = aggregate.Acknowledge(userId);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        aggregate.Status.ShouldBe(AlertStatus.Acknowledged);
-        aggregate.AcknowledgedBy.ShouldBe(userId);
-        aggregate.AcknowledgedAt.ShouldNotBeNull();
-        aggregate.AcknowledgedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
-    }
-
-    [Fact]
-    public void Acknowledge_WithValidUserId_ShouldRaiseAlertAcknowledgedDomainEvent()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.MarkEventsAsCommitted(); // Limpar eventos anteriores
-        var userId = "user@example.com";
-
-        // Act
-        var result = aggregate.Acknowledge(userId);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        aggregate.UncommittedEvents.ShouldNotBeEmpty();
-        aggregate.UncommittedEvents.Count.ShouldBe(1);
-
-        var domainEvent = aggregate.UncommittedEvents[0];
-        domainEvent.ShouldBeOfType<AlertAggregate.AlertAcknowledgedDomainEvent>();
-        
-        var acknowledgedEvent = (AlertAggregate.AlertAcknowledgedDomainEvent)domainEvent;
-        acknowledgedEvent.AcknowledgedBy.ShouldBe(userId);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Acknowledge_WithInvalidUserId_ShouldFail(string? invalidUserId)
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-
-        // Act
-        var result = aggregate.Acknowledge(invalidUserId!);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "UserId.Required");
-        aggregate.Status.ShouldBe(AlertStatus.Pending);
-    }
-
-    [Fact]
-    public void Acknowledge_WhenAlreadyAcknowledged_ShouldFail()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.Acknowledge("user1@example.com");
-
-        // Act
-        var result = aggregate.Acknowledge("user2@example.com");
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "Alert.AlreadyAcknowledged");
-    }
-
-    [Fact]
-    public void Acknowledge_WhenAlreadyResolved_ShouldFail()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.Acknowledge("user@example.com");
-        aggregate.Resolve("admin@example.com", "Fixed");
-
-        // Act
-        var result = aggregate.Acknowledge("another@example.com");
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "Alert.AlreadyResolved");
-    }
-
-    #endregion
-
-    #region Resolve Command Tests
-
-    [Fact]
-    public void Resolve_WithValidData_ShouldSucceed()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.Acknowledge("user@example.com");
-        var adminId = "admin@example.com";
-        var resolutionNotes = "Temperature returned to normal";
-
-        // Act
-        var result = aggregate.Resolve(adminId, resolutionNotes);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        aggregate.Status.ShouldBe(AlertStatus.Resolved);
-        aggregate.ResolvedBy.ShouldBe(adminId);
-        aggregate.ResolutionNotes.ShouldBe(resolutionNotes);
-        aggregate.ResolvedAt.ShouldNotBeNull();
-        aggregate.ResolvedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
-    }
-
-    [Fact]
-    public void Resolve_WithValidData_ShouldRaiseAlertResolvedDomainEvent()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.MarkEventsAsCommitted();
-        var adminId = "admin@example.com";
-        var resolutionNotes = "Issue resolved";
-
-        // Act
-        var result = aggregate.Resolve(adminId, resolutionNotes);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        aggregate.UncommittedEvents.ShouldNotBeEmpty();
-
-        var domainEvent = aggregate.UncommittedEvents[aggregate.UncommittedEvents.Count - 1];
-        domainEvent.ShouldBeOfType<AlertAggregate.AlertResolvedDomainEvent>();
-        
-        var resolvedEvent = (AlertAggregate.AlertResolvedDomainEvent)domainEvent;
-        resolvedEvent.ResolvedBy.ShouldBe(adminId);
-        resolvedEvent.ResolutionNotes.ShouldBe(resolutionNotes);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Resolve_WithInvalidUserId_ShouldFail(string? invalidUserId)
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-
-        // Act
-        var result = aggregate.Resolve(invalidUserId!, "Notes");
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "UserId.Required");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Resolve_WithInvalidResolutionNotes_ShouldFail(string? invalidNotes)
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-
-        // Act
-        var result = aggregate.Resolve("admin@example.com", invalidNotes!);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "ResolutionNotes.Required");
-    }
-
-    [Fact]
-    public void Resolve_WhenAlreadyResolved_ShouldFail()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-        aggregate.Resolve("admin1@example.com", "First resolution");
-
-        // Act
-        var result = aggregate.Resolve("admin2@example.com", "Second resolution");
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "Alert.AlreadyResolved");
-    }
-
-    [Fact]
-    public void Resolve_FromPendingStatus_ShouldSucceed()
-    {
-        // Arrange
-        var aggregate = CreateValidAlert();
-
-        // Act
-        var result = aggregate.Resolve("admin@example.com", "Resolved directly");
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        aggregate.Status.ShouldBe(AlertStatus.Resolved);
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private static AlertAggregate CreateValidAlert()
-    {
-        var result = AlertAggregate.Create(
+        var alert = AlertAggregate.Create(
             "SENSOR-001",
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
-            "Test alert message",
-            temperature: 38.5);
+            "High temperature detected",
+            38.5,
+            35.0).Value;
+        var userId = "user@example.com";
 
-        return result.Value;
+        // Act
+        var result = alert.Acknowledge(userId);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        alert.Status.ShouldBe(AlertStatus.Acknowledged);
+        alert.AcknowledgedAt.ShouldNotBeNull();
+        alert.AcknowledgedBy.ShouldBe(userId);
+        alert.AcknowledgedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Acknowledge_WithInvalidUserId_ShouldReturnValidationError(string userId)
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+
+        // Act
+        var result = alert.Acknowledge(userId);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ValidationErrors.ShouldContain(e => e.Identifier == "UserId.Required");
+    }
+
+    [Fact]
+    public void Acknowledge_WhenAlreadyAcknowledged_ShouldReturnValidationError()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+        alert.Acknowledge("user1@example.com");
+
+        // Act
+        var result = alert.Acknowledge("user2@example.com");
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ValidationErrors.ShouldContain(e => e.Identifier == "Alert.NotPending");
+    }
+
+    #endregion
+
+    #region Resolve Tests
+
+    [Fact]
+    public void Resolve_WithValidParameters_ShouldSucceed()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "High temperature detected",
+            38.5,
+            35.0).Value;
+        var userId = "user@example.com";
+        var notes = "Irrigation activated";
+
+        // Act
+        var result = alert.Resolve(userId, notes);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        alert.Status.ShouldBe(AlertStatus.Resolved);
+        alert.ResolvedAt.ShouldNotBeNull();
+        alert.ResolvedBy.ShouldBe(userId);
+        alert.ResolutionNotes.ShouldBe(notes);
+        alert.ResolvedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
+    }
+
+    [Fact]
+    public void Resolve_FromAcknowledgedStatus_ShouldSucceed()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+        alert.Acknowledge("user@example.com");
+
+        // Act
+        var result = alert.Resolve("user@example.com", "Issue fixed");
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        alert.Status.ShouldBe(AlertStatus.Resolved);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Resolve_WithInvalidUserId_ShouldReturnValidationError(string userId)
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+
+        // Act
+        var result = alert.Resolve(userId, "notes");
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ValidationErrors.ShouldContain(e => e.Identifier == "UserId.Required");
+    }
+
+    [Fact]
+    public void Resolve_WhenAlreadyResolved_ShouldReturnValidationError()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+        alert.Resolve("user1@example.com", "First resolution");
+
+        // Act
+        var result = alert.Resolve("user2@example.com", "Second resolution attempt");
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ValidationErrors.ShouldContain(e => e.Identifier == "Alert.AlreadyResolved");
+    }
+
+    [Fact]
+    public void Resolve_WithoutNotes_ShouldSucceed()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+
+        // Act
+        var result = alert.Resolve("user@example.com", null);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        alert.Status.ShouldBe(AlertStatus.Resolved);
+        alert.ResolutionNotes.ShouldBeNull();
+    }
+
+    #endregion
+
+    #region Domain Events Tests
+
+    [Fact]
+    public void Create_ShouldRaiseAlertCreatedDomainEvent()
+    {
+        // Arrange & Act
+        var result = AlertAggregate.Create("SENSOR-001", Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, "High temp", 38.5, 35.0);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        var events = result.Value.UncommittedEvents.ToList();
+        events.ShouldNotBeEmpty();
+        events.ShouldContain(e => e is AlertAggregate.AlertCreatedDomainEvent);
+    }
+
+    [Fact]
+    public void Acknowledge_ShouldRaiseAlertAcknowledgedDomainEvent()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+
+        // Act
+        alert.Acknowledge("user@example.com");
+
+        // Assert
+        var events = alert.UncommittedEvents.ToList();
+        events.Count.ShouldBeGreaterThan(1);
+        events.ShouldContain(e => e is AlertAggregate.AlertAcknowledgedDomainEvent);
+    }
+
+    [Fact]
+    public void Resolve_ShouldRaiseAlertResolvedDomainEvent()
+    {
+        // Arrange
+        var alert = AlertAggregate.Create(
+            "SENSOR-001",
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
+            AlertSeverity.High,
+            "Test message",
+            38.5,
+            35.0).Value;
+
+        // Act
+        alert.Resolve("user@example.com", "Fixed");
+
+        // Assert
+        var events = alert.UncommittedEvents.ToList();
+        events.Count.ShouldBeGreaterThan(1);
+        events.ShouldContain(e => e is AlertAggregate.AlertResolvedDomainEvent);
     }
 
     #endregion

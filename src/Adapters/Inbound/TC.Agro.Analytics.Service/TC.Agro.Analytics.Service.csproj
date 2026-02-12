@@ -65,6 +65,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
     <ProjectReference Include="..\..\Outbound\TC.Agro.Analytics.Infrastructure\TC.Agro.Analytics.Infrastructure.csproj" />
-  </ItemGroup>
+		<ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.Messaging\TC.Agro.Messaging.csproj" />
+	</ItemGroup>
 
 </Project>

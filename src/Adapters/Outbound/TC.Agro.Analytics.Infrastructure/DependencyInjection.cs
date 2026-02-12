@@ -37,7 +37,7 @@ public static class DependencyInjection
             SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
 
             // Register Repositories (Write side - CQRS)
-            services.AddScoped<ISensorReadingRepository, SensorReadingRepository>();
+            services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
 
             // Register Read Stores (Read side - CQRS)
             services.AddScoped<IAlertReadStore, AlertReadStore>();

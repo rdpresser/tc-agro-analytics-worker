@@ -15,14 +15,11 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
         DbContext IApplicationDbContext.DbContext => this;
 
         /// <summary>
-        /// Alerts read model (projected from domain events)
+        /// Alerts aggregate root.
+        /// Ownership: Analytics.Worker (per Domain Map).
+        /// Lifecycle: Pending → Acknowledged → Resolved.
         /// </summary>
-        public DbSet<Alert> Alerts { get; set; } = default!;
-
-        /// <summary>
-        /// Sensor readings aggregate root (write model)
-        /// </summary>
-        public DbSet<SensorReadingAggregate> SensorReadings { get; set; } = default!;
+        public DbSet<AlertAggregate> Alerts { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

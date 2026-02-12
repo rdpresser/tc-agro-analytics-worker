@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Infrastructure.Repositores;
+namespace TC.Agro.Analytics.Infrastructure.Repositories;
 
 /// <summary>
 /// Base repository for Analytics service aggregates.
