@@ -231,6 +231,9 @@ internal static class ServiceCollectionExtensions
             opts.Discovery.IncludeAssembly(typeof(Application.DependencyInjection).Assembly);
             opts.Discovery.IncludeAssembly(typeof(Infrastructure.DependencyInjection).Assembly);
 
+            // Include Application assembly for handlers
+            opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorIngestedHandler).Assembly);
+
             // -------------------------------
             // Durability schema (same database, different schema)
             // -------------------------------
@@ -313,10 +316,10 @@ internal static class ServiceCollectionExtensions
             ////    .BufferedInMemory()
             ////    .UseDurableOutbox();
 
-            ////opts.ConfigureIdentityUserEventsConsumption(
-            ////     exchangeName: "identity.events-exchange",
-            ////     queueName: "farm-identity-user-events-queue"
-            //// );
+            opts.ConfigureIdentityUserEventsConsumption(
+                 exchangeName: "identity.events-exchange",
+                 queueName: "analitics-identity-user-events-queue"
+             );
         });
 
         // -------------------------------

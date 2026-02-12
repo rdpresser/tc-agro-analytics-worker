@@ -5,13 +5,17 @@ public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
-        {
-            // -------------------------------
-            // EF Core with Wolverine Integration
-            // IMPORTANT: Use AddDbContextWithWolverineIntegration instead of AddDbContext
-            // This enables the transactional outbox pattern with Wolverine
-            // -------------------------------
-            services.AddDbContextWithWolverineIntegration<ApplicationDbContext>((sp, opts) =>
+    {
+        // Register Read Stores (Read side - CQRS)
+        services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
+        services.AddScoped<IAlertReadStore, AlertReadStore>();
+
+        // -------------------------------
+        // EF Core with Wolverine Integration
+        // IMPORTANT: Use AddDbContextWithWolverineIntegration instead of AddDbContext
+        // This enables the transactional outbox pattern with Wolverine
+        // -------------------------------
+        services.AddDbContextWithWolverineIntegration<ApplicationDbContext>((sp, opts) =>
             {
                 var dbFactory = sp.GetRequiredService<DbConnectionFactory>();
 
@@ -38,9 +42,6 @@ public static class DependencyInjection
 
             // Register Repositories (Write side - CQRS)
             services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
-
-            // Register Read Stores (Read side - CQRS)
-            services.AddScoped<IAlertReadStore, AlertReadStore>();
 
             return services;
         }

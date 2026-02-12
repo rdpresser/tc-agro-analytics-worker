@@ -4,6 +4,9 @@
     <Project Path="../../common/src/TC.Agro.Messaging/TC.Agro.Messaging.csproj" />
     <Project Path="../../common/src/TC.Agro.SharedKernel/TC.Agro.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/Itens de Solução/">
+    <File Path="publish_message.py" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />

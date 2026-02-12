@@ -25,9 +25,10 @@ app.UseCors("DefaultCorsPolicy");
 app.UseIngressPathBase(app.Configuration);
 
 // 3. Early-stage middlewares (exception handling, correlation, health checks)
-app.UseCustomMiddlewares();
+////app.UseCustomMiddlewares();
 
-// Authentication/Authorization disabled (anonymous access for now)
+// CRITICAL: TelemetryMiddleware MUST come AFTER CorrelationMiddleware to access correlationIdGenerator.CorrelationId
+////app.UseMiddleware<TC.Agro.Analytics.Service.Middleware.TelemetryMiddleware>();
 
 // 6. FastEndpoints with Swagger (handles routing + OpenAPI generation)
 app.UseCustomFastEndpoints(app.Configuration);

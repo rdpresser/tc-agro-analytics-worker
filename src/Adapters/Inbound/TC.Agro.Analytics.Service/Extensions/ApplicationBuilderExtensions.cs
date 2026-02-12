@@ -216,7 +216,8 @@ internal static class ApplicationBuilderExtensions
                 // NO DUPLICATION: Prometheus scrapes from OTEL Collector:8889, not this endpoint
                 // This endpoint is here for flexibility and direct access if needed.
                 // ============================================================
-                .UseOpenTelemetryPrometheusScrapingEndpoint("/metrics");
+                //.UseOpenTelemetryPrometheusScrapingEndpoint("/metrics")
+                ;
 
             return app;
         }

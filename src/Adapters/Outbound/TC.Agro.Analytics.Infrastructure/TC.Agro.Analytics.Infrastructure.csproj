@@ -8,7 +8,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
 		<PackageReference Include="Z.EntityFramework.Plus.EFCore" />
-		<PackageReference Include="WolverineFx.EntityFrameworkCore" />
 	</ItemGroup>
 
 	<ItemGroup>
