@@ -2,10 +2,6 @@ namespace TC.Agro.Analytics.Domain.Aggregates;
 
 /// <summary>
 /// Domain errors for Analytics bounded context.
-/// Following Farm/Identity pattern: static class with ValidationError constants.
-/// Farm: FarmDomainErrors
-/// Identity: UserDomainErrors
-/// Analytics: AnalyticsDomainErrors
 /// </summary>
 [ExcludeFromCodeCoverage]
 public static class AnalyticsDomainErrors

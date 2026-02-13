@@ -1,9 +1,5 @@
 namespace TC.Agro.Analytics.Infrastructure.Configurations;
 
-/// <summary>
-/// EF Core configuration for AlertAggregate.
-/// Maps AlertAggregate to 'alerts' table following Farm/Identity pattern.
-/// </summary>
 public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregate>
 {
     public override void Configure(EntityTypeBuilder<AlertAggregate> builder)

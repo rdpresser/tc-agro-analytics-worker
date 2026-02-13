@@ -2,7 +2,6 @@ namespace TC.Agro.Analytics.Application.Abstractions.Ports;
 
 /// <summary>
 /// Repository interface for AlertAggregate.
-/// Following Farm/Identity pattern: interface in Application.Abstractions.Ports.
 /// Farm: IPlotAggregateRepository, IPropertyAggregateRepository
 /// Identity: IUserAggregateRepository
 /// Analytics: IAlertAggregateRepository

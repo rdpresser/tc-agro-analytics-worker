@@ -13,7 +13,6 @@ public static class DependencyInjection
 
             // Query Handlers are registered automatically by SharedKernel
             // (via reflection - all classes implementing BaseQueryHandler)
-
             return services;
         }
     }

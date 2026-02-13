@@ -1,6 +1,5 @@
 namespace TC.Agro.Analytics.Service.Extensions;
-using TC.Agro.Messaging.Extensions;
-using Wolverine.Postgresql;
+
 internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAnalyticsServices(this IServiceCollection services, WebApplicationBuilder builder)

@@ -59,6 +59,7 @@ global using Wolverine.RabbitMQ;
 global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
+global using TC.Agro.Messaging.Extensions;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

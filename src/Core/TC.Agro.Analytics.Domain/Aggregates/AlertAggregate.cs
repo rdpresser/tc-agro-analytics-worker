@@ -39,6 +39,211 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
     #region Factory
 
+    /// <summary>
+    /// Factory method: Creates alerts from sensor data by evaluating business rules.
+    /// Pattern: Rich Domain Model (DDD) - business logic lives in the aggregate.
+    /// 
+    /// Business Rules:
+    /// - Temperature > MaxTemperature → HighTemperature alert
+    /// - SoilMoisture < MinSoilMoisture → LowSoilMoisture alert
+    /// - BatteryLevel < MinBatteryLevel → LowBattery alert
+    /// 
+    /// Metadata: Stores sensor context (other readings) for analysis.
+    /// </summary>
+    public static Result<IReadOnlyList<AlertAggregate>> CreateFromSensorData(
+        string sensorId,
+        Guid plotId,
+        double? temperature,
+        double? soilMoisture,
+        double? batteryLevel,
+        double? humidity,
+        double? rainfall,
+        AlertThresholds thresholds)
+    {
+        // Validate required fields
+        var errors = new List<ValidationError>();
+        errors.AddRange(ValidateSensorId(sensorId));
+        errors.AddRange(ValidatePlotId(plotId));
+
+        if (errors.Count > 0)
+            return Result<IReadOnlyList<AlertAggregate>>.Invalid(errors.ToArray());
+
+        ArgumentNullException.ThrowIfNull(thresholds);
+
+        var alerts = new List<AlertAggregate>();
+
+        // Evaluate business rules (encapsulated in aggregate)
+        EvaluateTemperatureRule(sensorId, plotId, temperature, humidity, soilMoisture, rainfall, batteryLevel, thresholds, alerts);
+        EvaluateSoilMoistureRule(sensorId, plotId, soilMoisture, temperature, humidity, rainfall, batteryLevel, thresholds, alerts);
+        EvaluateBatteryRule(sensorId, plotId, batteryLevel, thresholds, alerts);
+
+        return Result.Success<IReadOnlyList<AlertAggregate>>(alerts);
+    }
+
+    private static void EvaluateTemperatureRule(
+        string sensorId,
+        Guid plotId,
+        double? temperature,
+        double? humidity,
+        double? soilMoisture,
+        double? rainfall,
+        double? batteryLevel,
+        AlertThresholds thresholds,
+        List<AlertAggregate> alerts)
+    {
+        if (!temperature.HasValue || temperature.Value <= thresholds.MaxTemperature)
+            return;
+
+        var severity = CalculateTemperatureSeverity(temperature.Value, thresholds.MaxTemperature);
+        var metadata = CreateTemperatureMetadata(humidity, soilMoisture, rainfall, batteryLevel);
+
+        var result = Create(
+            sensorId: sensorId,
+            plotId: plotId,
+            type: AlertType.HighTemperature,
+            severity: severity,
+            message: $"High temperature detected: {temperature:F1}°C",
+            value: temperature.Value,
+            threshold: thresholds.MaxTemperature,
+            metadata: metadata);
+
+        if (result.IsSuccess)
+            alerts.Add(result.Value);
+    }
+
+    private static void EvaluateSoilMoistureRule(
+        string sensorId,
+        Guid plotId,
+        double? soilMoisture,
+        double? temperature,
+        double? humidity,
+        double? rainfall,
+        double? batteryLevel,
+        AlertThresholds thresholds,
+        List<AlertAggregate> alerts)
+    {
+        if (!soilMoisture.HasValue || soilMoisture.Value >= thresholds.MinSoilMoisture)
+            return;
+
+        var severity = CalculateSoilMoistureSeverity(soilMoisture.Value, thresholds.MinSoilMoisture);
+        var metadata = CreateSoilMoistureMetadata(temperature, humidity, rainfall, batteryLevel);
+
+        var result = Create(
+            sensorId: sensorId,
+            plotId: plotId,
+            type: AlertType.LowSoilMoisture,
+            severity: severity,
+            message: $"Low soil moisture detected: {soilMoisture:F1}% - Irrigation may be needed",
+            value: soilMoisture.Value,
+            threshold: thresholds.MinSoilMoisture,
+            metadata: metadata);
+
+        if (result.IsSuccess)
+            alerts.Add(result.Value);
+    }
+
+    private static void EvaluateBatteryRule(
+        string sensorId,
+        Guid plotId,
+        double? batteryLevel,
+        AlertThresholds thresholds,
+        List<AlertAggregate> alerts)
+    {
+        if (!batteryLevel.HasValue || batteryLevel.Value >= thresholds.MinBatteryLevel)
+            return;
+
+        var severity = CalculateBatterySeverity(batteryLevel.Value);
+        var metadata = CreateBatteryMetadata(thresholds.MinBatteryLevel);
+
+        var result = Create(
+            sensorId: sensorId,
+            plotId: plotId,
+            type: AlertType.LowBattery,
+            severity: severity,
+            message: $"Low battery warning: {batteryLevel:F1}% - Sensor maintenance required",
+            value: batteryLevel.Value,
+            threshold: thresholds.MinBatteryLevel,
+            metadata: metadata);
+
+        if (result.IsSuccess)
+            alerts.Add(result.Value);
+    }
+
+    // Severity calculations (business rules)
+    private static AlertSeverity CalculateTemperatureSeverity(double temperature, double threshold)
+    {
+        var excess = temperature - threshold;
+        return excess switch
+        {
+            >= 15 => AlertSeverity.Critical,
+            >= 10 => AlertSeverity.High,
+            >= 5 => AlertSeverity.Medium,
+            _ => AlertSeverity.Low
+        };
+    }
+
+    private static AlertSeverity CalculateSoilMoistureSeverity(double soilMoisture, double threshold)
+    {
+        var deficit = threshold - soilMoisture;
+        return deficit switch
+        {
+            >= 30 => AlertSeverity.Critical,
+            >= 20 => AlertSeverity.High,
+            >= 10 => AlertSeverity.Medium,
+            _ => AlertSeverity.Low
+        };
+    }
+
+    private static AlertSeverity CalculateBatterySeverity(double batteryLevel)
+    {
+        return batteryLevel switch
+        {
+            < 10 => AlertSeverity.Critical,
+            < 20 => AlertSeverity.High,
+            < 30 => AlertSeverity.Medium,
+            _ => AlertSeverity.Low
+        };
+    }
+
+    // Metadata helpers (contextual information for analysis)
+    private static string? CreateTemperatureMetadata(
+        double? humidity,
+        double? soilMoisture,
+        double? rainfall,
+        double? batteryLevel)
+    {
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Humidity = humidity,
+            SoilMoisture = soilMoisture,
+            Rainfall = rainfall,
+            BatteryLevel = batteryLevel
+        });
+    }
+
+    private static string? CreateSoilMoistureMetadata(
+        double? temperature,
+        double? humidity,
+        double? rainfall,
+        double? batteryLevel)
+    {
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Temperature = temperature,
+            Humidity = humidity,
+            Rainfall = rainfall,
+            BatteryLevel = batteryLevel
+        });
+    }
+
+    private static string? CreateBatteryMetadata(double threshold)
+    {
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Threshold = threshold
+        });
+    }
+
     public static Result<AlertAggregate> Create(
         string sensorId,
         Guid plotId,

@@ -2,7 +2,6 @@ namespace TC.Agro.Analytics.Tests.Domain.Aggregates;
 
 /// <summary>
 /// Unit tests for AlertAggregate.
-/// Following Farm/Identity pattern: test factory, validations, and business logic.
 /// </summary>
 public class AlertAggregateTests
 {

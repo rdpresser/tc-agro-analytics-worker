@@ -1,25 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <Compile Remove="Queries\**" />
-    <Compile Remove="Responses\**" />
-    <Compile Remove="UseCases\Alerts\**" />
-    <Compile Remove="Validators\**" />
-    <EmbeddedResource Remove="Queries\**" />
-    <EmbeddedResource Remove="Responses\**" />
-    <EmbeddedResource Remove="UseCases\Alerts\**" />
-    <EmbeddedResource Remove="Validators\**" />
-    <None Remove="Queries\**" />
-    <None Remove="Responses\**" />
-    <None Remove="UseCases\Alerts\**" />
-    <None Remove="Validators\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Queries\**" />
+		<Compile Remove="Responses\**" />
+		<Compile Remove="UseCases\Alerts\**" />
+		<EmbeddedResource Remove="Queries\**" />
+		<EmbeddedResource Remove="Responses\**" />
+		<EmbeddedResource Remove="UseCases\Alerts\**" />
+		<None Remove="Queries\**" />
+		<None Remove="Responses\**" />
+		<None Remove="UseCases\Alerts\**" />
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
-    <ProjectReference Include="..\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
-  </ItemGroup>
+		<ProjectReference Include="..\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="FastEndpoints" />
@@ -28,7 +25,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="WolverineFx" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<Folder Include="Abstractions\Mappers\" />
 	</ItemGroup>
