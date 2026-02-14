@@ -36,39 +36,8 @@ public sealed class SensorIngestedHandler : IWolverineHandler
             message.SensorId,
             message.PlotId);
 
-        // Defensive checks: validate required fields (trust but verify pattern)
-        if (string.IsNullOrWhiteSpace(message.SensorId))
+        if (!IsValidMessage(message))
         {
-            _logger.LogWarning(
-                "⚠️ Invalid event: SensorId is missing. Skipping processing (idempotent).");
-            return;
-        }
-
-        if (message.PlotId == Guid.Empty)
-        {
-            _logger.LogWarning(
-                "⚠️ Invalid event: PlotId is empty for Sensor {SensorId}. Skipping processing (idempotent).",
-                message.SensorId);
-            return;
-        }
-
-        if (message.Time == default)
-        {
-            _logger.LogWarning(
-                "⚠️ Invalid event: Time is missing for Sensor {SensorId}. Skipping processing (idempotent).",
-                message.SensorId);
-            return;
-        }
-
-        // Check if at least one metric is present
-        if (!message.Temperature.HasValue &&
-            !message.Humidity.HasValue &&
-            !message.SoilMoisture.HasValue &&
-            !message.Rainfall.HasValue)
-        {
-            _logger.LogWarning(
-                "⚠️ No sensor metrics provided for Sensor {SensorId}. Skipping processing (idempotent).",
-                message.SensorId);
             return;
         }
 
@@ -97,8 +66,59 @@ public sealed class SensorIngestedHandler : IWolverineHandler
             return;
         }
 
-        // Persist alerts
-        foreach (var alert in alertsResult.Value)
+        await PersistAlertsAsync(alertsResult.Value, message.SensorId, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "✅ Processed {Count} alerts for Sensor {SensorId}",
+            alertsResult.Value.Count,
+            message.SensorId);
+    }
+
+    private bool IsValidMessage(SensorIngestedIntegrationEvent message)
+    {
+        if (string.IsNullOrWhiteSpace(message.SensorId))
+        {
+            _logger.LogWarning(
+                "⚠️ Invalid event: SensorId is missing. Skipping processing (idempotent).");
+            return false;
+        }
+
+        if (message.PlotId == Guid.Empty)
+        {
+            _logger.LogWarning(
+                "⚠️ Invalid event: PlotId is empty for Sensor {SensorId}. Skipping processing (idempotent).",
+                message.SensorId);
+            return false;
+        }
+
+        if (message.Time == default)
+        {
+            _logger.LogWarning(
+                "⚠️ Invalid event: Time is missing for Sensor {SensorId}. Skipping processing (idempotent).",
+                message.SensorId);
+            return false;
+        }
+
+        if (!message.Temperature.HasValue &&
+            !message.Humidity.HasValue &&
+            !message.SoilMoisture.HasValue &&
+            !message.Rainfall.HasValue)
+        {
+            _logger.LogWarning(
+                "⚠️ No sensor metrics provided for Sensor {SensorId}. Skipping processing (idempotent).",
+                message.SensorId);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task PersistAlertsAsync(
+        IReadOnlyList<AlertAggregate> alerts,
+        string sensorId,
+        CancellationToken cancellationToken)
+    {
+        foreach (var alert in alerts)
         {
             _alertRepository.Add(alert);
 
@@ -106,15 +126,9 @@ public sealed class SensorIngestedHandler : IWolverineHandler
                 "📝 Created {AlertType} alert (Severity: {Severity}) for Sensor {SensorId}",
                 alert.Type.Value,
                 alert.Severity.Value,
-                message.SensorId);
+                sensorId);
         }
 
-        // Commit (ONLY alerts, NO sensor_readings - per Domain Map ownership!)
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        _logger.LogInformation(
-            "✅ Processed {Count} alerts for Sensor {SensorId}",
-            alertsResult.Value.Count,
-            message.SensorId);
     }
 }

@@ -7,7 +7,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositories;
 /// Following the same pattern as Identity and Farm services.
 /// </summary>
 public abstract class BaseRepository<TAggregate>
-    : TC.Agro.SharedKernel.Infrastructure.Database.EfCore.BaseRepository<TAggregate, ApplicationDbContext>
+    : BaseRepository<TAggregate, ApplicationDbContext>
     where TAggregate : BaseAggregateRoot
 {
     protected BaseRepository(ApplicationDbContext dbContext) : base(dbContext) { }
