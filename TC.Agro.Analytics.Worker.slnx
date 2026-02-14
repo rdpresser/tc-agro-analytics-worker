@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/common/">
+    <Project Path="../../common/src/TC.Agro.Contracts/TC.Agro.Contracts.csproj" />
+    <Project Path="../../common/src/TC.Agro.Messaging/TC.Agro.Messaging.csproj" />
+    <Project Path="../../common/src/TC.Agro.SharedKernel/TC.Agro.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/Itens de Solução/">
+    <File Path="publish_message.py" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Adapters/" />
+  <Folder Name="/src/Adapters/Driven (Outbound)/">
+    <Project Path="src/Adapters/Outbound/TC.Agro.Analytics.Infrastructure/TC.Agro.Analytics.Infrastructure.csproj" Id="445e1fa3-6c6f-4b34-9d75-a107c69fe12f" />
+  </Folder>
+  <Folder Name="/src/Adapters/Driver (Inbound)/">
+    <Project Path="src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.csproj" Id="b89a8724-0f57-4af1-a6b0-09f6aa61b28b" />
+  </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/TC.Agro.Analytics.Application/TC.Agro.Analytics.Application.csproj" Id="42bfaf06-6b78-4006-ab58-d06cd27f3c65" />
+    <Project Path="src/Core/TC.Agro.Analytics.Domain/TC.Agro.Analytics.Domain.csproj" Id="8309d1de-be03-4246-96d3-86b4456afd12" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/TC.Agro.Analytics.Tests/TC.Agro.Analytics.Tests.csproj" Id="bf0743de-f4a7-49cf-b815-8a14ba13184a" />
+  </Folder>
+</Solution>
