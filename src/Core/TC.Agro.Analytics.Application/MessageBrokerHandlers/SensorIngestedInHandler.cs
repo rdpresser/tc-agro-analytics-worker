@@ -20,24 +20,24 @@ public sealed class SensorIngestedHandler : IWolverineHandler
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
+    public async Task Handle(EventContext<SensorIngestedIntegrationEvent> @event, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(@event);
 
         _logger.LogInformation(
             "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}",
-            message.SensorId,
-            message.PlotId);
+            @event.EventData.SensorId,
+            @event.EventData.PlotId);
 
         var command = new ProcessSensorAlertsCommand(
-            SensorId: message.SensorId,
-            PlotId: message.PlotId,
-            Time: message.Time,
-            Temperature: message.Temperature,
-            Humidity: message.Humidity,
-            SoilMoisture: message.SoilMoisture,
-            Rainfall: message.Rainfall,
-            BatteryLevel: message.BatteryLevel);
+            SensorId: @event.EventData.SensorId,
+            PlotId: @event.EventData.PlotId,
+            Time: @event.EventData.Time,
+            Temperature: @event.EventData.Temperature,
+            Humidity: @event.EventData.Humidity,
+            SoilMoisture: @event.EventData.SoilMoisture,
+            Rainfall: @event.EventData.Rainfall,
+            BatteryLevel: @event.EventData.BatteryLevel);
 
         var validationResult = await _validator.ValidateAsync(command, cancellationToken).ConfigureAwait(false);
 
@@ -45,7 +45,7 @@ public sealed class SensorIngestedHandler : IWolverineHandler
         {
             _logger.LogWarning(
                 "⚠️ Invalid event for Sensor {SensorId}: {Errors}. Skipping processing (idempotent).",
-                message.SensorId,
+                @event.EventData.SensorId,
                 string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
             return;
         }
