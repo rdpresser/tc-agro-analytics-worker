@@ -1,7 +1,5 @@
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers;
 
-using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
-
 /// <summary>
 /// Handler for processing sensor data ingestion events.
 /// Orchestrates validation and delegates business logic to the command handler.

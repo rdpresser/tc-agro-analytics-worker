@@ -35,7 +35,6 @@ global using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
 global using TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 global using TC.Agro.Analytics.Infrastructure;
 global using TC.Agro.Analytics.Service.Extensions;
-global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.Contracts.Events.Identity;
 global using TC.Agro.SharedKernel.Api.Endpoints;
 global using TC.Agro.SharedKernel.Api.Extensions;
@@ -60,6 +59,7 @@ global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 global using TC.Agro.Messaging.Extensions;
+global using TC.Agro.Contracts.Events.SensorIngested;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

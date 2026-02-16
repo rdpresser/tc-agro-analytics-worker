@@ -13,6 +13,7 @@ global using Ardalis.Result;
 global using TC.Agro.Analytics.Application.Configuration;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.ValueObjects;
-global using TC.Agro.Contracts.Events.Analytics;
+global using TC.Agro.Contracts.Events.SensorIngested;
 global using TC.Agro.SharedKernel.Domain;
 global using Wolverine;
+global using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;

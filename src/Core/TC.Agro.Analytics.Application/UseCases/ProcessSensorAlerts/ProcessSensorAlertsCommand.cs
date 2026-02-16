@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
 public sealed record ProcessSensorAlertsCommand(
     Guid SensorId,
     Guid PlotId,
-    DateTime Time,
+    DateTimeOffset Time, 
     double? Temperature,
     double? Humidity,
     double? SoilMoisture,

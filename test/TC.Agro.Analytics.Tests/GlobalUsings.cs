@@ -11,5 +11,4 @@ global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Analytics.Application.MessageBrokerHandlers;
 global using TC.Agro.Analytics.Application.Configuration;
 global using TC.Agro.Contracts.Events;
-global using TC.Agro.Contracts.Events.Analytics;
 global using Ardalis.Result;
