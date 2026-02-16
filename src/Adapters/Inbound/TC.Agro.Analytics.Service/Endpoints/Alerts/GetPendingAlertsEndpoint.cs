@@ -45,7 +45,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "HighTemperature",
                         "High temperature detected: 42.5°C",
@@ -59,7 +59,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-002",
+                        Guid.NewGuid(),
                         Guid.Parse("7e2b8c3f-9a4d-4f1e-b6c5-8d7f2a1e3c4b"),
                         "LowBattery",
                         "Low battery warning: 8.0% - Sensor maintenance required",

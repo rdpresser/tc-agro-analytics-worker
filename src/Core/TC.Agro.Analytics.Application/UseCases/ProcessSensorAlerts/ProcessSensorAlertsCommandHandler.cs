@@ -83,7 +83,7 @@ public sealed class ProcessSensorAlertsCommandHandler
 
     private async Task PersistAlertsAsync(
         IReadOnlyList<AlertAggregate> alerts,
-        string sensorId,
+        Guid sensorId,
         CancellationToken cancellationToken)
     {
         foreach (var alert in alerts)

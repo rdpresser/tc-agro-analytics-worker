@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 public sealed record PlotStatusAlertResponse(
     Guid Id,
     Guid SensorReadingId,
-    string SensorId,
+    Guid SensorId,
     string AlertType,
     string Message,
     string Status,

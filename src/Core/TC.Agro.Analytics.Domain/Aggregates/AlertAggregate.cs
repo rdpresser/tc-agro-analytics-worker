@@ -17,7 +17,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates;
 /// </summary>
 public sealed class AlertAggregate : BaseAggregateRoot
 {
-    public string SensorId { get; private set; } = default!;
+    public Guid SensorId { get; private set; }
     public Guid PlotId { get; private set; }
     public AlertType Type { get; private set; } = default!;
     public AlertSeverity Severity { get; private set; } = default!;
@@ -51,7 +51,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     /// Metadata: Stores sensor context (other readings) for analysis.
     /// </summary>
     public static Result<IReadOnlyList<AlertAggregate>> CreateFromSensorData(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         double? temperature,
         double? soilMoisture,
@@ -81,7 +81,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     }
 
     private static void EvaluateTemperatureRule(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         double? temperature,
         double? humidity,
@@ -112,7 +112,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     }
 
     private static void EvaluateSoilMoistureRule(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         double? soilMoisture,
         double? temperature,
@@ -143,7 +143,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     }
 
     private static void EvaluateBatteryRule(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         double? batteryLevel,
         AlertThresholds thresholds,
@@ -245,7 +245,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     }
 
     public static Result<AlertAggregate> Create(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         AlertType type,
         AlertSeverity severity,
@@ -266,7 +266,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     }
 
     private static Result<AlertAggregate> CreateAggregate(
-        string sensorId,
+        Guid sensorId,
         Guid plotId,
         AlertType type,
         AlertSeverity severity,
@@ -407,12 +407,10 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
     #region Validation
 
-    private static IEnumerable<ValidationError> ValidateSensorId(string sensorId)
+    private static IEnumerable<ValidationError> ValidateSensorId(Guid sensorId)
     {
-        if (string.IsNullOrWhiteSpace(sensorId))
+        if (sensorId == Guid.Empty)
             yield return new ValidationError("SensorId.Required", "SensorId is required");
-        else if (sensorId.Length > 100)
-            yield return new ValidationError("SensorId.TooLong", "SensorId must be at most 100 characters");
     }
 
     private static IEnumerable<ValidationError> ValidatePlotId(Guid plotId)
@@ -435,7 +433,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
     public record AlertCreatedDomainEvent(
         Guid AggregateId,
-        string SensorId,
+        Guid SensorId,
         Guid PlotId,
         AlertType Type,
         AlertSeverity Severity,

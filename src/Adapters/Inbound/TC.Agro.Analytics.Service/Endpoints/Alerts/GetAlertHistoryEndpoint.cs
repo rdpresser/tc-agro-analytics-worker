@@ -55,7 +55,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "HighTemperature",
                         "High temperature detected: 42.5°C",
@@ -72,7 +72,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "LowSoilMoisture",
                         "Low soil moisture detected: 12.0% - Irrigation may be needed",

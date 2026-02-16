@@ -9,8 +9,7 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.ToTable("alerts", schema: "public");
 
         builder.Property(e => e.SensorId)
-            .IsRequired()
-            .HasMaxLength(100);
+            .IsRequired();
 
         builder.Property(e => e.PlotId)
             .IsRequired();

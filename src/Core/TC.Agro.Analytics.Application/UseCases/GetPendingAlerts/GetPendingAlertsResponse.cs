@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
 public sealed record PendingAlertResponse(
     Guid Id,
     Guid SensorReadingId,
-    string SensorId,
+    Guid SensorId,
     Guid PlotId,
     string AlertType,
     string Message,

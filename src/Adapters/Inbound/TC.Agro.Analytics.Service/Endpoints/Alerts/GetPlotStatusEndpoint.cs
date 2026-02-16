@@ -42,7 +42,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
                 MostRecentAlert: new PlotStatusAlertResponse(
                     Guid.NewGuid(),
                     Guid.NewGuid(),
-                    "SENSOR-TEST-001",
+                    Guid.NewGuid(),
                     "HighTemperature",
                     "High temperature detected: 42.5°C",
                     "Pending",
