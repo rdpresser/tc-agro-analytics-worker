@@ -19,3 +19,6 @@ global using Wolverine;
 global using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
 global using TC.Agro.SharedKernel.Application.Commands;
 global using FastEndpoints;
+global using TC.Agro.Analytics.Application.Abstractions.Mappers;
+global using static TC.Agro.Analytics.Domain.Aggregates.AlertAggregate;
+global using TC.Agro.Contracts.Events.Analytics;

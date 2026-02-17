@@ -24,11 +24,6 @@ public sealed class SensorIngestedHandler : IWolverineHandler
     {
         ArgumentNullException.ThrowIfNull(@event);
 
-        _logger.LogInformation(
-            "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}",
-            @event.EventData.SensorId,
-            @event.EventData.PlotId);
-
         var command = new ProcessSensorAlertsCommand(
             SensorId: @event.EventData.SensorId,
             PlotId: @event.EventData.PlotId,

@@ -307,13 +307,18 @@ internal static class ServiceCollectionExtensions
                 .UseDurableOutbox();
 
             // ============================================================
-            // PUBLISHING - Farm Service Events (TOPIC Exchange)
-            // Farm publishes its own events (Property, Plot, Sensor)
+            // PUBLISHING - Analytics Service Events (TOPIC Exchange)
+            // Analytics publishes its own events (Alert)
             // ============================================================
-            ////opts.PublishMessage<EventContext<PropertyCreatedIntegrationEvent>>()
-            ////    .ToRabbitExchange(exchangeName)
-            ////    .BufferedInMemory()
-            ////    .UseDurableOutbox();
+            opts.PublishMessage<EventContext<AlertCreatedIntegrationEvent>>()
+                .ToRabbitExchange(exchangeName)
+                .BufferedInMemory()
+                .UseDurableOutbox();
+
+            opts.PublishMessage<EventContext<AlertResolvedIntegrationEvent>>()
+                .ToRabbitExchange(exchangeName)
+                .BufferedInMemory()
+                .UseDurableOutbox();
 
             opts.ConfigureIdentityUserEventsConsumption(
                  exchangeName: "identity.events-exchange",

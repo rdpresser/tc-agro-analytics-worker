@@ -38,4 +38,22 @@ internal sealed class ResolveAlertCommandHandler :
         var response = ResolveAlertMapper.FromAggregate(aggregate);
         return Task.FromResult(response);
     }
+
+    protected override async Task PublishIntegrationEventsAsync(AlertAggregate aggregate, CancellationToken ct)
+    {
+        var integrationEvents = aggregate.UncommittedEvents
+            .MapToIntegrationEvents(
+                aggregate: aggregate,
+                userContext: UserContext,
+                handlerName: nameof(ResolveAlertCommandHandler),
+                mappings: new Dictionary<Type, Func<BaseDomainEvent, BaseIntegrationEvent>>
+                {
+                { typeof(AlertResolvedDomainEvent), e => ResolveAlertMapper.ToIntegrationEvent((AlertResolvedDomainEvent)e, aggregate) }
+                });
+
+        foreach (var evt in integrationEvents)
+        {
+            await Outbox.EnqueueAsync(evt, ct).ConfigureAwait(false);
+        }
+    }
 }
