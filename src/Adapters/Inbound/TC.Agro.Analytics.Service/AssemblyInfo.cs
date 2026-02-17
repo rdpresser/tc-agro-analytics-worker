@@ -61,6 +61,7 @@ global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 global using TC.Agro.Messaging.Extensions;
 global using TC.Agro.Contracts.Events.SensorIngested;
 global using TC.Agro.Contracts.Events.Analytics;
+global using TC.Agro.Analytics.Application.UseCases.AcknowledgeAlert;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

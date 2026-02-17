@@ -42,22 +42,4 @@ internal sealed class AcknowledgeAlertCommandHandler :
         var response = AcknowledgeAlertMapper.FromAggregate(aggregate);
         return Task.FromResult(response);
     }
-
-    protected override async Task PublishIntegrationEventsAsync(AlertAggregate aggregate, CancellationToken ct)
-    {
-        var integrationEvents = aggregate.UncommittedEvents
-            .MapToIntegrationEvents(
-                aggregate: aggregate,
-                userContext: UserContext,
-                handlerName: nameof(AcknowledgeAlertCommandHandler),
-                mappings: new Dictionary<Type, Func<BaseDomainEvent, BaseIntegrationEvent>>
-                {
-                    { typeof(AlertAcknowledgedDomainEvent), e => AcknowledgeAlertMapper.ToIntegrationEvent((AlertAcknowledgedDomainEvent)e, aggregate) }
-                });
-
-        foreach (var evt in integrationEvents)
-        {
-            await Outbox.EnqueueAsync(evt, ct).ConfigureAwait(false);
-        }
-    }
 }

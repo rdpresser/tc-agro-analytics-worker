@@ -38,6 +38,4 @@ internal sealed class ResolveAlertCommandHandler :
         var response = ResolveAlertMapper.FromAggregate(aggregate);
         return Task.FromResult(response);
     }
-
-
 }
