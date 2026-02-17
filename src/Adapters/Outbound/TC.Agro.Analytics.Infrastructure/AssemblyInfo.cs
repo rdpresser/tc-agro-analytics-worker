@@ -38,6 +38,7 @@ global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 global using Wolverine.EntityFrameworkCore;
 global using TC.Agro.Analytics.Domain;
+global using TC.Agro.Analytics.Infrastructure.Messaging;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

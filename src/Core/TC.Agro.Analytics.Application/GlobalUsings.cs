@@ -17,3 +17,5 @@ global using TC.Agro.Contracts.Events.SensorIngested;
 global using TC.Agro.SharedKernel.Domain;
 global using Wolverine;
 global using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
+global using TC.Agro.SharedKernel.Application.Commands;
+global using FastEndpoints;

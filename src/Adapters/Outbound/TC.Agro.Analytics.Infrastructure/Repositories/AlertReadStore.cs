@@ -71,12 +71,22 @@ public sealed class AlertReadStore : IAlertReadStore
 
         if (!string.IsNullOrEmpty(alertType))
         {
-            query = query.Where(a => a.Type.Value == alertType);
+            var typeResult = AlertType.Create(alertType.Trim());
+            if (typeResult.IsSuccess)
+            {
+                var alertTypeVO = typeResult.Value;
+                query = query.Where(a => a.Type == alertTypeVO);
+            }
         }
 
         if (!string.IsNullOrEmpty(status))
         {
-            query = query.Where(a => a.Status.Value == status);
+            var statusResult = AlertStatus.Create(status.Trim());
+            if (statusResult.IsSuccess)
+            {
+                var statusVO = statusResult.Value;
+                query = query.Where(a => a.Status == statusVO);
+            }
         }
 
         query = query.OrderByDescending(a => a.CreatedAt);

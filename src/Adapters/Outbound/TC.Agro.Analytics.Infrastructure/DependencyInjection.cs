@@ -2,9 +2,9 @@ namespace TC.Agro.Analytics.Infrastructure;
 
 [ExcludeFromCodeCoverage]
 public static class DependencyInjection
-    {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services,
-            IConfiguration configuration)
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+        IConfiguration configuration)
     {
         // Register Read Stores (Read side - CQRS)
         services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
@@ -32,17 +32,19 @@ public static class DependencyInjection
                 }
             });
 
-            // Register ApplicationDbContext as IApplicationDbContext (required for ApplyMigrations)
-            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        // Register ApplicationDbContext as IApplicationDbContext (required for ApplyMigrations)
+        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
-            // Unit of Work (for simple handlers that don't need outbox)
-            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        // Unit of Work (for simple handlers that don't need outbox)
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
-            SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
+        SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
 
-            // Register Repositories (Write side - CQRS)
-            services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
+        // Register Repositories (Write side - CQRS)
+        services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
 
-            return services;
-        }
+        services.AddScoped<ITransactionalOutbox, AnalyticsOutbox>();
+
+        return services;
     }
+}
