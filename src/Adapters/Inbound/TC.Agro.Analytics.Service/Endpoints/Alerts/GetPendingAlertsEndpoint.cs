@@ -1,8 +1,9 @@
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
-/// Endpoint to retrieve all pending alerts across all plots.
+/// Endpoint to retrieve all active alerts (Pending + Acknowledged) across all plots.
 /// GET /alerts/pending?pageNumber=1&pageSize=100
+/// Returns alerts that need attention (excludes Resolved alerts).
 /// Uses PaginatedResponse from SharedKernel (standard pattern).
 /// </summary>
 public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>
@@ -14,17 +15,13 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         // Force FastEndpoints to bind query parameters (pagination)
         RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
 
-        AllowAnonymous(); // TOD0: Add authentication when ready
+        AllowAnonymous();
         //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
-
-        // TOD0: Enable caching when ICachedQuery is implemented (short TTL for real-time data)
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
 
         Summary(s =>
         {
-            s.Summary = "Get all pending alerts";
-            s.Description = "Retrieves all alerts with status 'Pending' across all plots, ordered by creation date (most recent first)";
+            s.Summary = "Get active alerts (Pending + Acknowledged)";
+            s.Description = "Retrieves all alerts with status 'Pending' or 'Acknowledged' (excludes Resolved), ordered by creation date";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
 

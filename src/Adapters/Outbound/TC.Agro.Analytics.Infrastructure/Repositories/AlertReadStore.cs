@@ -22,7 +22,7 @@ public sealed class AlertReadStore : IAlertReadStore
     {
         var query = _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.Status == AlertStatus.Pending)
+            .Where(a => a.Status == AlertStatus.Pending || a.Status == AlertStatus.Acknowledged)
             .OrderByDescending(a => a.CreatedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
