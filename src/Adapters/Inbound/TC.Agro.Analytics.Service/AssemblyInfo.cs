@@ -62,6 +62,14 @@ global using TC.Agro.Messaging.Extensions;
 global using TC.Agro.Contracts.Events.SensorIngested;
 global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.Analytics.Application.UseCases.AcknowledgeAlert;
+global using TC.Agro.Analytics.Service.Telemetry;
+global using System.Diagnostics.Metrics;
+global using System.Diagnostics;
+global using System.Security.Claims;
+global using Serilog.Context;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.IdentityModel.JsonWebTokens;
+global using Microsoft.IdentityModel.Tokens;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

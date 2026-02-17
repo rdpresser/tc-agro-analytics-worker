@@ -30,6 +30,7 @@ global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 global using TC.Agro.Contracts.Events;
 global using TC.Agro.SharedKernel.Infrastructure.Messaging;
+global using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]

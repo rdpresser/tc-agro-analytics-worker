@@ -23,7 +23,11 @@ public static class DependencyInjection
                 {
                     npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, DefaultSchemas.Default);
                 })
+
                 .UseSnakeCaseNamingConvention();
+
+                // Use Serilog for EF Core logging
+                opts.LogTo(Log.Logger.Information, LogLevel.Information);
 
                 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
                 {
@@ -38,12 +42,9 @@ public static class DependencyInjection
         // Unit of Work (for simple handlers that don't need outbox)
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
-        SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
-
-        // Register Repositories (Write side - CQRS)
-        services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
-
         services.AddScoped<ITransactionalOutbox, AnalyticsOutbox>();
+
+        services.AddAgroInfrastructure(configuration);
 
         return services;
     }
