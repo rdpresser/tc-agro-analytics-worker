@@ -16,9 +16,8 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
         //// TOD0: Add authentication when ready
         //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        //// TOD0: Enable caching when ICachedQuery is implemented
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
+        PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
+        PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
 
         Description(
             d => d.Produces<PaginatedResponse<AlertHistoryResponse>>(200, "application/json")

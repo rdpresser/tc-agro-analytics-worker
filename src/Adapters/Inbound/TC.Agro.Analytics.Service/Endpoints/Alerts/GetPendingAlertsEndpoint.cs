@@ -18,6 +18,9 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         AllowAnonymous();
         //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
+        PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
+        PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
+
         Summary(s =>
         {
             s.Summary = "Get active alerts (Pending + Acknowledged)";
