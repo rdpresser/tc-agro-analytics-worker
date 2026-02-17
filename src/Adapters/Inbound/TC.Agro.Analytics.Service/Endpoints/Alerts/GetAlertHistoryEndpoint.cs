@@ -11,8 +11,6 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
     {
         Get("/alerts/history/{plotId}");
 
-        // Force FastEndpoints to bind query parameters (days, alertType, status, pagination)
-        RequestBinder(new RequestBinder<GetAlertHistoryQuery>(BindingSource.QueryParams));
 
         AllowAnonymous();
         //// TOD0: Add authentication when ready
