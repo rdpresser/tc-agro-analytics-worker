@@ -29,6 +29,7 @@ global using OpenTelemetry.Resources;
 global using OpenTelemetry.Trace;
 global using Serilog;
 global using TC.Agro.Analytics.Application;
+global using TC.Agro.Analytics.Application.Abstractions;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 global using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
@@ -69,6 +70,7 @@ global using Serilog.Context;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.JsonWebTokens;
 global using Microsoft.IdentityModel.Tokens;
+global using TC.Agro.Analytics.Application.UseCases.ResolveAlert;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

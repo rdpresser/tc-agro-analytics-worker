@@ -10,8 +10,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
     {
         Get("/plots/{plotId}/status");
 
-        AllowAnonymous(); // TOD0: Add authentication when ready
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
         PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();

@@ -12,8 +12,7 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
     {
         Patch("/alerts/{alertId}/resolve");
 
-        AllowAnonymous();
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         Description(
             d => d.Produces<ResolveAlertResponse>(200, "application/json")

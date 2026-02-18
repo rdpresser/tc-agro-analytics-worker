@@ -15,10 +15,10 @@ internal static class ServiceCollectionExtensions
         services
             .AddHttpClient()
             .AddCorrelationIdGenerator()
-            //     .AddValidatorsFromAssemblyContaining<XXXXCommandValidator>()
+            .AddValidatorsFromAssemblyContaining<AcknowledgeAlertCommandValidator>()
             .AddCaching()
             .AddCustomCors(builder.Configuration)
-            //.AddCustomAuthentication(builder.Configuration)
+            .AddCustomAuthentication(builder.Configuration)
             .AddCustomFastEndpoints()
             .AddCustomHealthChecks()
             .AddCustomOpenTelemetry(builder, builder.Configuration)

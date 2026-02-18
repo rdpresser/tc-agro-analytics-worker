@@ -27,11 +27,6 @@ TelemetryConstants.LogTelemetryConfiguration(logger, app.Configuration);
 var exporterInfo = app.Services.GetService<TelemetryExporterInfo>();
 TelemetryConstants.LogApmExporterConfiguration(logger, exporterInfo);
 
-// ========================================
-// Configure HTTP request pipeline
-// Pattern: Identity-Service architecture
-// ========================================
-
 // 1. Ingress PathBase handling (nginx rewrite-target support)
 app.UseIngressPathBase(app.Configuration);
 
@@ -45,12 +40,8 @@ app.UseCustomMiddlewares();
 app.UseMiddleware<TC.Agro.Analytics.Service.Middleware.TelemetryMiddleware>();
 
 // 6. FastEndpoints with Swagger (handles routing + OpenAPI generation)
-app
-    //.UseAuthentication()
-    //.UseAuthorization()
-    .UseCustomFastEndpoints(app.Configuration);
-
-// Health checks are already configured in UseCustomMiddlewares()
-// No need for MapAnalyticsHealthChecks() - using middleware approach like Identity Service
+app.UseAuthentication()
+   .UseAuthorization()
+   .UseCustomFastEndpoints(app.Configuration);
 
 await app.RunAsync();

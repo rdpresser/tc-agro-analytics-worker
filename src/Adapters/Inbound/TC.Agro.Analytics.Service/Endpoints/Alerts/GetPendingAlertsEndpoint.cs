@@ -15,8 +15,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         // Force FastEndpoints to bind query parameters (pagination)
         RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
 
-        AllowAnonymous();
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
         PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();

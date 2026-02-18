@@ -10,8 +10,7 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
     {
         Patch("/alerts/{alertId}/acknowledge");
 
-        AllowAnonymous();
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         Description(
             d => d.Produces<AcknowledgeAlertResponse>(200, "application/json")

@@ -11,10 +11,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
     {
         Get("/alerts/history/{plotId}");
 
-
-        AllowAnonymous();
-        //// TOD0: Add authentication when ready
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
         PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
