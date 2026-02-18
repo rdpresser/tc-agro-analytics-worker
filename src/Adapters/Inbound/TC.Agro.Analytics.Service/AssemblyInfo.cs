@@ -59,7 +59,6 @@ global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 global using TC.Agro.Messaging.Extensions;
-global using TC.Agro.Contracts.Events.SensorIngested;
 global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.Analytics.Application.UseCases.AcknowledgeAlert;
 global using TC.Agro.Analytics.Service.Telemetry;

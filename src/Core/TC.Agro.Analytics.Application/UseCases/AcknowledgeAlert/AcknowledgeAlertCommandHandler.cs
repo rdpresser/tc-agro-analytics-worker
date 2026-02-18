@@ -3,17 +3,22 @@ namespace TC.Agro.Analytics.Application.UseCases.AcknowledgeAlert;
 /// <summary>
 /// Handler for acknowledging alerts.
 /// Inherits from BaseCommandHandler for transactional outbox pattern.
+/// Invalidates cache after successful acknowledgment.
 /// </summary>
 internal sealed class AcknowledgeAlertCommandHandler :
     BaseCommandHandler<AcknowledgeAlertCommand, AcknowledgeAlertResponse, AlertAggregate, IAlertAggregateRepository>
 {
+    private readonly ICacheService _cacheService;
+
     public AcknowledgeAlertCommandHandler(
        IAlertAggregateRepository repository,
        IUserContext userContext,
        ITransactionalOutbox outbox,
+       ICacheService cacheService,
        ILogger<AcknowledgeAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
     }
 
     protected override async Task<Result<AlertAggregate>> MapAsync(AcknowledgeAlertCommand command, CancellationToken ct)
@@ -31,10 +36,15 @@ internal sealed class AcknowledgeAlertCommandHandler :
         return Result<AlertAggregate>.Success(alert);
     }
 
-    protected override Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
+    protected override async Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
     {
         Repository.Update(aggregate);
-        return Task.CompletedTask;
+
+        // Invalidate cache after updating alert
+        await _cacheService.RemoveByTagAsync("GetPendingAlertsQuery", ct).ConfigureAwait(false);
+        await _cacheService.RemoveByTagAsync($"plot-{aggregate.PlotId}", ct).ConfigureAwait(false);
+
+        Logger.LogInformation("Cache invalidated for GetPendingAlertsQuery and plot-{PlotId}", aggregate.PlotId);
     }
 
     protected override Task<AcknowledgeAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)

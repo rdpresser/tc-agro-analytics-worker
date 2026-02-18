@@ -3,22 +3,26 @@ namespace TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
 /// <summary>
 /// Handler for processing sensor alerts based on ingested sensor data.
 /// Encapsulates the business logic for alert creation and persistence.
+/// Invalidates cache when new alerts are created.
 /// </summary>
 public sealed class ProcessSensorAlertsCommandHandler
 {
     private readonly IAlertAggregateRepository _alertRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<ProcessSensorAlertsCommandHandler> _logger;
     private readonly AlertThresholds _alertThresholds;
 
     public ProcessSensorAlertsCommandHandler(
         IAlertAggregateRepository alertRepository,
         IUnitOfWork unitOfWork,
+        ICacheService cacheService,
         ILogger<ProcessSensorAlertsCommandHandler> logger,
         IOptions<AlertThresholdsOptions> alertThresholdsOptions)
     {
         _alertRepository = alertRepository ?? throw new ArgumentNullException(nameof(alertRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ArgumentNullException.ThrowIfNull(alertThresholdsOptions);
 
@@ -98,5 +102,19 @@ public sealed class ProcessSensorAlertsCommandHandler
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Invalidate cache after creating new alerts
+        if (alerts.Count > 0)
+        {
+            await _cacheService.RemoveByTagAsync("GetPendingAlertsQuery", cancellationToken).ConfigureAwait(false);
+
+            // Invalidate plot-specific caches
+            foreach (var plotId in alerts.Select(a => a.PlotId).Distinct())
+            {
+                await _cacheService.RemoveByTagAsync($"plot-{plotId}", cancellationToken).ConfigureAwait(false);
+            }
+
+            _logger.LogInformation("Cache invalidated for {Count} new alerts", alerts.Count);
+        }
     }
 }

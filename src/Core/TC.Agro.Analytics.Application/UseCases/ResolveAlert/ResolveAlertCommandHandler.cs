@@ -1,15 +1,23 @@
 namespace TC.Agro.Analytics.Application.UseCases.ResolveAlert;
 
+/// <summary>
+/// Handler for resolving alerts.
+/// Invalidates cache after successful resolution.
+/// </summary>
 internal sealed class ResolveAlertCommandHandler :
     BaseCommandHandler<ResolveAlertCommand, ResolveAlertResponse, AlertAggregate, IAlertAggregateRepository>
 {
+    private readonly ICacheService _cacheService;
+
     public ResolveAlertCommandHandler(
        IAlertAggregateRepository repository,
        IUserContext userContext,
        ITransactionalOutbox outbox,
+       ICacheService cacheService,
        ILogger<ResolveAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
     }
 
     protected override async Task<Result<AlertAggregate>> MapAsync(ResolveAlertCommand command, CancellationToken ct)
@@ -27,10 +35,15 @@ internal sealed class ResolveAlertCommandHandler :
         return Result<AlertAggregate>.Success(alert);
     }
 
-    protected override Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
+    protected override async Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
     {
         Repository.Update(aggregate);
-        return Task.CompletedTask;
+
+        // Invalidate cache after resolving alert (remove from pending list)
+        await _cacheService.RemoveByTagAsync("GetPendingAlertsQuery", ct).ConfigureAwait(false);
+        await _cacheService.RemoveByTagAsync($"plot-{aggregate.PlotId}", ct).ConfigureAwait(false);
+
+        Logger.LogInformation("Cache invalidated for GetPendingAlertsQuery and plot-{PlotId}", aggregate.PlotId);
     }
 
     protected override Task<ResolveAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)
