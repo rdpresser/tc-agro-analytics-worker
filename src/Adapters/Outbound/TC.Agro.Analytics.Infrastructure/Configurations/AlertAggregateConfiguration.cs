@@ -5,8 +5,7 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
     public override void Configure(EntityTypeBuilder<AlertAggregate> builder)
     {
         base.Configure(builder);
-
-        builder.ToTable("alerts", schema: "public");
+        builder.ToTable("alerts");
 
         builder.Property(e => e.SensorId)
             .IsRequired();

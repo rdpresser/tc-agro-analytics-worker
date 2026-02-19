@@ -24,9 +24,9 @@ public static class DependencyInjection
                 opts.UseNpgsql(dbFactory.ConnectionString, npgsql =>
                 {
                     npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, DefaultSchemas.Default);
-                })
+                });
 
-                .UseSnakeCaseNamingConvention();
+                opts.UseSnakeCaseNamingConvention();
 
                 // Use Serilog for EF Core logging
                 opts.LogTo(Log.Logger.Information, LogLevel.Information);

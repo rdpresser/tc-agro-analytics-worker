@@ -1,10 +1,13 @@
+using TC.Agro.SharedKernel.Domain.Events;
+
 namespace TC.Agro.Analytics.Infrastructure;
 
 [ExcludeFromCodeCoverage]
 public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
 {
-    DbContext IApplicationDbContext.DbContext => this;
     public DbSet<AlertAggregate> Alerts { get; set; } = default!;
+
+    public DbContext DbContext => this;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -15,12 +18,20 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
         modelBuilder.HasDefaultSchema(DefaultSchemas.Default);
+
+        // Ignore domain events - they are not persisted as separate entities
+        modelBuilder.Ignore<BaseDomainEvent>();
+
+        // -------------------------------
+        // Global Query Filters
+        // -------------------------------
+        modelBuilder.Entity<AlertAggregate>().HasQueryFilter(p => p.IsActive);
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 
-    async Task<int> SharedKernel.Application.Ports.IUnitOfWork.SaveChangesAsync(CancellationToken ct)
+    async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken ct)
     {
         Log.Debug("ApplicationDbContext.SaveChangesAsync called. ChangeTracker has {Count} entries",
             ChangeTracker.Entries().Count());
