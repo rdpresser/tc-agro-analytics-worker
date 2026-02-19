@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
 
 /// <summary>
 /// Validator for GetPendingAlertsQuery.

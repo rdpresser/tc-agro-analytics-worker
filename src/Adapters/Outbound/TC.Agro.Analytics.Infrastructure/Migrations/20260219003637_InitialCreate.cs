@@ -20,7 +20,7 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    sensor_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     severity = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),

@@ -1,20 +1,14 @@
 namespace TC.Agro.Analytics.Application;
 
-using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
-
 [ExcludeFromCodeCoverage]
 public static class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
             // Configure AlertThresholds from appsettings.json (Alerts:Thresholds section)
-            services.Configure<AlertThresholdsOptions>(
-                configuration.GetSection(AlertThresholdsOptions.ConfigurationSection));
-
-            // Register command handler for processing sensor alerts
-            services.AddScoped<ProcessSensorAlertsCommandHandler>();
+            ////services.Configure<AlertThresholdsOptions>(configuration.GetSection(AlertThresholdsOptions.ConfigurationSection));
 
             // Query Handlers are registered automatically by SharedKernel
             // (via reflection - all classes implementing BaseQueryHandler)

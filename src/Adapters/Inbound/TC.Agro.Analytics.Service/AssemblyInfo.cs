@@ -29,13 +29,14 @@ global using OpenTelemetry.Resources;
 global using OpenTelemetry.Trace;
 global using Serilog;
 global using TC.Agro.Analytics.Application;
+global using TC.Agro.Analytics.Application.Abstractions;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
-global using TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
-global using TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
-global using TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
+global using TC.Agro.Analytics.Application.UseCases.Alerts;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
 global using TC.Agro.Analytics.Infrastructure;
 global using TC.Agro.Analytics.Service.Extensions;
-global using TC.Agro.Contracts.Events.Analytics;
 global using TC.Agro.Contracts.Events.Identity;
 global using TC.Agro.SharedKernel.Api.Endpoints;
 global using TC.Agro.SharedKernel.Api.Extensions;
@@ -60,6 +61,17 @@ global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 global using TC.Agro.Messaging.Extensions;
+global using TC.Agro.Contracts.Events.SensorIngested;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.AcknowledgeAlert;
+global using TC.Agro.Analytics.Service.Telemetry;
+global using System.Diagnostics.Metrics;
+global using System.Diagnostics;
+global using System.Security.Claims;
+global using Serilog.Context;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.IdentityModel.JsonWebTokens;
+global using Microsoft.IdentityModel.Tokens;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

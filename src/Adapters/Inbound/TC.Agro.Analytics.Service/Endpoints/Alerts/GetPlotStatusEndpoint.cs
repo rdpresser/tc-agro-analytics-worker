@@ -10,12 +10,10 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
     {
         Get("/plots/{plotId}/status");
 
-        AllowAnonymous(); // TOD0: Add authentication when ready
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        // TOD0: Enable caching when ICachedQuery is implemented (good candidate for caching)
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
+        PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
+        PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
 
         Summary(s =>
         {
@@ -42,7 +40,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
                 MostRecentAlert: new PlotStatusAlertResponse(
                     Guid.NewGuid(),
                     Guid.NewGuid(),
-                    "SENSOR-TEST-001",
+                    Guid.NewGuid(),
                     "HighTemperature",
                     "High temperature detected: 42.5°C",
                     "Pending",

@@ -17,9 +17,12 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using Serilog;
-global using GetAlertHistory = TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
-global using GetPendingAlerts = TC.Agro.Analytics.Application.UseCases.GetPendingAlerts;
-global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
+global using GetAlertHistory = TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
+global using GetPendingAlerts = TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
+global using GetPlotStatus = TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.ValueObjects;
@@ -38,6 +41,10 @@ global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 global using Wolverine.EntityFrameworkCore;
 global using TC.Agro.Analytics.Domain;
+global using TC.Agro.Analytics.Infrastructure.Messaging;
+global using TC.Agro.SharedKernel.Infrastructure;
+global using TC.Agro.Analytics.Application.UseCases.Alerts;
+
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

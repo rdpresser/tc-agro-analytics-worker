@@ -12,7 +12,7 @@ using TC.Agro.Analytics.Infrastructure;
 namespace TC.Agro.Analytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260212053613_InitialCreate")]
+    [Migration("20260219003637_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -83,10 +83,8 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("resolved_by");
 
-                    b.Property<string>("SensorId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("SensorId")
+                        .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
                     b.Property<string>("Severity")

@@ -80,10 +80,8 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("resolved_by");
 
-                    b.Property<string>("SensorId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("SensorId")
+                        .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
                     b.Property<string>("Severity")

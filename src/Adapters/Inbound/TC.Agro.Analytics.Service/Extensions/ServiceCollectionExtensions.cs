@@ -15,18 +15,16 @@ internal static class ServiceCollectionExtensions
         services
             .AddHttpClient()
             .AddCorrelationIdGenerator()
-            //     .AddValidatorsFromAssemblyContaining<XXXXCommandValidator>()
+            .AddValidatorsFromAssemblyContaining<AcknowledgeAlertCommandValidator>()
             .AddCaching()
             .AddCustomCors(builder.Configuration)
-            //.AddCustomAuthentication(builder.Configuration)
+            .AddCustomAuthentication(builder.Configuration)
             .AddCustomFastEndpoints()
             .AddCustomHealthChecks()
-            .AddApplication(builder.Configuration)
-            .AddInfrastructure(builder.Configuration);
-       // AddCustomOpenTelemetry(builder, builder.Configuration)
-                        // ENHANCED: Register telemetry metrics
-                        ////.AddSingleton<FarmMetrics>()
-                        ////.AddSingleton<SystemMetrics>();
+            .AddCustomOpenTelemetry(builder, builder.Configuration)
+            // ENHANCED: Register telemetry metrics
+            .AddSingleton<AnalyticsMetrics>()
+            .AddSingleton<SystemMetrics>();
         return services;
     }
 
@@ -114,10 +112,34 @@ internal static class ServiceCollectionExtensions
     // Authentication and Authorization
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSettings = JwtHelper.Build(configuration);
 
-        services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtSettings.SecretKey)
-                .AddAuthorization()
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(opt =>
+        {
+            var jwtSettings = JwtHelper.Build(configuration);
+
+            opt.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings!.Issuer, // Ensure this matches the issuer in your token
+                ValidateAudience = true,
+                ValidAudiences = jwtSettings!.Audience, // Ensure this matches the audience in your token
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSettings!.SecretKey ?? string.Empty)), // Use the same secret key
+                ValidateIssuerSigningKey = true,
+                RoleClaimType = "role",
+                NameClaimType = JwtRegisteredClaimNames.Name
+            };
+
+            opt.MapInboundClaims = false; // Keep original claim types
+        });
+
+        services.AddAuthorization()
                 .AddHttpContextAccessor();
 
         return services;
@@ -296,29 +318,14 @@ internal static class ServiceCollectionExtensions
             if (mqConnectionFactory.AutoPurgeOnStartup)
                 rabbitOpts.AutoPurgeOnStartup();
 
-            var exchangeName = $"{mqConnectionFactory.Exchange}-exchange";
-
-            // -------------------------------
-            // Publishing example
-            // -------------------------------
-            opts.PublishMessage<EventContext<SensorIngestedIntegrationEvent>>()
-                .ToRabbitExchange(exchangeName)
-                .BufferedInMemory()
-                .UseDurableOutbox();
-
             // ============================================================
-            // PUBLISHING - Farm Service Events (TOPIC Exchange)
-            // Farm publishes its own events (Property, Plot, Sensor)
+            // CONSUMING - Sensor Ingested Events
+            // Analytics Worker LISTENS to sensor events to create alerts
             // ============================================================
-            ////opts.PublishMessage<EventContext<PropertyCreatedIntegrationEvent>>()
-            ////    .ToRabbitExchange(exchangeName)
-            ////    .BufferedInMemory()
-            ////    .UseDurableOutbox();
+            opts.ListenToRabbitQueue("analytics-sensor-ingest-events-queue")
+                .ProcessInline();
 
-            opts.ConfigureIdentityUserEventsConsumption(
-                 exchangeName: "identity.events-exchange",
-                 queueName: "analitics-identity-user-events-queue"
-             );
+
         });
 
         // -------------------------------
@@ -329,219 +336,216 @@ internal static class ServiceCollectionExtensions
         return builder;
     }
     // OpenTelemetry Configuration
-    ////public static IServiceCollection AddCustomOpenTelemetry(
-    ////    this IServiceCollection services,
-    ////    IHostApplicationBuilder builder,
-    ////    IConfiguration configuration)
-    ////{
-    ////    var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? TelemetryConstants.Version;
-    ////    var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Development";
-    ////    var instanceId = Environment.MachineName;
-    ////    var serviceName = TelemetryConstants.ServiceName;
-    ////    var serviceNamespace = TelemetryConstants.ServiceNamespace;
+    public static IServiceCollection AddCustomOpenTelemetry(
+        this IServiceCollection services,
+        IHostApplicationBuilder builder,
+        IConfiguration configuration)
+    {
+        var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? TelemetryConstants.Version;
+        var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Development";
+        var instanceId = Environment.MachineName;
+        var serviceName = TelemetryConstants.ServiceName;
+        var serviceNamespace = TelemetryConstants.ServiceNamespace;
 
-    ////    // NOTE: Serilog handles all logging (no OpenTelemetry logging)
-    ////    // This prevents log duplication and simplifies trace_id/span_id correlation
-    ////    // Serilog.Enrichers.Span automatically adds trace_id/span_id from Activity.Current
-    ////    // ❌ REMOVED: builder.Logging.AddOpenTelemetry() - use Serilog only
+        // NOTE: Serilog handles all logging (no OpenTelemetry logging)
+        // This prevents log duplication and simplifies trace_id/span_id correlation
+        // Serilog.Enrichers.Span automatically adds trace_id/span_id from Activity.Current
+        // ❌ REMOVED: builder.Logging.AddOpenTelemetry() - use Serilog only
 
-    ////    var otelBuilder = services.AddOpenTelemetry()
-    ////        .ConfigureResource(resource => resource
-    ////            .AddService(
-    ////                serviceName: serviceName,
-    ////                serviceNamespace: serviceNamespace,
-    ////                serviceVersion: serviceVersion,
-    ////                serviceInstanceId: instanceId)
-    ////            .AddAttributes(new Dictionary<string, object>
-    ////            {
-    ////                ["deployment.environment"] = environment.ToLowerInvariant(),
-    ////                ["service.namespace"] = serviceNamespace.ToLowerInvariant(),
-    ////                ["service.instance.id"] = instanceId,
-    ////                ["container.name"] = Environment.GetEnvironmentVariable("HOSTNAME") ?? instanceId,
-    ////                ["host.provider"] = "localhost",
-    ////                ["host.platform"] = "k3d_kubernetes_service",
-    ////                ["service.team"] = "engineering",
-    ////                ["service.owner"] = "devops"
-    ////            }))
-    ////        .WithMetrics(metrics =>
-    ////        {
-    ////            metrics
-    ////                .AddAspNetCoreInstrumentation()
-    ////                .AddHttpClientInstrumentation()
-    ////                .AddRuntimeInstrumentation()
-    ////                .AddFusionCacheInstrumentation()
-    ////                .AddNpgsqlInstrumentation()
-    ////                .AddMeter("Microsoft.AspNetCore.Hosting")
-    ////                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-    ////                .AddMeter("System.Net.Http")
-    ////                .AddMeter("System.Runtime")
-    ////                .AddMeter("Wolverine")
-    ////                .AddMeter(TelemetryConstants.IdentityMeterName)
-    ////                .AddPrometheusExporter();
-    ////        })
-    ////        .WithTracing(tracing =>
-    ////        {
-    ////            tracing
-    ////                .AddAspNetCoreInstrumentation(options =>
-    ////                {
-    ////                    options.Filter = ctx =>
-    ////                    {
-    ////                        var path = ctx.Request.Path.Value ?? "";
-    ////                        return !path.Contains("/health") && !path.Contains("/metrics") && !path.Contains("/prometheus");
-    ////                    };
+        var otelBuilder = services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource
+                .AddService(
+                    serviceName: serviceName,
+                    serviceNamespace: serviceNamespace,
+                    serviceVersion: serviceVersion,
+                    serviceInstanceId: instanceId)
+                .AddAttributes(new Dictionary<string, object>
+                {
+                    ["deployment.environment"] = environment.ToLowerInvariant(),
+                    ["service.namespace"] = serviceNamespace.ToLowerInvariant(),
+                    ["service.instance.id"] = instanceId,
+                    ["container.name"] = Environment.GetEnvironmentVariable("HOSTNAME") ?? instanceId,
+                    ["host.provider"] = "localhost",
+                    ["host.platform"] = "k3d_kubernetes_service",
+                    ["service.team"] = "engineering",
+                    ["service.owner"] = "devops"
+                }))
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddFusionCacheInstrumentation()
+                    .AddMeter("Microsoft.AspNetCore.Hosting")
+                    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                    .AddMeter("System.Net.Http")
+                    .AddMeter("System.Runtime")
+                    .AddMeter("Wolverine")
+                    .AddMeter(TelemetryConstants.AnalyticsMeterName)
+                    .AddPrometheusExporter();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddAspNetCoreInstrumentation(options =>
+                    {
+                        options.Filter = ctx =>
+                        {
+                            var path = ctx.Request.Path.Value ?? "";
+                            return !path.Contains("/health") && !path.Contains("/metrics") && !path.Contains("/prometheus");
+                        };
 
-    ////                    options.EnrichWithHttpRequest = (activity, request) =>
-    ////                    {
-    ////                        activity.SetTag("http.method", request.Method);
-    ////                        activity.SetTag("http.scheme", request.Scheme);
-    ////                        activity.SetTag("http.host", request.Host.Value);
-    ////                        activity.SetTag("http.target", request.Path);
-    ////                        if (request.ContentLength.HasValue)
-    ////                            activity.SetTag("http.request.size", request.ContentLength.Value);
-    ////                        activity.SetTag("user.id", request.HttpContext.User?.Identity?.Name);
-    ////                        activity.SetTag("user.authenticated", request.HttpContext.User?.Identity?.IsAuthenticated);
-    ////                        activity.SetTag("http.route", request.HttpContext.GetRouteValue("action")?.ToString());
-    ////                        activity.SetTag("http.client_ip", request.HttpContext.Connection.RemoteIpAddress?.ToString());
+                        options.EnrichWithHttpRequest = (activity, request) =>
+                        {
+                            activity.SetTag("http.method", request.Method);
+                            activity.SetTag("http.scheme", request.Scheme);
+                            activity.SetTag("http.host", request.Host.Value);
+                            activity.SetTag("http.target", request.Path);
+                            if (request.ContentLength.HasValue)
+                                activity.SetTag("http.request.size", request.ContentLength.Value);
+                            activity.SetTag("user.id", request.HttpContext.User?.Identity?.Name);
+                            activity.SetTag("user.authenticated", request.HttpContext.User?.Identity?.IsAuthenticated);
+                            activity.SetTag("http.route", request.HttpContext.GetRouteValue("action")?.ToString());
+                            activity.SetTag("http.client_ip", request.HttpContext.Connection.RemoteIpAddress?.ToString());
 
-    ////                        // NEW: Enhanced domain attributes
-    ////                        activity.SetTag("http.endpoint_handler", request.Path);
-    ////                        activity.SetTag("http.query_params", request.QueryString.Value ?? "");
+                            // NEW: Enhanced domain attributes
+                            activity.SetTag("http.endpoint_handler", request.Path);
+                            activity.SetTag("http.query_params", request.QueryString.Value ?? "");
 
-    ////                        // NEW: User context from JWT/Principal
-    ////                        var userId = request.HttpContext.User?.FindFirst("sub")?.Value ??
-    ////                                     request.HttpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-    ////                        if (!string.IsNullOrWhiteSpace(userId))
-    ////                            activity.SetTag("user.id", userId);
+                            // NEW: User context from JWT/Principal
+                            var userId = request.HttpContext.User?.FindFirst("sub")?.Value ??
+                                         request.HttpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                            if (!string.IsNullOrWhiteSpace(userId))
+                                activity.SetTag("user.id", userId);
 
-    ////                        // NEW: Request correlation ID
-    ////                        if (request.HttpContext.Request.Headers.TryGetValue(TelemetryConstants.CorrelationIdHeader, out var correlationId))
-    ////                            activity.SetTag("correlation_id", correlationId.ToString());
+                            // NEW: Request correlation ID
+                            if (request.HttpContext.Request.Headers.TryGetValue(TelemetryConstants.CorrelationIdHeader, out var correlationId))
+                                activity.SetTag("correlation_id", correlationId.ToString());
 
-    ////                        // NEW: User roles
-    ////                        var roles = string.Join(",", request.HttpContext.User?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value) ?? new string[] { });
-    ////                        if (!string.IsNullOrWhiteSpace(roles))
-    ////                            activity.SetTag("user.roles", roles);
-    ////                    };
+                            // NEW: User roles
+                            var roles = string.Join(",", request.HttpContext.User?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value) ?? new string[] { });
+                            if (!string.IsNullOrWhiteSpace(roles))
+                                activity.SetTag("user.roles", roles);
+                        };
 
-    ////                    options.EnrichWithHttpResponse = (activity, response) =>
-    ////                    {
-    ////                        activity.SetTag("http.status_code", response.StatusCode);
-    ////                        if (response.ContentLength.HasValue)
-    ////                            activity.SetTag("http.response.size", response.ContentLength.Value);
+                        options.EnrichWithHttpResponse = (activity, response) =>
+                        {
+                            activity.SetTag("http.status_code", response.StatusCode);
+                            if (response.ContentLength.HasValue)
+                                activity.SetTag("http.response.size", response.ContentLength.Value);
 
-    ////                        // NEW: HTTP status category
-    ////                        activity.SetTag("http.status_category", response.StatusCode >= 400 ? "error" : "success");
-    ////                    };
+                            // NEW: HTTP status category
+                            activity.SetTag("http.status_category", response.StatusCode >= 400 ? "error" : "success");
+                        };
 
-    ////                    options.EnrichWithException = (activity, ex) =>
-    ////                    {
-    ////                        activity.SetTag("exception.type", ex.GetType().Name);
-    ////                        activity.SetTag("exception.message", ex.Message);
-    ////                        activity.SetTag("exception.stacktrace", ex.StackTrace);
-    ////                    };
-    ////                })
-    ////                .AddHttpClientInstrumentation(options =>
-    ////                {
-    ////                    options.FilterHttpRequestMessage = request =>
-    ////                    {
-    ////                        var path = request.RequestUri?.AbsolutePath ?? "";
-    ////                        return !path.Contains("/health") && !path.Contains("/metrics") && !path.Contains("/prometheus");
-    ////                    };
-    ////                })
-    ////                .AddRedisInstrumentation()
-    ////                .AddFusionCacheInstrumentation()
-    ////                .AddNpgsql()
-    ////                //.AddSource(TelemetryConstants.UserActivitySource)
-    ////                //.AddSource(TelemetryConstants.DatabaseActivitySource)
-    ////                //.AddSource(TelemetryConstants.CacheActivitySource)
-    ////                //.AddSource(TelemetryConstants.HandlersActivitySource)
-    ////                //.AddSource(TelemetryConstants.FastEndpointsActivitySource)
-    ////                .AddSource("Wolverine");
-    ////        });
+                        options.EnrichWithException = (activity, ex) =>
+                        {
+                            activity.SetTag("exception.type", ex.GetType().Name);
+                            activity.SetTag("exception.message", ex.Message);
+                            activity.SetTag("exception.stacktrace", ex.StackTrace);
+                        };
+                    })
+                    .AddHttpClientInstrumentation(options =>
+                    {
+                        options.FilterHttpRequestMessage = request =>
+                        {
+                            var path = request.RequestUri?.AbsolutePath ?? "";
+                            return !path.Contains("/health") && !path.Contains("/metrics") && !path.Contains("/prometheus");
+                        };
+                    })
+                    .AddRedisInstrumentation()
+                    .AddFusionCacheInstrumentation()
+                    .AddSource(TelemetryConstants.AnalyticsActivitySource)
+                    .AddSource(TelemetryConstants.DatabaseActivitySource)
+                    .AddSource(TelemetryConstants.HandlersActivitySource)
+                    .AddSource(TelemetryConstants.MessagingActivitySource)
+                    .AddSource("Wolverine");
+            });
 
-    ////    AddOpenTelemetryExporters(otelBuilder, builder);
+        AddOpenTelemetryExporters(otelBuilder, builder);
 
-    ////    return services;
-    ////}
+        return services;
+    }
 
-    ////private static void AddOpenTelemetryExporters(OpenTelemetryBuilder otelBuilder, IHostApplicationBuilder builder)
-    ////{
-    ////    var grafanaSettings = GrafanaHelper.Build(builder.Configuration);
-    ////    var useOtlpExporter = grafanaSettings.Agent.Enabled && !string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Endpoint);
+    private static void AddOpenTelemetryExporters(OpenTelemetryBuilder otelBuilder, IHostApplicationBuilder builder)
+    {
+        var grafanaSettings = GrafanaHelper.Build(builder.Configuration);
+        var useOtlpExporter = grafanaSettings.Agent.Enabled && !string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Endpoint);
 
-    ////    if (useOtlpExporter)
-    ////    {
-    ////        // Configure OTLP for Traces
-    ////        // NOTE: Traces use /v1/traces endpoint per OTLP specification
-    ////        otelBuilder.WithTracing(tracerBuilder =>
-    ////        {
-    ////            tracerBuilder.AddOtlpExporter(otlp =>
-    ////            {
-    ////                otlp.Endpoint = new Uri(grafanaSettings.ResolveTracesEndpoint());
-    ////                otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
-    ////                    ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-    ////                    : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        if (useOtlpExporter)
+        {
+            // Configure OTLP for Traces
+            // NOTE: Traces use /v1/traces endpoint per OTLP specification
+            otelBuilder.WithTracing(tracerBuilder =>
+            {
+                tracerBuilder.AddOtlpExporter(otlp =>
+                {
+                    otlp.Endpoint = new Uri(grafanaSettings.ResolveTracesEndpoint());
+                    otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
+                        ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
+                        : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
 
-    ////                if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
-    ////                {
-    ////                    otlp.Headers = grafanaSettings.Otlp.Headers;
-    ////                }
+                    if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
+                    {
+                        otlp.Headers = grafanaSettings.Otlp.Headers;
+                    }
 
-    ////                otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
-    ////            });
-    ////        });
+                    otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
+                });
+            });
 
-    ////        // Configure OTLP for Metrics
-    ////        // NOTE: Send metrics to OTEL Collector for centralized processing
-    ////        // OTEL Collector will strip problematic attributes before exposing to Prometheus
-    ////        otelBuilder.WithMetrics(metricsBuilder =>
-    ////        {
-    ////            metricsBuilder.AddOtlpExporter(otlp =>
-    ////            {
-    ////                otlp.Endpoint = new Uri(grafanaSettings.ResolveMetricsEndpoint());
-    ////                otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
-    ////                    ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-    ////                    : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+            // Configure OTLP for Metrics
+            // NOTE: Send metrics to OTEL Collector for centralized processing
+            // OTEL Collector will strip problematic attributes before exposing to Prometheus
+            otelBuilder.WithMetrics(metricsBuilder =>
+            {
+                metricsBuilder.AddOtlpExporter(otlp =>
+                {
+                    otlp.Endpoint = new Uri(grafanaSettings.ResolveMetricsEndpoint());
+                    otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
+                        ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
+                        : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
 
-    ////                if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
-    ////                {
-    ////                    otlp.Headers = grafanaSettings.Otlp.Headers;
-    ////                }
+                    if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
+                    {
+                        otlp.Headers = grafanaSettings.Otlp.Headers;
+                    }
 
-    ////                otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
-    ////            });
-    ////        });
+                    otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
+                });
+            });
 
-    ////        // Configure OTLP for Logs
-    ////        // NOTE: Logs use /v1/logs endpoint per OTLP specification
-    ////        otelBuilder.WithLogging(loggingBuilder =>
-    ////        {
-    ////            loggingBuilder.AddOtlpExporter(otlp =>
-    ////            {
-    ////                otlp.Endpoint = new Uri(grafanaSettings.ResolveLogsEndpoint());
-    ////                otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
-    ////                    ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-    ////                    : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+            // Configure OTLP for Logs
+            // NOTE: Logs use /v1/logs endpoint per OTLP specification
+            otelBuilder.WithLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddOtlpExporter(otlp =>
+                {
+                    otlp.Endpoint = new Uri(grafanaSettings.ResolveLogsEndpoint());
+                    otlp.Protocol = grafanaSettings.Otlp.Protocol.ToLowerInvariant() == "grpc"
+                        ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
+                        : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
 
-    ////                if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
-    ////                {
-    ////                    otlp.Headers = grafanaSettings.Otlp.Headers;
-    ////                }
+                    if (!string.IsNullOrWhiteSpace(grafanaSettings.Otlp.Headers))
+                    {
+                        otlp.Headers = grafanaSettings.Otlp.Headers;
+                    }
 
-    ////                otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
-    ////            });
-    ////        });
+                    otlp.TimeoutMilliseconds = grafanaSettings.Otlp.TimeoutSeconds * 1000;
+                });
+            });
 
-    ////        ////builder.Services.AddSingleton(new TelemetryExporterInfo
-    ////        ////{
-    ////        ////    ExporterType = "OTLP",
-    ////        ////    Endpoint = grafanaSettings.ResolveTracesEndpoint(),
-    ////        ////    Protocol = grafanaSettings.Otlp.Protocol
-    ////        ////});
-    ////    }
-    ////    else
-    ////    {
-    ////        ////builder.Services.AddSingleton(new TelemetryExporterInfo { ExporterType = "None" });
-    ////    }
-    ////}
+            builder.Services.AddSingleton(new TelemetryExporterInfo
+            {
+                ExporterType = "OTLP",
+                Endpoint = grafanaSettings.ResolveTracesEndpoint(),
+                Protocol = grafanaSettings.Otlp.Protocol
+            });
+        }
+        else
+        {
+            builder.Services.AddSingleton(new TelemetryExporterInfo { ExporterType = "None" });
+        }
+    }
 }

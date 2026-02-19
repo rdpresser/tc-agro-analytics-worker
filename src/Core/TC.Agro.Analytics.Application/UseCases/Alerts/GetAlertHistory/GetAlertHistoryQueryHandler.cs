@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 
 /// <summary>
 /// Handler for retrieving alert history for a specific plot.

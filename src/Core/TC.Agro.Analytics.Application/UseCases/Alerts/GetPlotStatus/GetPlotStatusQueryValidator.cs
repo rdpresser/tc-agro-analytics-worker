@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
 
 /// <summary>
 /// Validator for GetPlotStatusQuery.

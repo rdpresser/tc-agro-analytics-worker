@@ -11,16 +11,10 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
     {
         Get("/alerts/history/{plotId}");
 
-        // Force FastEndpoints to bind query parameters (days, alertType, status, pagination)
-        RequestBinder(new RequestBinder<GetAlertHistoryQuery>(BindingSource.QueryParams));
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        AllowAnonymous();
-        //// TOD0: Add authentication when ready
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
-
-        //// TOD0: Enable caching when ICachedQuery is implemented
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
+        PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
+        PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
 
         Description(
             d => d.Produces<PaginatedResponse<AlertHistoryResponse>>(200, "application/json")
@@ -55,7 +49,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "HighTemperature",
                         "High temperature detected: 42.5°C",
@@ -72,7 +66,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "LowSoilMoisture",
                         "Low soil moisture detected: 12.0% - Irrigation may be needed",

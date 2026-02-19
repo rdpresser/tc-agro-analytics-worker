@@ -12,7 +12,7 @@ public interface IAlertReadStore
     /// Get all pending alerts with pagination.
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
-    Task<PaginatedResponse<GetPendingAlerts.PendingAlertResponse>> GetPendingAlertsAsync(
+    Task<PaginatedResponse<PendingAlertResponse>> GetPendingAlertsAsync(
         int pageNumber = 1,
         int pageSize = 100,
         CancellationToken cancellationToken = default);
@@ -21,7 +21,7 @@ public interface IAlertReadStore
     /// Get alert history for a specific plot with optional filters and pagination.
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
-    Task<PaginatedResponse<GetAlertHistory.AlertHistoryResponse>> GetAlertHistoryAsync(
+    Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
         Guid plotId,
         int days = 30,
         string? alertType = null,
@@ -34,7 +34,7 @@ public interface IAlertReadStore
     /// Get aggregated status metrics for a specific plot.
     /// Returns ready-to-use Response object (no mapping needed in handlers).
     /// </summary>
-    Task<GetPlotStatus.GetPlotStatusResponse> GetPlotStatusAsync(
+    Task<GetPlotStatusResponse> GetPlotStatusAsync(
         Guid plotId,
         CancellationToken cancellationToken = default);
 }

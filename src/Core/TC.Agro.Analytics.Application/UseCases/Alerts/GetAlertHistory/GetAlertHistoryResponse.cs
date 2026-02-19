@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 
 /// <summary>
 /// Response item for alert in history list.
@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetAlertHistory;
 public sealed record AlertHistoryResponse(
     Guid Id,
     Guid SensorReadingId,
-    string SensorId,
+    Guid SensorId,
     Guid PlotId,
     string AlertType,
     string Message,

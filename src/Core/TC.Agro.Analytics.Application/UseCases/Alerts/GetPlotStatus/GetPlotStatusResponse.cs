@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
 
 /// <summary>
 /// Alert information included in plot status.
@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.UseCases.GetPlotStatus;
 public sealed record PlotStatusAlertResponse(
     Guid Id,
     Guid SensorReadingId,
-    string SensorId,
+    Guid SensorId,
     string AlertType,
     string Message,
     string Status,

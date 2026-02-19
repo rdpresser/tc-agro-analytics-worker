@@ -15,14 +15,14 @@ public sealed class AlertReadStore : IAlertReadStore
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public async Task<PaginatedResponse<GetPendingAlerts.PendingAlertResponse>> GetPendingAlertsAsync(
+    public async Task<PaginatedResponse<PendingAlertResponse>> GetPendingAlertsAsync(
         int pageNumber = 1,
         int pageSize = 100,
         CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.Status == AlertStatus.Pending)
+            .Where(a => a.Status == AlertStatus.Pending || a.Status == AlertStatus.Acknowledged)
             .OrderByDescending(a => a.CreatedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -46,14 +46,14 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.AcknowledgedBy))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<GetPendingAlerts.PendingAlertResponse>(
+        return new PaginatedResponse<PendingAlertResponse>(
             alerts,
             totalCount,
             pageNumber,
             pageSize);
     }
 
-    public async Task<PaginatedResponse<GetAlertHistory.AlertHistoryResponse>> GetAlertHistoryAsync(
+    public async Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
         Guid plotId,
         int days = 30,
         string? alertType = null,
@@ -71,12 +71,22 @@ public sealed class AlertReadStore : IAlertReadStore
 
         if (!string.IsNullOrEmpty(alertType))
         {
-            query = query.Where(a => a.Type.Value == alertType);
+            var typeResult = AlertType.Create(alertType.Trim());
+            if (typeResult.IsSuccess)
+            {
+                var alertTypeVO = typeResult.Value;
+                query = query.Where(a => a.Type == alertTypeVO);
+            }
         }
 
         if (!string.IsNullOrEmpty(status))
         {
-            query = query.Where(a => a.Status.Value == status);
+            var statusResult = AlertStatus.Create(status.Trim());
+            if (statusResult.IsSuccess)
+            {
+                var statusVO = statusResult.Value;
+                query = query.Where(a => a.Status == statusVO);
+            }
         }
 
         query = query.OrderByDescending(a => a.CreatedAt);
@@ -105,14 +115,14 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.ResolutionNotes))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<GetAlertHistory.AlertHistoryResponse>(
+        return new PaginatedResponse<AlertHistoryResponse>(
             alerts,
             totalCount,
             pageNumber,
             pageSize);
     }
 
-    public async Task<GetPlotStatus.GetPlotStatusResponse> GetPlotStatusAsync(
+    public async Task<GetPlotStatusResponse> GetPlotStatusAsync(
         Guid plotId,
         CancellationToken cancellationToken = default)
     {

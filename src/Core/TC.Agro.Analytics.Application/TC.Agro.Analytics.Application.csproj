@@ -3,13 +3,10 @@
 	<ItemGroup>
 		<Compile Remove="Queries\**" />
 		<Compile Remove="Responses\**" />
-		<Compile Remove="UseCases\Alerts\**" />
 		<EmbeddedResource Remove="Queries\**" />
 		<EmbeddedResource Remove="Responses\**" />
-		<EmbeddedResource Remove="UseCases\Alerts\**" />
 		<None Remove="Queries\**" />
 		<None Remove="Responses\**" />
-		<None Remove="UseCases\Alerts\**" />
 	</ItemGroup>
 
 	<ItemGroup>

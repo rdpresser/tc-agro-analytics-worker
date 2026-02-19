@@ -1,8 +1,9 @@
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
-/// Endpoint to retrieve all pending alerts across all plots.
+/// Endpoint to retrieve all active alerts (Pending + Acknowledged) across all plots.
 /// GET /alerts/pending?pageNumber=1&pageSize=100
+/// Returns alerts that need attention (excludes Resolved alerts).
 /// Uses PaginatedResponse from SharedKernel (standard pattern).
 /// </summary>
 public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>
@@ -14,17 +15,15 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         // Force FastEndpoints to bind query parameters (pagination)
         RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
 
-        AllowAnonymous(); // TOD0: Add authentication when ready
-        //// Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        // TOD0: Enable caching when ICachedQuery is implemented (short TTL for real-time data)
-        //// PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
-        //// PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
+        PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
+        PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
 
         Summary(s =>
         {
-            s.Summary = "Get all pending alerts";
-            s.Description = "Retrieves all alerts with status 'Pending' across all plots, ordered by creation date (most recent first)";
+            s.Summary = "Get active alerts (Pending + Acknowledged)";
+            s.Description = "Retrieves all alerts with status 'Pending' or 'Acknowledged' (excludes Resolved), ordered by creation date";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
 
@@ -45,7 +44,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-001",
+                        Guid.NewGuid(),
                         Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
                         "HighTemperature",
                         "High temperature detected: 42.5°C",
@@ -59,7 +58,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
-                        "SENSOR-TEST-002",
+                        Guid.NewGuid(),
                         Guid.Parse("7e2b8c3f-9a4d-4f1e-b6c5-8d7f2a1e3c4b"),
                         "LowBattery",
                         "Low battery warning: 8.0% - Sensor maintenance required",

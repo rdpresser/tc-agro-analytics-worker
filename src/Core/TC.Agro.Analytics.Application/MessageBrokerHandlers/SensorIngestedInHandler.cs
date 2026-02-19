@@ -1,57 +1,53 @@
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers;
 
-using TC.Agro.Analytics.Application.UseCases.ProcessSensorAlerts;
-
 /// <summary>
 /// Handler for processing sensor data ingestion events.
 /// Orchestrates validation and delegates business logic to the command handler.
 /// </summary>
 public sealed class SensorIngestedHandler : IWolverineHandler
 {
-    private readonly ProcessSensorAlertsCommandHandler _commandHandler;
-    private readonly IValidator<ProcessSensorAlertsCommand> _validator;
-    private readonly ILogger<SensorIngestedHandler> _logger;
+    private readonly IAlertAggregateRepository _alertRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly AlertThresholds _alertThresholds;
 
     public SensorIngestedHandler(
-        ProcessSensorAlertsCommandHandler commandHandler,
-        IValidator<ProcessSensorAlertsCommand> validator,
-        ILogger<SensorIngestedHandler> logger)
+        ILogger<SensorIngestedHandler> logger,
+        IOptions<AlertThresholdsOptions> alertThresholdsOptions,
+        IAlertAggregateRepository alertRepository,
+        IUnitOfWork unitOfWork)
     {
-        _commandHandler = commandHandler ?? throw new ArgumentNullException(nameof(commandHandler));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _alertThresholds = new AlertThresholds(
+            maxTemperature: alertThresholdsOptions.Value.MaxTemperature,
+            minSoilMoisture: alertThresholdsOptions.Value.MinSoilMoisture,
+            minBatteryLevel: alertThresholdsOptions.Value.MinBatteryLevel);
+        _alertRepository = alertRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task Handle(SensorIngestedIntegrationEvent message, CancellationToken cancellationToken = default)
+    public async Task Handle(EventContext<SensorIngestedIntegrationEvent> @event, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(@event);
 
-        _logger.LogInformation(
-            "🎯 Processing SensorIngestedIntegrationEvent for Sensor {SensorId}, Plot {PlotId}",
-            message.SensorId,
-            message.PlotId);
+        var alertsResult = AlertAggregate.CreateFromSensorData(
+            sensorId: @event.EventData.SensorId,
+            plotId: @event.EventData.PlotId,
+            temperature: @event.EventData.Temperature,
+            soilMoisture: @event.EventData.SoilMoisture,
+            batteryLevel: @event.EventData.BatteryLevel,
+            humidity: @event.EventData.Humidity,
+            rainfall: @event.EventData.Rainfall,
+            thresholds: _alertThresholds);
 
-        var command = new ProcessSensorAlertsCommand(
-            SensorId: message.SensorId,
-            PlotId: message.PlotId,
-            Time: message.Time,
-            Temperature: message.Temperature,
-            Humidity: message.Humidity,
-            SoilMoisture: message.SoilMoisture,
-            Rainfall: message.Rainfall,
-            BatteryLevel: message.BatteryLevel);
+        await PersistAlertsAsync(alertsResult.Value, cancellationToken)
+                .ConfigureAwait(false);
+    }
+    private async Task PersistAlertsAsync(
+        IReadOnlyList<AlertAggregate> alerts,
+        CancellationToken cancellationToken)
+    {
+        foreach (var alert in alerts)
+            _alertRepository.Add(alert);
 
-        var validationResult = await _validator.ValidateAsync(command, cancellationToken).ConfigureAwait(false);
-
-        if (!validationResult.IsValid)
-        {
-            _logger.LogWarning(
-                "⚠️ Invalid event for Sensor {SensorId}: {Errors}. Skipping processing (idempotent).",
-                message.SensorId,
-                string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
-            return;
-        }
-
-        await _commandHandler.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+        await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
