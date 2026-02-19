@@ -12,7 +12,6 @@ internal sealed class AcknowledgeAlertCommandHandler :
        IAlertAggregateRepository repository,
        IUserContext userContext,
        ITransactionalOutbox outbox,
-       ICacheService cacheService,
        ILogger<AcknowledgeAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
@@ -33,14 +32,13 @@ internal sealed class AcknowledgeAlertCommandHandler :
         return Result<AlertAggregate>.Success(alert);
     }
 
-    protected override async Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
+    protected override Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
     {
-        Repository.Update(aggregate);
+        return Task.CompletedTask;
     }
 
     protected override Task<AcknowledgeAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)
     {
-        var response = AcknowledgeAlertMapper.FromAggregate(aggregate);
-        return Task.FromResult(response);
+        return Task.FromResult(AcknowledgeAlertMapper.FromAggregate(aggregate));
     }
 }

@@ -54,48 +54,43 @@ public sealed class AlertReadStore : IAlertReadStore
     }
 
     public async Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
-        Guid plotId,
-        int days = 30,
-        string? alertType = null,
-        string? status = null,
-        int pageNumber = 1,
-        int pageSize = 100,
+        GetAlertHistoryQuery query,
         CancellationToken cancellationToken = default)
     {
-        var cutoffDate = DateTimeOffset.UtcNow.AddDays(-days);
+        var cutoffDate = DateTimeOffset.UtcNow.AddDays(-query.Days);
 
-        var query = _dbContext.Alerts
+        var alertsQuery = _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.PlotId == plotId)
+            .Where(a => a.PlotId == query.PlotId)
             .Where(a => a.CreatedAt >= cutoffDate);
 
-        if (!string.IsNullOrEmpty(alertType))
+        if (!string.IsNullOrEmpty(query.AlertType))
         {
-            var typeResult = AlertType.Create(alertType.Trim());
+            var typeResult = AlertType.Create(query.AlertType.Trim());
             if (typeResult.IsSuccess)
             {
                 var alertTypeVO = typeResult.Value;
-                query = query.Where(a => a.Type == alertTypeVO);
+                alertsQuery = alertsQuery.Where(a => a.Type == alertTypeVO);
             }
         }
 
-        if (!string.IsNullOrEmpty(status))
+        if (!string.IsNullOrEmpty(query.Status))
         {
-            var statusResult = AlertStatus.Create(status.Trim());
+            var statusResult = AlertStatus.Create(query.Status.Trim());
             if (statusResult.IsSuccess)
             {
                 var statusVO = statusResult.Value;
-                query = query.Where(a => a.Status == statusVO);
+                alertsQuery = alertsQuery.Where(a => a.Status == statusVO);
             }
         }
 
-        query = query.OrderByDescending(a => a.CreatedAt);
+        alertsQuery = alertsQuery.OrderByDescending(a => a.CreatedAt);
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        var totalCount = await alertsQuery.CountAsync(cancellationToken);
 
-        var alerts = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+        var alerts = await alertsQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(a => new AlertHistoryResponse(
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId
@@ -118,8 +113,8 @@ public sealed class AlertReadStore : IAlertReadStore
         return new PaginatedResponse<AlertHistoryResponse>(
             alerts,
             totalCount,
-            pageNumber,
-            pageSize);
+            query.PageNumber,
+            query.PageSize);
     }
 
     public async Task<GetPlotStatusResponse> GetPlotStatusAsync(

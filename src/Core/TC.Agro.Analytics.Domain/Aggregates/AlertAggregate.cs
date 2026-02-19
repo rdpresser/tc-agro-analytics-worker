@@ -13,7 +13,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates;
 /// - State transitions have business rules (invariants)
 /// - Users interact with alerts (acknowledge, resolve)
 /// 
-/// Pattern matches Farm Service (PlotAggregate with lifecycle) and Identity Service (UserAggregate with activation).
+/// Pattern matches Analytics Service (AlertAggregate with lifecycle) and Identity Service (UserAggregate with activation).
 /// </summary>
 public sealed class AlertAggregate : BaseAggregateRoot
 {
@@ -58,7 +58,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
         double? batteryLevel,
         double? humidity,
         double? rainfall,
-        AlertThresholds thresholds)
+        double maxTemperature = 35,
+        double minSoilMoisture = 20,
+        double minBatteryLevel = 15)
     {
         // Validate required fields
         var errors = new List<ValidationError>();
@@ -67,6 +69,11 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
         if (errors.Count > 0)
             return Result<IReadOnlyList<AlertAggregate>>.Invalid(errors.ToArray());
+
+        var thresholds = new AlertThresholds(
+            maxTemperature: maxTemperature,
+            minSoilMoisture: minSoilMoisture,
+            minBatteryLevel: minBatteryLevel);
 
         ArgumentNullException.ThrowIfNull(thresholds);
 

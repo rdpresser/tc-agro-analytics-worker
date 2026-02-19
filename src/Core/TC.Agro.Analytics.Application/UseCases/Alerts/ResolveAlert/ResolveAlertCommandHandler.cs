@@ -32,14 +32,13 @@ internal sealed class ResolveAlertCommandHandler :
         return Result<AlertAggregate>.Success(alert);
     }
 
-    protected override async Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
+    protected override Task PersistAsync(AlertAggregate aggregate, CancellationToken ct)
     {
-        Repository.Update(aggregate);
+        return Task.CompletedTask;
     }
 
     protected override Task<ResolveAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)
     {
-        var response = ResolveAlertMapper.FromAggregate(aggregate);
-        return Task.FromResult(response);
+        return Task.FromResult(ResolveAlertMapper.FromAggregate(aggregate));
     }
 }

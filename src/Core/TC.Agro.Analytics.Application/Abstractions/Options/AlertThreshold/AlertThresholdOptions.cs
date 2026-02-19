@@ -1,4 +1,4 @@
-namespace TC.Agro.Analytics.Application.Configuration
+namespace TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold
 {
     /// <summary>
     /// Configuration options for alert thresholds.
@@ -14,12 +14,9 @@ namespace TC.Agro.Analytics.Application.Configuration
     ///   }
     /// }
     /// </summary>
-    public sealed class AlertThresholdsOptions
+    public sealed class AlertThresholdOptions
     {
-        private const string SectionName = "Alerts:Thresholds";
-
-        public static string ConfigurationSection => SectionName;
-
+        public const string SectionName = "Alerts:Thresholds";
         /// <summary>
         /// Maximum temperature in Celsius before triggering high temperature alert.
         /// Default: 35°C

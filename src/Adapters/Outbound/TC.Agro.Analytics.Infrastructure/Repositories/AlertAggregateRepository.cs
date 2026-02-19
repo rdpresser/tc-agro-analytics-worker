@@ -4,8 +4,15 @@ public class AlertAggregateRepository : BaseRepository<AlertAggregate>, IAlertAg
 {
     public AlertAggregateRepository(ApplicationDbContext dbContext) : base(dbContext) { }
 
-    public void Update(AlertAggregate aggregate)
+    /// <summary>
+    /// Loads UserAggregate with owned entities (Email, Role) explicitly included.
+    /// FindAsync does not guarantee eager loading of owned entities, which causes
+    /// null constraint violations on SaveChanges when only non-owned properties are modified.
+    /// </summary>
+    public override async Task<AlertAggregate?> GetByIdAsync(Guid aggregateId, CancellationToken cancellationToken = default)
     {
-        DbContext.Set<AlertAggregate>().Update(aggregate);
+        return await DbSet
+            .FirstOrDefaultAsync(u => u.Id == aggregateId, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

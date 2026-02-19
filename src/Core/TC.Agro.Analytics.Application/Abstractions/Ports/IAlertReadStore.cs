@@ -22,12 +22,7 @@ public interface IAlertReadStore
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
     Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
-        Guid plotId,
-        int days = 30,
-        string? alertType = null,
-        string? status = null,
-        int pageNumber = 1,
-        int pageSize = 100,
+        GetAlertHistoryQuery query,
         CancellationToken cancellationToken = default);
 
     /// <summary>

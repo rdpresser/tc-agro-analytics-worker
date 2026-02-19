@@ -19,14 +19,7 @@ internal sealed class GetAlertHistoryQueryHandler
         GetAlertHistoryQuery query,
         CancellationToken ct = default)
     {
-        var response = await _alertReadStore.GetAlertHistoryAsync(
-            query.PlotId,
-            query.Days,
-            query.AlertType,
-            query.Status,
-            query.PageNumber,
-            query.PageSize,
-            ct);
+        var response = await _alertReadStore.GetAlertHistoryAsync(query, ct).ConfigureAwait(false);
 
         return Result.Success(response);
     }

@@ -1,3 +1,5 @@
+using TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold;
+
 namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 {
     /// <summary>
@@ -8,18 +10,15 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
     {
         private readonly IAlertAggregateRepository _alertRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly AlertThresholds _alertThresholds;
+        private readonly AlertThresholdOptions _alertThreshold;
 
         public SensorIngestedHandler(
             ILogger<SensorIngestedHandler> logger,
-            IOptions<AlertThresholdsOptions> alertThresholdsOptions,
+            IOptions<AlertThresholdOptions> alertThresholdsOptions,
             IAlertAggregateRepository alertRepository,
             IUnitOfWork unitOfWork)
         {
-            _alertThresholds = new AlertThresholds(
-                maxTemperature: alertThresholdsOptions.Value.MaxTemperature,
-                minSoilMoisture: alertThresholdsOptions.Value.MinSoilMoisture,
-                minBatteryLevel: alertThresholdsOptions.Value.MinBatteryLevel);
+            _alertThreshold = alertThresholdsOptions.Value;
             _alertRepository = alertRepository;
             _unitOfWork = unitOfWork;
         }
@@ -36,7 +35,9 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 batteryLevel: @event.EventData.BatteryLevel,
                 humidity: @event.EventData.Humidity,
                 rainfall: @event.EventData.Rainfall,
-                thresholds: _alertThresholds);
+                maxTemperature: _alertThreshold.MaxTemperature,
+                minSoilMoisture: _alertThreshold.MinSoilMoisture,
+                minBatteryLevel: _alertThreshold.MinBatteryLevel);
 
             _alertRepository.AddRange(alertsResult.Value);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

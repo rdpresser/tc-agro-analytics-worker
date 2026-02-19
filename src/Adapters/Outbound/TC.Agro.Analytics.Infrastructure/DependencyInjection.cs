@@ -1,3 +1,5 @@
+using TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold;
+
 namespace TC.Agro.Analytics.Infrastructure;
 
 [ExcludeFromCodeCoverage]
@@ -43,6 +45,21 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
         services.AddScoped<ITransactionalOutbox, AnalyticsOutbox>();
+
+        // ============================================
+        // Alert Thresholds Configuration with Validation
+        // ============================================
+        services.AddOptions<AlertThresholdOptions>()
+            .Bind(configuration.GetSection(AlertThresholdOptions.SectionName))
+            .Validate(o => o.MaxTemperature > 0,
+                "Alerts:Thresholds:MaxTemperature must be > 0")
+            .Validate(o => o.MinSoilMoisture > 0,
+                "Alerts:Thresholds:MinSoilMoisture must be > 0")
+            .Validate(o => o.MinBatteryLevel > 0,
+                "Alerts:Thresholds:MinBatteryLevel must be > 0")
+            .ValidateOnStart();
+
+        services.AddSingleton<AlertThresholdFactory>();
 
         services.AddAgroInfrastructure(configuration);
 

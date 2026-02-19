@@ -7,11 +7,6 @@ public static class DependencyInjection
         {
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
-            // Configure AlertThresholds from appsettings.json (Alerts:Thresholds section)
-            ////services.Configure<AlertThresholdsOptions>(configuration.GetSection(AlertThresholdsOptions.ConfigurationSection));
-
-            // Query Handlers are registered automatically by SharedKernel
-            // (via reflection - all classes implementing BaseQueryHandler)
             return services;
         }
     }

@@ -46,7 +46,7 @@ namespace TC.Agro.Analytics.Application.Abstractions.Mappers
                     userId: userContext.Id.ToString(),
                     isAuthenticated: userContext.IsAuthenticated,
                     correlationId: userContext.CorrelationId,
-                    source: $"Farm.Service.{handlerName ?? "UnknownHandler"}.{integrationEvent.GetType().Name}"
+                    source: $"Analytics.Service.{handlerName ?? "UnknownHandler"}.{integrationEvent.GetType().Name}"
                 );
             }
         }
