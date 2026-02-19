@@ -9,21 +9,14 @@ public static class AcknowledgeAlertMapper
     /// <summary>
     /// Maps AlertAggregate to AcknowledgeAlertResponse.
     /// Called after successfully acknowledging an alert.
+    /// Assumes aggregate is already validated (no null checks or business validation).
     /// </summary>
     public static AcknowledgeAlertResponse FromAggregate(AlertAggregate aggregate)
     {
-        ArgumentNullException.ThrowIfNull(aggregate);
-
-        if (aggregate.AcknowledgedAt == null)
-        {
-            throw new InvalidOperationException(
-                $"Cannot map aggregate {aggregate.Id} to AcknowledgeAlertResponse: alert is not acknowledged.");
-        }
-
         return new AcknowledgeAlertResponse(
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
-            AcknowledgedAt: DateTimeOffset.FromFileTime(aggregate.AcknowledgedAt.Value.ToFileTime()),
+            AcknowledgedAt: new DateTimeOffset(aggregate.AcknowledgedAt!.Value, TimeSpan.Zero),
             AcknowledgedBy: aggregate.AcknowledgedBy!);
     }
 }
