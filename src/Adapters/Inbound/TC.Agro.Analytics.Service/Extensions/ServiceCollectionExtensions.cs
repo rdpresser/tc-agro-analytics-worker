@@ -322,7 +322,7 @@ internal static class ServiceCollectionExtensions
             // CONSUMING - Sensor Ingested Events
             // Analytics Worker LISTENS to sensor events to create alerts
             // ============================================================
-            opts.ListenToRabbitQueue("analytics.sensor.ingested.queue")
+            opts.ListenToRabbitQueue("analytics-sensor-ingest-events-queue")
                 .ProcessInline();
 
 
