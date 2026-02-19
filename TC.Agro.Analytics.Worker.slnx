@@ -12,6 +12,11 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/analytics-ci.yml" />
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Adapters/" />
