@@ -12,7 +12,7 @@ public static class ResolveAlertMapper
         return new ResolveAlertResponse(
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
-            ResolvedAt: DateTimeOffset.FromFileTime(aggregate.ResolvedAt!.Value.ToFileTime()),
+            ResolvedAt: new DateTimeOffset(aggregate.ResolvedAt!.Value, TimeSpan.Zero),
             ResolvedBy: aggregate.ResolvedBy!,
             ResolutionNotes: aggregate.ResolutionNotes);
     }

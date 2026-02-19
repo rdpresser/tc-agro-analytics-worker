@@ -13,11 +13,10 @@ public static class AcknowledgeAlertMapper
     /// </summary>
     public static AcknowledgeAlertResponse FromAggregate(AlertAggregate aggregate)
     {
-
         return new AcknowledgeAlertResponse(
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
-            AcknowledgedAt: DateTimeOffset.FromFileTime(aggregate.AcknowledgedAt!.Value.ToFileTime()),
+            AcknowledgedAt: new DateTimeOffset(aggregate.AcknowledgedAt!.Value, TimeSpan.Zero),
             AcknowledgedBy: aggregate.AcknowledgedBy!);
     }
 }
