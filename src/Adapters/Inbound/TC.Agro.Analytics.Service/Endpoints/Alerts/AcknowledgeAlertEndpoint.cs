@@ -10,6 +10,9 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
     {
         Patch("/alerts/{alertId}/acknowledge");
 
+        PostProcessor<LoggingCommandPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();
+        PostProcessor<CacheInvalidationPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();
+
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         Description(
@@ -45,13 +48,6 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
     public override async Task HandleAsync(AcknowledgeAlertCommand req, CancellationToken ct)
     {
         var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
-
-        if (response.IsSuccess)
-        {
-            await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-            return;
-        }
-
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }

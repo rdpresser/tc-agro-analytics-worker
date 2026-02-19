@@ -1,7 +1,5 @@
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
-using TC.Agro.Analytics.Application.UseCases.ResolveAlert;
-
 /// <summary>
 /// Endpoint to resolve an alert.
 /// PATCH /alerts/{alertId}/resolve
@@ -11,6 +9,9 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
     public override void Configure()
     {
         Patch("/alerts/{alertId}/resolve");
+
+        PostProcessor<LoggingCommandPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
+        PostProcessor<CacheInvalidationPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
@@ -49,13 +50,6 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
     public override async Task HandleAsync(ResolveAlertCommand req, CancellationToken ct)
     {
         var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
-
-        if (response.IsSuccess)
-        {
-            await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-            return;
-        }
-
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }

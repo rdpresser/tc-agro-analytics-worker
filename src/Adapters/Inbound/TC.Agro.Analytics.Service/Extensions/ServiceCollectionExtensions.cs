@@ -318,27 +318,6 @@ internal static class ServiceCollectionExtensions
             if (mqConnectionFactory.AutoPurgeOnStartup)
                 rabbitOpts.AutoPurgeOnStartup();
 
-           /// var exchangeName = $"{mqConnectionFactory.Exchange}-exchange";
-
-            // ============================================================
-            // PUBLISHING - Analytics Service Events
-            // Analytics publishes alert events to RabbitMQ
-            // ============================================================
-            ////opts.PublishMessage<EventContext<AlertCreatedIntegrationEvent>>()
-            ////    .ToRabbitExchange(exchangeName)
-            ////    .BufferedInMemory()
-            ////    .UseDurableOutbox();
-
-            ////opts.PublishMessage<EventContext<AlertAcknowledgedIntegrationEvent>>()
-            ////    .ToRabbitExchange(exchangeName)
-            ////    .BufferedInMemory()
-            ////    .UseDurableOutbox();
-
-            ////opts.PublishMessage<EventContext<AlertResolvedIntegrationEvent>>()
-            ////    .ToRabbitExchange(exchangeName)
-            ////    .BufferedInMemory()
-            ////    .UseDurableOutbox();
-
             // ============================================================
             // CONSUMING - Sensor Ingested Events
             // Analytics Worker LISTENS to sensor events to create alerts
@@ -346,13 +325,7 @@ internal static class ServiceCollectionExtensions
             opts.ListenToRabbitQueue("analytics.sensor.ingested.queue")
                 .ProcessInline();
 
-            // ============================================================
-            // CONSUMING - Identity User Events (optional)
-            // ============================================================
-            opts.ConfigureIdentityUserEventsConsumption(
-                 exchangeName: "identity.events-exchange",
-                 queueName: "analitics-identity-user-events-queue"
-             );
+
         });
 
         // -------------------------------

@@ -15,7 +15,7 @@ public sealed class AlertReadStore : IAlertReadStore
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public async Task<PaginatedResponse<GetPendingAlerts.PendingAlertResponse>> GetPendingAlertsAsync(
+    public async Task<PaginatedResponse<PendingAlertResponse>> GetPendingAlertsAsync(
         int pageNumber = 1,
         int pageSize = 100,
         CancellationToken cancellationToken = default)
@@ -46,14 +46,14 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.AcknowledgedBy))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<GetPendingAlerts.PendingAlertResponse>(
+        return new PaginatedResponse<PendingAlertResponse>(
             alerts,
             totalCount,
             pageNumber,
             pageSize);
     }
 
-    public async Task<PaginatedResponse<GetAlertHistory.AlertHistoryResponse>> GetAlertHistoryAsync(
+    public async Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
         Guid plotId,
         int days = 30,
         string? alertType = null,
@@ -115,14 +115,14 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.ResolutionNotes))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<GetAlertHistory.AlertHistoryResponse>(
+        return new PaginatedResponse<AlertHistoryResponse>(
             alerts,
             totalCount,
             pageNumber,
             pageSize);
     }
 
-    public async Task<GetPlotStatus.GetPlotStatusResponse> GetPlotStatusAsync(
+    public async Task<GetPlotStatusResponse> GetPlotStatusAsync(
         Guid plotId,
         CancellationToken cancellationToken = default)
     {
