@@ -2,18 +2,18 @@ namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
 /// Endpoint to resolve an alert.
-/// PATCH /alerts/{alertId}/resolve
+/// PUT /alerts/{alertId}/resolve
 /// </summary>
 public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, ResolveAlertResponse>
 {
     public override void Configure()
     {
-        Patch("/alerts/{alertId}/resolve");
+        Put("/alerts/{alertId:guid}/resolve");
 
+        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
         PostProcessor<LoggingCommandPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
         PostProcessor<CacheInvalidationPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
 
-        Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         Description(
             d => d.Produces<ResolveAlertResponse>(200, "application/json")

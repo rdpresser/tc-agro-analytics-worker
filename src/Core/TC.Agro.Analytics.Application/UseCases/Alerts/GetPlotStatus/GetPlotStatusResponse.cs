@@ -13,7 +13,7 @@ public sealed record PlotStatusAlertResponse(
     string Severity,
     double? Value,
     double? Threshold,
-    DateTime CreatedAt);
+    DateTimeOffset CreatedAt);
 
 /// <summary>
 /// Plot status summary response with aggregated alert information.

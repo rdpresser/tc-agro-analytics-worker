@@ -27,11 +27,11 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
             s.Summary = "Get alert history for a plot";
             s.Description = "Retrieves historical alerts for a specific plot with optional filters and pagination";
             s.Params["plotId"] = "Plot ID (GUID)";
+            s.Params["pageNumber"] = "Page number (default: 1)";
+            s.Params["pageSize"] = "Page size (default: 100, max: 500)";
             s.Params["days"] = "Number of days to look back (default: 30)";
             s.Params["alertType"] = "Filter by alert type (optional): HighTemperature, LowSoilMoisture, LowBattery";
             s.Params["status"] = "Filter by status (optional): Pending, Acknowledged, Resolved";
-            s.Params["pageNumber"] = "Page number (default: 1)";
-            s.Params["pageSize"] = "Page size (default: 100, max: 500)";
 
             s.ExampleRequest = new GetAlertHistoryQuery
             {
@@ -57,7 +57,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                         "High",
                         42.5,
                         35.0,
-                        DateTime.UtcNow.AddHours(-2),
+                        DateTimeOffset.UtcNow.AddHours(-2),
                         null,
                         null,
                         null,
@@ -74,7 +74,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                         "Medium",
                         12.0,
                         20.0,
-                        DateTime.UtcNow.AddHours(-1),
+                        DateTimeOffset.UtcNow.AddHours(-1),
                         null,
                         null,
                         null,

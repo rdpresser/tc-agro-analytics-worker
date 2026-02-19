@@ -13,18 +13,17 @@ public sealed record GetPendingAlertsQuery : ICachedQuery<PaginatedResponse<Pend
     private string? _cacheKey;
     public string GetCacheKey => _cacheKey ?? $"GetPendingAlertsQuery-{PageNumber}:size-{PageSize}";
 
+    public TimeSpan? Duration => TimeSpan.FromSeconds(10);
+    public TimeSpan? DistributedCacheDuration => TimeSpan.FromSeconds(30);
+
+    public IReadOnlyCollection<string> CacheTags =>
+    [
+        CacheTagCatalog.Alerts,
+        CacheTagCatalog.PendingAlerts
+    ];
+
     public void SetCacheKey(string cacheKey)
     {
         _cacheKey = $"GetPendingAlertsQuery:page-{PageNumber}:size-{PageSize}-{cacheKey}";
     }
-
-    public TimeSpan? Duration => TimeSpan.FromSeconds(10);
-
-    public TimeSpan? DistributedCacheDuration => TimeSpan.FromSeconds(30);
-
-    public IReadOnlyCollection<string> CacheTags => new[]
-    {
-        CacheTagCatalog.Alerts,
-        CacheTagCatalog.PendingAlerts
-    };
 }

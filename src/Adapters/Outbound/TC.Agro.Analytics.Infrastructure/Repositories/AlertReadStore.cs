@@ -30,7 +30,7 @@ public sealed class AlertReadStore : IAlertReadStore
         var alerts = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => new GetPendingAlerts.PendingAlertResponse(
+            .Select(a => new PendingAlertResponse(
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId (removed ownership violation)
                 a.SensorId,
@@ -96,7 +96,7 @@ public sealed class AlertReadStore : IAlertReadStore
         var alerts = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => new GetAlertHistory.AlertHistoryResponse(
+            .Select(a => new AlertHistoryResponse(
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
@@ -150,7 +150,7 @@ public sealed class AlertReadStore : IAlertReadStore
             .FirstOrDefault();
 
         var mostRecentAlert = mostRecent != null
-            ? new GetPlotStatus.PlotStatusAlertResponse(
+            ? new PlotStatusAlertResponse(
                 mostRecent.Id,
                 mostRecent.Id, // AlertAggregate doesn't have SensorReadingId
                 mostRecent.SensorId,
@@ -170,7 +170,7 @@ public sealed class AlertReadStore : IAlertReadStore
             _ => "Critical"
         };
 
-        return new GetPlotStatus.GetPlotStatusResponse(
+        return new GetPlotStatusResponse(
             plotId,
             pendingCount,
             last24HoursCount,

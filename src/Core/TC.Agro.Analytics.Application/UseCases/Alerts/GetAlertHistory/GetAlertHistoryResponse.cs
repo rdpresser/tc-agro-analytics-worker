@@ -14,9 +14,9 @@ public sealed record AlertHistoryResponse(
     string Severity,
     double? Value,
     double? Threshold,
-    DateTime CreatedAt,
-    DateTime? AcknowledgedAt,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? AcknowledgedAt,
     string? AcknowledgedBy,
-    DateTime? ResolvedAt,
+    DateTimeOffset? ResolvedAt,
     string? ResolvedBy,
     string? ResolutionNotes);

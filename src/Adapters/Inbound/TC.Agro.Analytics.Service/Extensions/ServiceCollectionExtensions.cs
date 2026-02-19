@@ -76,6 +76,7 @@ internal static class ServiceCollectionExtensions
                     : HealthCheckResult.Degraded($"High memory usage: {mb} MB");
             },
                 tags: ["memory", "system", "live"])
+
             .AddCheck("Custom-Metrics", () =>
             {
                 // Add any custom health logic for your metrics system
@@ -112,7 +113,6 @@ internal static class ServiceCollectionExtensions
     // Authentication and Authorization
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -121,7 +121,6 @@ internal static class ServiceCollectionExtensions
         .AddJwtBearer(opt =>
         {
             var jwtSettings = JwtHelper.Build(configuration);
-
             opt.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -201,45 +200,6 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
-    public static WebApplication MapAnalyticsHealthChecks(this WebApplication app)
-    {
-        app.MapHealthChecks("/health", new HealthCheckOptions
-        {
-            ResponseWriter = async (context, report) =>
-            {
-                context.Response.ContentType = "application/json";
-                var result = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    status = report.Status.ToString(),
-                    timestamp = DateTime.UtcNow,
-                    service = "Analytics Worker Service",
-                    checks = report.Entries.Select(e => new
-                    {
-                        name = e.Key,
-                        status = e.Value.Status.ToString(),
-                        description = e.Value.Description,
-                        duration = e.Value.Duration.TotalMilliseconds,
-                        tags = e.Value.Tags
-                    }),
-                    totalDuration = report.TotalDuration.TotalMilliseconds
-                });
-                await context.Response.WriteAsync(result);
-            }
-        });
-
-        app.MapHealthChecks("/health/live", new HealthCheckOptions
-        {
-            Predicate = check => check.Tags.Contains("live")
-        });
-
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions
-        {
-            Predicate = check => check.Tags.Contains("ready")
-        });
-
-        return app;
-    }
-
     private static WebApplicationBuilder AddWolverineMessaging(this WebApplicationBuilder builder)
     {
         builder.Host.UseWolverine(opts =>
@@ -247,10 +207,6 @@ internal static class ServiceCollectionExtensions
             opts.UseSystemTextJsonForSerialization();
             opts.ServiceName = "tc-agro-analytics";
             opts.ApplicationAssembly = typeof(Program).Assembly;
-
-            // Include Application and Infrastructure assemblies for handler discovery
-            opts.Discovery.IncludeAssembly(typeof(Application.DependencyInjection).Assembly);
-            opts.Discovery.IncludeAssembly(typeof(Infrastructure.DependencyInjection).Assembly);
 
             // Include Application assembly for handlers
             opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorIngestedHandler).Assembly);
@@ -322,10 +278,10 @@ internal static class ServiceCollectionExtensions
             // CONSUMING - Sensor Ingested Events
             // Analytics Worker LISTENS to sensor events to create alerts
             // ============================================================
-            opts.ListenToRabbitQueue("analytics-sensor-ingest-events-queue")
-                .ProcessInline();
-
-
+            opts.ConfigureSensorIngestSensorEventsConsumption(
+                exchangeName: "sensor-ingest.events-exchange",
+                queueName: "analytics-sensor-ingest-events-queue"
+            );
         });
 
         // -------------------------------
@@ -456,9 +412,12 @@ internal static class ServiceCollectionExtensions
                     })
                     .AddRedisInstrumentation()
                     .AddFusionCacheInstrumentation()
+                    .AddNpgsql()
                     .AddSource(TelemetryConstants.AnalyticsActivitySource)
                     .AddSource(TelemetryConstants.DatabaseActivitySource)
+                    .AddSource(TelemetryConstants.CacheActivitySource)
                     .AddSource(TelemetryConstants.HandlersActivitySource)
+                    .AddSource(TelemetryConstants.FastEndpointsActivitySource)
                     .AddSource(TelemetryConstants.MessagingActivitySource)
                     .AddSource("Wolverine");
             });

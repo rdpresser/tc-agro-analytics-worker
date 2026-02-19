@@ -1,14 +1,7 @@
-global using Xunit;
-global using Shouldly;
-global using FakeItEasy;
 global using System;
-global using System.Collections.Generic;
 global using System.Linq;
-global using System.Threading;
-global using System.Threading.Tasks;
+global using Ardalis.Result;
+global using Shouldly;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.ValueObjects;
-global using TC.Agro.Analytics.Application.MessageBrokerHandlers;
-global using TC.Agro.Analytics.Application.Configuration;
-global using TC.Agro.Contracts.Events;
-global using Ardalis.Result;
+global using Xunit;

@@ -14,6 +14,6 @@ public sealed record PendingAlertResponse(
     string Severity,
     double? Value,
     double? Threshold,
-    DateTime CreatedAt,
-    DateTime? AcknowledgedAt,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? AcknowledgedAt,
     string? AcknowledgedBy);

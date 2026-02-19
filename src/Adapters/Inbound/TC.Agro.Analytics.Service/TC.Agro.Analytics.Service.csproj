@@ -6,10 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- API / Endpoints -->
-		<PackageReference Include="FastEndpoints" />
-		<PackageReference Include="FastEndpoints.Swagger" />
-		<PackageReference Include="Ardalis.Result.AspNetCore" />
+    <!-- API / Endpoints -->
+    <PackageReference Include="FastEndpoints.Swagger" />
 
 		<!-- Health Check -->
 		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
@@ -36,30 +34,20 @@
 		<PackageReference Include="Npgsql.OpenTelemetry" />
 		<PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry" />
 
-		<!-- Caching (FusionCache) -->
-		<PackageReference Include="ZiggyCreatures.FusionCache" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" />
-		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <!-- Caching (FusionCache) -->
+    <PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" />
 
-		<!-- Wolverine - MessageBroker / Outbox -->
-		<PackageReference Include="Weasel.Core" />
-		<PackageReference Include="Weasel.Postgresql" />
-		<PackageReference Include="WolverineFx" />
-		<PackageReference Include="WolverineFx.EntityFrameworkCore" />
-		<PackageReference Include="WolverineFx.Postgresql" />
-		<PackageReference Include="WolverineFx.RabbitMQ" />
+    <!-- Wolverine - MessageBroker / Outbox -->
+    <PackageReference Include="WolverineFx.Postgresql" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- Logging -->
-		<PackageReference Include="Serilog.AspNetCore" />
-		<PackageReference Include="Serilog.Enrichers.Sensitive" />
-		<PackageReference Include="Serilog.Enrichers.Span" />
-		<PackageReference Include="Serilog.Formatting.Compact" />
-		<PackageReference Include="Serilog.Sinks.Console" />
-		<PackageReference Include="Serilog.Sinks.Grafana.Loki" />
-		<PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+    <!-- Logging -->
+    <PackageReference Include="Serilog.Enrichers.Sensitive" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -67,5 +55,5 @@
     <ProjectReference Include="..\..\Outbound\TC.Agro.Analytics.Infrastructure\TC.Agro.Analytics.Infrastructure.csproj" />
 		<ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.Messaging\TC.Agro.Messaging.csproj" />
 	</ItemGroup>
-
+  
 </Project>

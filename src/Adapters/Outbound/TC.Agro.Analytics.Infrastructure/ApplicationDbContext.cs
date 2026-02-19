@@ -5,6 +5,7 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     DbContext IApplicationDbContext.DbContext => this;
     public DbSet<AlertAggregate> Alerts { get; set; } = default!;
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
     {
@@ -17,21 +18,6 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         modelBuilder.HasDefaultSchema(DefaultSchemas.Default);
-
-        // Configure all DateTime properties to use UTC (PostgreSQL timestamptz requirement)
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            foreach (var property in entityType.GetProperties())
-            {
-                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
-                {
-                    property.SetValueConverter(
-                        new ValueConverter<DateTime, DateTime>(
-                            v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
-                            v => DateTime.SpecifyKind(v, DateTimeKind.Utc)));
-                }
-            }
-        }
     }
 
     async Task<int> SharedKernel.Application.Ports.IUnitOfWork.SaveChangesAsync(CancellationToken ct)

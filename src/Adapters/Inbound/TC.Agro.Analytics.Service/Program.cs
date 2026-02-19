@@ -7,14 +7,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // ========================================
 // Configure Serilog as logging provider (using SharedKernel extension)
 // ========================================
-builder.Host.UseCustomSerilog(builder.Configuration, TelemetryConstants.ServiceName, TelemetryConstants.ServiceNamespace, TelemetryConstants.Version);
-
+builder.Host.UseCustomSerilog(builder.Configuration,
+    TelemetryConstants.ServiceName,
+    TelemetryConstants.ServiceNamespace,
+    TelemetryConstants.Version);
 
 var app = builder.Build();
 
-// Apply EF Core migrations automatically (same pattern as Identity-Service)
 if (!builder.Environment.IsEnvironment("Testing"))
 {
+    // Apply EF Core migrations automatically (same pattern as Identity-Service)
     await app.ApplyMigrations().ConfigureAwait(false);
 }
 

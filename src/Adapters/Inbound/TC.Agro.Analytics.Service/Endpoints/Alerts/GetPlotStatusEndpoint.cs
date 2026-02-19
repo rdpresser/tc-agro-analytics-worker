@@ -15,17 +15,17 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
         PreProcessor<QueryCachingPreProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
         PostProcessor<QueryCachingPostProcessorBehavior<GetPlotStatusQuery, GetPlotStatusResponse>>();
 
+        Description(
+            d => d.Produces<GetPlotStatusResponse>(200, "application/json")
+                    .ProducesProblemDetails()
+                    .Produces(404)
+                    .WithTags("Plots"));
+
         Summary(s =>
         {
             s.Summary = "Get plot status summary";
             s.Description = "Retrieves aggregated alert metrics for a plot (last 7 days)";
             s.Params["plotId"] = "Plot ID (GUID)";
-
-            Description(
-                d => d.Produces<GetPlotStatusResponse>(200, "application/json")
-                      .ProducesProblemDetails()
-                      .Produces(404)
-                      .WithTags("Plots"));
 
             s.ExampleRequest = new GetPlotStatusQuery
             {
@@ -47,7 +47,7 @@ public sealed class GetPlotStatusEndpoint : BaseApiEndpoint<GetPlotStatusQuery, 
                     "Critical",
                     42.5,
                     35.0,
-                    DateTime.UtcNow.AddHours(-2)),
+                    DateTimeOffset.UtcNow.AddHours(-2)),
                 AlertsByType: new Dictionary<string, int>
                 {
                     { "HighTemperature", 8 },

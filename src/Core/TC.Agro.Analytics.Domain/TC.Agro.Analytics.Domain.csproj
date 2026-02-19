@@ -1,24 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<ItemGroup>
-	  <Compile Remove="Abstractions\Constants\**" />
-	  <Compile Remove="Services\**" />
-	  <Compile Remove="Snapshots\**" />
-	  <EmbeddedResource Remove="Abstractions\Constants\**" />
-	  <EmbeddedResource Remove="Services\**" />
-	  <EmbeddedResource Remove="Snapshots\**" />
-	  <None Remove="Abstractions\Constants\**" />
-	  <None Remove="Services\**" />
-	  <None Remove="Snapshots\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Ardalis.Result" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
+  <ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
 	</ItemGroup>
-
+  
 </Project>

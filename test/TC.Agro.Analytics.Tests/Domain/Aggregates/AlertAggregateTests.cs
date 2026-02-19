@@ -100,7 +100,7 @@ public class AlertAggregateTests
         alert.Status.ShouldBe(AlertStatus.Acknowledged);
         alert.AcknowledgedAt.ShouldNotBeNull();
         alert.AcknowledgedBy.ShouldBe(userId);
-        alert.AcknowledgedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
+        alert.AcknowledgedAt.Value.ShouldBeInRange(DateTimeOffset.UtcNow.AddSeconds(-5), DateTimeOffset.UtcNow);
     }
 
     [Theory]
@@ -176,7 +176,7 @@ public class AlertAggregateTests
         alert.ResolvedAt.ShouldNotBeNull();
         alert.ResolvedBy.ShouldBe(userId);
         alert.ResolutionNotes.ShouldBe(notes);
-        alert.ResolvedAt.Value.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow);
+        alert.ResolvedAt.Value.ShouldBeInRange(DateTimeOffset.UtcNow.AddSeconds(-5), DateTimeOffset.UtcNow);
     }
 
     [Fact]

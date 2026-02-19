@@ -26,10 +26,10 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public double Value { get; private set; }
     public double Threshold { get; private set; }
     public string? Metadata { get; private set; }
-    
-    public DateTime? AcknowledgedAt { get; private set; }
+
+    public DateTimeOffset? AcknowledgedAt { get; private set; }
     public string? AcknowledgedBy { get; private set; }
-    public DateTime? ResolvedAt { get; private set; }
+    public DateTimeOffset? ResolvedAt { get; private set; }
     public string? ResolvedBy { get; private set; }
     public string? ResolutionNotes { get; private set; }
 
@@ -368,7 +368,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
         var @event = new AlertAcknowledgedDomainEvent(
             AggregateId: Id,
-            AcknowledgedAt: DateTime.UtcNow,
+            AcknowledgedAt: DateTimeOffset.UtcNow,
             AcknowledgedBy: userId,
             OccurredOn: DateTimeOffset.UtcNow);
 
@@ -394,7 +394,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
         var @event = new AlertResolvedDomainEvent(
             AggregateId: Id,
-            ResolvedAt: DateTime.UtcNow,
+            ResolvedAt: DateTimeOffset.UtcNow,
             ResolvedBy: userId,
             ResolutionNotes: notes,
             OccurredOn: DateTimeOffset.UtcNow);
@@ -445,13 +445,13 @@ public sealed class AlertAggregate : BaseAggregateRoot
 
     public record AlertAcknowledgedDomainEvent(
         Guid AggregateId,
-        DateTime AcknowledgedAt,
+        DateTimeOffset AcknowledgedAt,
         string AcknowledgedBy,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
     public record AlertResolvedDomainEvent(
         Guid AggregateId,
-        DateTime ResolvedAt,
+        DateTimeOffset ResolvedAt,
         string ResolvedBy,
         string? ResolutionNotes,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);

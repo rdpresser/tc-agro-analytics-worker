@@ -2,13 +2,13 @@ namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
 /// Endpoint to acknowledge an alert.
-/// PATCH /alerts/{alertId}/acknowledge
+/// PUT /alerts/{alertId}/acknowledge
 /// </summary>
 public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertCommand, AcknowledgeAlertResponse>
 {
     public override void Configure()
     {
-        Patch("/alerts/{alertId}/acknowledge");
+        Put("/alerts/{alertId:guid}/acknowledge");
 
         PostProcessor<LoggingCommandPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();
         PostProcessor<CacheInvalidationPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();

@@ -16,7 +16,7 @@ public static class AcknowledgeAlertMapper
         return new AcknowledgeAlertResponse(
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
-            AcknowledgedAt: new DateTimeOffset(aggregate.AcknowledgedAt!.Value, TimeSpan.Zero),
+            AcknowledgedAt: aggregate.AcknowledgedAt!.Value,
             AcknowledgedBy: aggregate.AcknowledgedBy!);
     }
 }

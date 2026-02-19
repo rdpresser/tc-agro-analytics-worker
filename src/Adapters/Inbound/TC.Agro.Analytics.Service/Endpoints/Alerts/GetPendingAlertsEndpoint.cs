@@ -16,9 +16,13 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
-
         PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
         PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
+
+        Description(
+            d => d.Produces<PaginatedResponse<PendingAlertResponse>>(200, "application/json")
+                  .ProducesProblemDetails()
+                  .WithTags("Alerts"));
 
         Summary(s =>
         {
@@ -27,11 +31,6 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
 
-            Description(
-                d => d.Produces<PaginatedResponse<PendingAlertResponse>>(200, "application/json")
-                      .ProducesProblemDetails()
-                      .WithTags("Alerts"));
-
             s.ExampleRequest = new GetPendingAlertsQuery
             {
                 PageNumber = 1,
@@ -39,8 +38,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
             };
 
             s.ResponseExamples[200] = new PaginatedResponse<PendingAlertResponse>(
-                new List<PendingAlertResponse>
-                {
+                [
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.NewGuid(),
@@ -52,7 +50,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                         "Critical",
                         42.5,
                         35.0,
-                        DateTime.UtcNow.AddMinutes(-15),
+                        DateTimeOffset.UtcNow.AddMinutes(-15),
                         null,
                         null),
                     new PendingAlertResponse(
@@ -66,10 +64,10 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                         "High",
                         8.0,
                         20.0,
-                        DateTime.UtcNow.AddMinutes(-30),
+                        DateTimeOffset.UtcNow.AddMinutes(-30),
                         null,
                         null)
-                },
+                ],
                 totalCount: 15,
                 pageNumber: 1,
                 pageSize: 20);
@@ -79,8 +77,6 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
             s.Responses[401] = "Returned when the request is made without a valid user token.";
             s.Responses[403] = "Returned when the caller lacks the required role.";
         });
-
-
     }
 
     public override async Task HandleAsync(GetPendingAlertsQuery req, CancellationToken ct)
