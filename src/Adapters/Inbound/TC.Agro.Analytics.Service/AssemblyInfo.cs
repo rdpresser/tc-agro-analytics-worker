@@ -3,6 +3,7 @@ global using System;
 global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Diagnostics.Metrics;
+global using System.Net;
 global using System.Runtime.CompilerServices;
 global using System.Security.Claims;
 global using System.Text;
@@ -66,7 +67,6 @@ global using Wolverine.RabbitMQ;
 global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
-global using System.Net;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

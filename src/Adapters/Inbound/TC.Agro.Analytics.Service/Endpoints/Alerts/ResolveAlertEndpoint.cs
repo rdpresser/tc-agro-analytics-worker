@@ -17,11 +17,11 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
 
         Description(
             d => d.Produces<ResolveAlertResponse>(200, "application/json")
-                    .ProducesProblemDetails(400)
-                    .ProducesProblemDetails(404)
-                    .Produces((int)HttpStatusCode.Unauthorized)
-                    .Produces((int)HttpStatusCode.Forbidden)
-                    .WithTags("Alerts"));
+                .ProducesProblemDetails(400)
+                .ProducesProblemDetails(404)
+                .Produces((int)HttpStatusCode.Unauthorized)
+                .Produces((int)HttpStatusCode.Forbidden)
+                .WithTags("Alerts"));
 
         Summary(s =>
         {
@@ -31,7 +31,8 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
 
             s.ExampleRequest = new ResolveAlertCommand(
                 AlertId: Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
-                ResolutionNotes: "Activated irrigation system. Soil moisture normalized after 2 hours.");
+                ResolutionNotes: "Activated irrigation system. Soil moisture normalized after 2 hours."
+            );
 
             s.ResponseExamples[200] = new ResolveAlertResponse(
                 Id: Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
@@ -39,7 +40,8 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
                 ResolvedAt: DateTimeOffset.UtcNow,
                 ResolvedBy: Guid.Parse("9823af89-c34e-4da1-b680-79ebd06cc35f"),
                 ResolutionNotes: "Activated irrigation system. Soil moisture normalized after 2 hours.",
-                Message: "Alert resolved successfully");
+                Message: "Alert resolved successfully"
+            );
 
             s.Responses[200] = "Returned when the alert is successfully resolved.";
             s.Responses[400] = "Returned when the request is invalid or alert cannot be resolved (e.g., already resolved).";

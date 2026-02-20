@@ -23,7 +23,6 @@ internal sealed class ResolveAlertCommandHandler :
     protected override async Task<Result<AlertAggregate>> MapAsync(ResolveAlertCommand command, CancellationToken ct)
     {
         var alert = await Repository.GetByIdAsync(command.AlertId, ct).ConfigureAwait(false);
-
         if (alert == null)
             return Result<AlertAggregate>.NotFound("Alert not found");        
 
