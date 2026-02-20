@@ -244,7 +244,7 @@ jobs:
 
       - name: ✏️ Update image tag in deployment manifest
         run: |
-          FILE="solutions/infrastructure/kubernetes/apps/base/analytics/deployment.yaml"
+          FILE="solutions/infrastructure/kubernetes/apps/base/analytics-worker/deployment.yaml"
           NEW_TAG="${{ steps.get-tag.outputs.tag }}"
           NEW_IMAGE="rdpresser/analytics-worker:${NEW_TAG}"
 
@@ -258,7 +258,7 @@ jobs:
           cd solutions
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infrastructure/kubernetes/apps/base/analytics/deployment.yaml
+          git add infrastructure/kubernetes/apps/base/analytics-worker/deployment.yaml
           git commit -m "ci(analytics): update image to ${{ steps.get-tag.outputs.tag }}
 
           Automated commit from analytics-worker CI pipeline
@@ -273,6 +273,6 @@ jobs:
           echo "✅ GITOPS UPDATE COMPLETED"
           echo "════════════════════════════════════════════════════════════"
           echo "📦 Image: rdpresser/analytics-worker:${{ steps.get-tag.outputs.tag }}"
-          echo "📝 File: infrastructure/kubernetes/apps/base/analytics/deployment.yaml"
+          echo "📝 File: infrastructure/kubernetes/apps/base/analytics-worker/deployment.yaml"
           echo "🔄 ArgoCD will detect this change and deploy automatically"
           echo "════════════════════════════════════════════════════════════"
