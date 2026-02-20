@@ -8,10 +8,6 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert
                 .NotEmpty()
                 .WithMessage("AlertId is required.");
 
-            RuleFor(x => x.UserId)
-                .NotEmpty()
-                .WithMessage("UserId is required for audit trail.");
-
             RuleFor(x => x.ResolutionNotes)
                 .MaximumLength(1000)
                 .When(x => !string.IsNullOrEmpty(x.ResolutionNotes))

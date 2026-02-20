@@ -17,6 +17,6 @@ public static class AcknowledgeAlertMapper
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
             AcknowledgedAt: aggregate.AcknowledgedAt!.Value,
-            AcknowledgedBy: aggregate.AcknowledgedBy!);
+            AcknowledgedBy: aggregate.AcknowledgedBy!.Value);
     }
 }

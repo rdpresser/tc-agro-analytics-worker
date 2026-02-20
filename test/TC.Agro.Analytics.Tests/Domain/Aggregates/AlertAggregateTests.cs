@@ -90,7 +90,7 @@ public class AlertAggregateTests
             "High temperature detected",
             38.5,
             35.0).Value;
-        var userId = "user@example.com";
+        var userId = Guid.NewGuid();
 
         // Act
         var result = alert.Acknowledge(userId);
@@ -103,10 +103,8 @@ public class AlertAggregateTests
         alert.AcknowledgedAt.Value.ShouldBeInRange(DateTimeOffset.UtcNow.AddSeconds(-5), DateTimeOffset.UtcNow);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Acknowledge_WithInvalidUserId_ShouldReturnValidationError(string userId)
+    [Fact]
+    public void Acknowledge_WithInvalidUserId_ShouldReturnValidationError()
     {
         // Arrange
         var alert = AlertAggregate.Create(
@@ -119,7 +117,7 @@ public class AlertAggregateTests
             35.0).Value;
 
         // Act
-        var result = alert.Acknowledge(userId);
+        var result = alert.Acknowledge(Guid.Empty);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -138,10 +136,10 @@ public class AlertAggregateTests
             "Test message",
             38.5,
             35.0).Value;
-        alert.Acknowledge("user1@example.com");
+        alert.Acknowledge(Guid.NewGuid());
 
         // Act
-        var result = alert.Acknowledge("user2@example.com");
+        var result = alert.Acknowledge(Guid.NewGuid());
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -164,7 +162,7 @@ public class AlertAggregateTests
             "High temperature detected",
             38.5,
             35.0).Value;
-        var userId = "user@example.com";
+        var userId = Guid.NewGuid();
         var notes = "Irrigation activated";
 
         // Act
@@ -191,20 +189,18 @@ public class AlertAggregateTests
             "Test message",
             38.5,
             35.0).Value;
-        alert.Acknowledge("user@example.com");
+        alert.Acknowledge(Guid.NewGuid());
 
         // Act
-        var result = alert.Resolve("user@example.com", "Issue fixed");
+        var result = alert.Resolve(Guid.NewGuid(), "Issue fixed");
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
         alert.Status.ShouldBe(AlertStatus.Resolved);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Resolve_WithInvalidUserId_ShouldReturnValidationError(string userId)
+    [Fact]
+    public void Resolve_WithInvalidUserId_ShouldReturnValidationError()
     {
         // Arrange
         var alert = AlertAggregate.Create(
@@ -217,7 +213,7 @@ public class AlertAggregateTests
             35.0).Value;
 
         // Act
-        var result = alert.Resolve(userId, "notes");
+        var result = alert.Resolve(Guid.Empty, "notes");
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -236,10 +232,10 @@ public class AlertAggregateTests
             "Test message",
             38.5,
             35.0).Value;
-        alert.Resolve("user1@example.com", "First resolution");
+        alert.Resolve(Guid.NewGuid(), "First resolution");
 
         // Act
-        var result = alert.Resolve("user2@example.com", "Second resolution attempt");
+        var result = alert.Resolve(Guid.NewGuid(), "Second resolution attempt");
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -260,7 +256,7 @@ public class AlertAggregateTests
             35.0).Value;
 
         // Act
-        var result = alert.Resolve("user@example.com", null);
+        var result = alert.Resolve(Guid.NewGuid(), null);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -299,7 +295,7 @@ public class AlertAggregateTests
             35.0).Value;
 
         // Act
-        alert.Acknowledge("user@example.com");
+        alert.Acknowledge(Guid.NewGuid());
 
         // Assert
         var events = alert.UncommittedEvents.ToList();
@@ -321,7 +317,7 @@ public class AlertAggregateTests
             35.0).Value;
 
         // Act
-        alert.Resolve("user@example.com", "Fixed");
+        alert.Resolve(Guid.NewGuid(), "Fixed");
 
         // Assert
         var events = alert.UncommittedEvents.ToList();

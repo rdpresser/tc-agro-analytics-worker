@@ -2,7 +2,6 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert
 {
     public sealed record ResolveAlertCommand(
         Guid AlertId,
-        string UserId,
         string? ResolutionNotes
     ) : IBaseCommand<ResolveAlertResponse>, IInvalidateCache
     {

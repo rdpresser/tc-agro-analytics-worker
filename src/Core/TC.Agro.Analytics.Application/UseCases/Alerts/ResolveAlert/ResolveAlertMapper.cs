@@ -13,7 +13,7 @@ public static class ResolveAlertMapper
             Id: aggregate.Id,
             Status: aggregate.Status.Value,
             ResolvedAt: aggregate.ResolvedAt!.Value,
-            ResolvedBy: aggregate.ResolvedBy!,
+            ResolvedBy: aggregate.ResolvedBy!.Value,
             ResolutionNotes: aggregate.ResolutionNotes);
     }
 }

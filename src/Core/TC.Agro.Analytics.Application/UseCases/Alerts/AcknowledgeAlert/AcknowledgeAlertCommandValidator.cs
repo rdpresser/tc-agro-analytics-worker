@@ -10,9 +10,5 @@ public sealed class AcknowledgeAlertCommandValidator : Validator<AcknowledgeAler
         RuleFor(x => x.AlertId)
             .NotEmpty()
             .WithMessage("AlertId is required.");
-
-        RuleFor(x => x.UserId)
-            .NotEmpty()
-            .WithMessage("UserId is required for audit trail.");
     }
 }

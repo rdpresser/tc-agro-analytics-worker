@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert
         Guid Id,
         string Status,
         DateTimeOffset ResolvedAt,
-        string ResolvedBy,
+        Guid ResolvedBy,
         string? ResolutionNotes,
         string Message = "Alert resolved successfully");
 }

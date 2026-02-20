@@ -7,6 +7,8 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert;
 internal sealed class ResolveAlertCommandHandler :
     BaseCommandHandler<ResolveAlertCommand, ResolveAlertResponse, AlertAggregate, IAlertAggregateRepository>
 {
+    private readonly IUserContext _userContext;
+
     public ResolveAlertCommandHandler(
        IAlertAggregateRepository repository,
        IUserContext userContext,
@@ -15,6 +17,7 @@ internal sealed class ResolveAlertCommandHandler :
        ILogger<ResolveAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
+        _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
     }
 
     protected override async Task<Result<AlertAggregate>> MapAsync(ResolveAlertCommand command, CancellationToken ct)
@@ -24,7 +27,7 @@ internal sealed class ResolveAlertCommandHandler :
         if (alert == null)
             return Result<AlertAggregate>.NotFound("Alert not found");        
 
-        var resolveResult = alert.Resolve(command.UserId, command.ResolutionNotes);
+        var resolveResult = alert.Resolve(_userContext.Id, command.ResolutionNotes);
 
         if (!resolveResult.IsSuccess)
             return Result<AlertAggregate>.Invalid(resolveResult.ValidationErrors);

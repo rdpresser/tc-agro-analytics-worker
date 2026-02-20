@@ -16,4 +16,4 @@ public sealed record PendingAlertResponse(
     double? Threshold,
     DateTimeOffset CreatedAt,
     DateTimeOffset? AcknowledgedAt,
-    string? AcknowledgedBy);
+	Guid? AcknowledgedBy);
