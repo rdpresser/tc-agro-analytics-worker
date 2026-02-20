@@ -16,7 +16,7 @@ public sealed record AlertHistoryResponse(
     double? Threshold,
     DateTimeOffset CreatedAt,
     DateTimeOffset? AcknowledgedAt,
-    string? AcknowledgedBy,
+	Guid? AcknowledgedBy,
     DateTimeOffset? ResolvedAt,
-    string? ResolvedBy,
+	Guid? ResolvedBy,
     string? ResolutionNotes);

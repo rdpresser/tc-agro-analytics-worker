@@ -35,9 +35,9 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("acknowledged_at");
 
-                    b.Property<string>("AcknowledgedBy")
+                    b.Property<Guid?>("AcknowledgedBy")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
+                        .HasColumnType("uuid")
                         .HasColumnName("acknowledged_by");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -75,9 +75,9 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("resolved_at");
 
-                    b.Property<string>("ResolvedBy")
+                    b.Property<Guid?>("ResolvedBy")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
+                        .HasColumnType("uuid")
                         .HasColumnName("resolved_by");
 
                     b.Property<Guid>("SensorId")

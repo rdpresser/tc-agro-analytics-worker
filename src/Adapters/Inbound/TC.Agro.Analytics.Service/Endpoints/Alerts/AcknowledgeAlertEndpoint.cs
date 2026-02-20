@@ -17,10 +17,11 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
 
         Description(
             d => d.Produces<AcknowledgeAlertResponse>(200, "application/json")
-                  .ProducesProblemDetails()
-                  .Produces(400)
-                  .Produces(404)
-                  .WithTags("Alerts"));
+                    .ProducesProblemDetails(400)
+                    .ProducesProblemDetails(404)
+                    .Produces((int)HttpStatusCode.Unauthorized)
+                    .Produces((int)HttpStatusCode.Forbidden)
+                    .WithTags("Alerts"));
 
         Summary(s =>
         {
@@ -29,14 +30,14 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
             s.Params["alertId"] = "Alert ID (GUID)";
 
             s.ExampleRequest = new AcknowledgeAlertCommand(
-                AlertId: Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
-                UserId: "user@example.com");
+                AlertId: Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d")
+                );
 
             s.ResponseExamples[200] = new AcknowledgeAlertResponse(
                 Id: Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
                 Status: "Acknowledged",
                 AcknowledgedAt: DateTimeOffset.UtcNow,
-                AcknowledgedBy: "user@example.com",
+                AcknowledgedBy: Guid.Parse("9823af89-c34e-4da1-b680-79ebd06cc35f"),
                 Message: "Alert acknowledged successfully");
 
             s.Responses[200] = "Returned when the alert is successfully acknowledged.";

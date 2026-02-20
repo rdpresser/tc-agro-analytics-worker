@@ -8,6 +8,8 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.AcknowledgeAlert;
 internal sealed class AcknowledgeAlertCommandHandler :
     BaseCommandHandler<AcknowledgeAlertCommand, AcknowledgeAlertResponse, AlertAggregate, IAlertAggregateRepository>
 {
+    private readonly IUserContext _userContext;
+
     public AcknowledgeAlertCommandHandler(
        IAlertAggregateRepository repository,
        IUserContext userContext,
@@ -15,6 +17,7 @@ internal sealed class AcknowledgeAlertCommandHandler :
        ILogger<AcknowledgeAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
+        _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
     }
 
     protected override async Task<Result<AlertAggregate>> MapAsync(AcknowledgeAlertCommand command, CancellationToken ct)
@@ -24,7 +27,7 @@ internal sealed class AcknowledgeAlertCommandHandler :
         if (alert == null)
             return Result<AlertAggregate>.NotFound("Alert not found");
 
-        var acknowledgeResult = alert.Acknowledge(command.UserId);
+        var acknowledgeResult = alert.Acknowledge(_userContext.Id);
 
         if (!acknowledgeResult.IsSuccess)
             return Result<AlertAggregate>.Invalid(acknowledgeResult.ValidationErrors);

@@ -28,9 +28,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public string? Metadata { get; private set; }
 
     public DateTimeOffset? AcknowledgedAt { get; private set; }
-    public string? AcknowledgedBy { get; private set; }
+    public Guid? AcknowledgedBy { get; private set; }
     public DateTimeOffset? ResolvedAt { get; private set; }
-    public string? ResolvedBy { get; private set; }
+    public Guid? ResolvedBy { get; private set; }
     public string? ResolutionNotes { get; private set; }
 
     private AlertAggregate(Guid id) : base(id) { }
@@ -361,9 +361,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
     /// Acknowledges the alert (user has seen it).
     /// Business rule: Only pending alerts can be acknowledged.
     /// </summary>
-    public Result Acknowledge(string userId)
+    public Result Acknowledge(Guid userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
+        if (userId == Guid.Empty)
             return Result.Invalid(new ValidationError(
                 "UserId.Required",
                 "User ID is required to acknowledge alert"));
@@ -387,9 +387,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
     /// Resolves the alert (issue has been addressed).
     /// Business rule: Only pending or acknowledged alerts can be resolved.
     /// </summary>
-    public Result Resolve(string userId, string? notes = null)
+    public Result Resolve(Guid userId, string? notes = null)
     {
-        if (string.IsNullOrWhiteSpace(userId))
+        if (userId == Guid.Empty)
             return Result.Invalid(new ValidationError(
                 "UserId.Required",
                 "User ID is required to resolve alert"));
@@ -453,13 +453,13 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public record AlertAcknowledgedDomainEvent(
         Guid AggregateId,
         DateTimeOffset AcknowledgedAt,
-        string AcknowledgedBy,
+		Guid AcknowledgedBy,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
     public record AlertResolvedDomainEvent(
         Guid AggregateId,
         DateTimeOffset ResolvedAt,
-        string ResolvedBy,
+		Guid ResolvedBy,
         string? ResolutionNotes,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 

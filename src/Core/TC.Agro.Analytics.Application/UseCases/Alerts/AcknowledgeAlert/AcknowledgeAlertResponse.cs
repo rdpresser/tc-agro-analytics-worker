@@ -8,5 +8,5 @@ public sealed record AcknowledgeAlertResponse(
     Guid Id,
     string Status,
     DateTimeOffset AcknowledgedAt,
-    string AcknowledgedBy,
+    Guid AcknowledgedBy,
     string Message = "Alert acknowledged successfully");
