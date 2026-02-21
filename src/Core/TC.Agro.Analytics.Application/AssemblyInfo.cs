@@ -30,6 +30,8 @@ global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 global using Wolverine;
 global using CacheTagCatalog = TC.Agro.Analytics.Application.Abstractions.CacheTags;
+global using TC.Agro.Analytics.Domain.Snapshots;
+global using TC.Agro.Contracts.Events.Identity;
 
 //**//
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

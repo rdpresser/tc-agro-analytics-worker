@@ -35,6 +35,9 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.Property(e => e.ResolutionNotes)
             .HasMaxLength(1000);
 
+        builder.Property(e => e.OwnerId)
+            .IsRequired(false);
+
         builder.Property(e => e.Type)
             .HasConversion(
                 v => v.Value,

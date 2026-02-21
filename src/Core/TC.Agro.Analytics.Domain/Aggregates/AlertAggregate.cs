@@ -33,6 +33,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public Guid? ResolvedBy { get; private set; }
     public string? ResolutionNotes { get; private set; }
 
+    public Guid? OwnerId { get; private set; }
+    public OwnerSnapshot? Owner { get; init; }
+
     private AlertAggregate(Guid id) : base(id) { }
 
     private AlertAggregate() : base(Guid.Empty) { }
@@ -53,6 +56,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public static Result<IReadOnlyList<AlertAggregate>> CreateFromSensorData(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         double? temperature,
         double? soilMoisture,
         double? batteryLevel,
@@ -80,9 +84,9 @@ public sealed class AlertAggregate : BaseAggregateRoot
         var alerts = new List<AlertAggregate>();
 
         // Evaluate business rules (encapsulated in aggregate)
-        EvaluateTemperatureRule(sensorId, plotId, temperature, humidity, soilMoisture, rainfall, batteryLevel, thresholds, alerts);
-        EvaluateSoilMoistureRule(sensorId, plotId, soilMoisture, temperature, humidity, rainfall, batteryLevel, thresholds, alerts);
-        EvaluateBatteryRule(sensorId, plotId, batteryLevel, thresholds, alerts);
+        EvaluateTemperatureRule(sensorId, plotId, ownerId, temperature, humidity, soilMoisture, rainfall, batteryLevel, thresholds, alerts);
+        EvaluateSoilMoistureRule(sensorId, plotId, ownerId, soilMoisture, temperature, humidity, rainfall, batteryLevel, thresholds, alerts);
+        EvaluateBatteryRule(sensorId, plotId, ownerId, batteryLevel, thresholds, alerts);
 
         return Result.Success<IReadOnlyList<AlertAggregate>>(alerts);
     }
@@ -90,6 +94,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     private static void EvaluateTemperatureRule(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         double? temperature,
         double? humidity,
         double? soilMoisture,
@@ -107,6 +112,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
         var result = Create(
             sensorId: sensorId,
             plotId: plotId,
+            ownerId: ownerId,
             type: AlertType.HighTemperature,
             severity: severity,
             message: $"High temperature detected: {temperature:F1}°C",
@@ -121,6 +127,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     private static void EvaluateSoilMoistureRule(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         double? soilMoisture,
         double? temperature,
         double? humidity,
@@ -138,6 +145,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
         var result = Create(
             sensorId: sensorId,
             plotId: plotId,
+            ownerId: ownerId,
             type: AlertType.LowSoilMoisture,
             severity: severity,
             message: $"Low soil moisture detected: {soilMoisture:F1}% - Irrigation may be needed",
@@ -152,6 +160,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     private static void EvaluateBatteryRule(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         double? batteryLevel,
         AlertThresholds thresholds,
         List<AlertAggregate> alerts)
@@ -165,6 +174,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
         var result = Create(
             sensorId: sensorId,
             plotId: plotId,
+            ownerId: ownerId,
             type: AlertType.LowBattery,
             severity: severity,
             message: $"Low battery warning: {batteryLevel:F1}% - Sensor maintenance required",
@@ -254,6 +264,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public static Result<AlertAggregate> Create(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         AlertType type,
         AlertSeverity severity,
         string message,
@@ -269,12 +280,13 @@ public sealed class AlertAggregate : BaseAggregateRoot
         if (errors.Count > 0)
             return Result.Invalid(errors.ToArray());
 
-        return CreateAggregate(sensorId, plotId, type, severity, message, value, threshold, metadata);
+        return CreateAggregate(sensorId, plotId, ownerId, type, severity, message, value, threshold, metadata);
     }
 
     private static Result<AlertAggregate> CreateAggregate(
         Guid sensorId,
         Guid plotId,
+        Guid ownerId,
         AlertType type,
         AlertSeverity severity,
         string message,
@@ -287,6 +299,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
             AggregateId: aggregate.Id,
             SensorId: sensorId,
             PlotId: plotId,
+            OwnerId: ownerId,
             Type: type,
             Severity: severity,
             Message: message,
@@ -308,6 +321,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
         SetId(@event.AggregateId);
         SensorId = @event.SensorId;
         PlotId = @event.PlotId;
+        OwnerId = @event.OwnerId;
         Type = @event.Type;
         Severity = @event.Severity;
         Message = @event.Message;
@@ -442,6 +456,7 @@ public sealed class AlertAggregate : BaseAggregateRoot
         Guid AggregateId,
         Guid SensorId,
         Guid PlotId,
+        Guid OwnerId,
         AlertType Type,
         AlertSeverity Severity,
         string Message,

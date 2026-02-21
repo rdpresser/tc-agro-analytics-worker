@@ -28,6 +28,8 @@ global using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
 global using TC.Agro.SharedKernel.Infrastructure.Messaging.Outbox;
 global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using Wolverine.EntityFrameworkCore;
+global using TC.Agro.Analytics.Domain.Snapshots;
+global using TC.Agro.SharedKernel.Domain.Events;
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

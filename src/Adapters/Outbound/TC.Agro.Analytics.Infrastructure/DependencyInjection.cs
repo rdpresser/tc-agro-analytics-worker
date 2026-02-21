@@ -12,6 +12,8 @@ public static class DependencyInjection
         services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
         services.AddScoped<IAlertReadStore, AlertReadStore>();
 
+        // Owner snapshot store
+        services.AddScoped<IOwnerSnapshotStore, OwnerSnapshotStore>();
         // -------------------------------
         // EF Core with Wolverine Integration
         // IMPORTANT: Use AddDbContextWithWolverineIntegration instead of AddDbContext
