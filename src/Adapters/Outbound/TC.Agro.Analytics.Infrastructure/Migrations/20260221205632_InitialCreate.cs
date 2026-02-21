@@ -21,7 +21,6 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     sensor_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    plot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     severity = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
@@ -29,9 +28,9 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                     value = table.Column<double>(type: "double precision", nullable: false),
                     threshold = table.Column<double>(type: "double precision", nullable: false),
                     metadata = table.Column<string>(type: "jsonb", nullable: true),
-                    acknowledged_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    acknowledged_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     acknowledged_by = table.Column<Guid>(type: "uuid", maxLength: 256, nullable: true),
-                    resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    resolved_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     resolved_by = table.Column<Guid>(type: "uuid", maxLength: 256, nullable: true),
                     resolution_notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -42,18 +41,6 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_alerts", x => x.id);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_alerts_plot_id",
-                schema: "public",
-                table: "alerts",
-                column: "plot_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_alerts_plot_id_status",
-                schema: "public",
-                table: "alerts",
-                columns: new[] { "plot_id", "status" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_alerts_sensor_id",

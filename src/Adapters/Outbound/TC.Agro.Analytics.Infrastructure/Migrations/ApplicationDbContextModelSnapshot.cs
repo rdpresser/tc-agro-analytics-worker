@@ -31,7 +31,7 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime?>("AcknowledgedAt")
+                    b.Property<DateTimeOffset?>("AcknowledgedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("acknowledged_at");
 
@@ -62,16 +62,12 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("metadata");
 
-                    b.Property<Guid>("PlotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plot_id");
-
                     b.Property<string>("ResolutionNotes")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("resolution_notes");
 
-                    b.Property<DateTime?>("ResolvedAt")
+                    b.Property<DateTimeOffset?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("resolved_at");
 
@@ -117,17 +113,11 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_alerts");
 
-                    b.HasIndex("PlotId")
-                        .HasDatabaseName("ix_alerts_plot_id");
-
                     b.HasIndex("SensorId")
                         .HasDatabaseName("ix_alerts_sensor_id");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_alerts_status");
-
-                    b.HasIndex("PlotId", "Status")
-                        .HasDatabaseName("ix_alerts_plot_id_status");
 
                     b.ToTable("alerts", "public");
                 });
