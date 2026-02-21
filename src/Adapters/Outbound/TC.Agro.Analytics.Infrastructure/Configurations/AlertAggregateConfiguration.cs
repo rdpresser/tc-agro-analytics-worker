@@ -10,9 +10,6 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.Property(e => e.SensorId)
             .IsRequired();
 
-        builder.Property(e => e.PlotId)
-            .IsRequired();
-
         builder.Property(e => e.Message)
             .IsRequired()
             .HasMaxLength(500);
@@ -56,9 +53,7 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.HasIndex(e => e.PlotId);
         builder.HasIndex(e => e.SensorId);
         builder.HasIndex(e => e.Status);
-        builder.HasIndex(e => new { e.PlotId, e.Status });
     }
 }

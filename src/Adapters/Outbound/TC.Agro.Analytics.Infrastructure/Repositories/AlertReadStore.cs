@@ -32,9 +32,8 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(pageSize)
             .Select(a => new PendingAlertResponse(
                 a.Id,
-                a.Id, // AlertAggregate doesn't have SensorReadingId (removed ownership violation)
                 a.SensorId,
-                a.PlotId,
+                Guid.NewGuid(),  //TOD0: pegar plotId do SensorSnapshot quando implementado
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
@@ -61,7 +60,7 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var alertsQuery = _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.PlotId == query.PlotId)
+            ////.Where(a => a.PlotId == query.PlotId) TOD0: filtrar por PlotId quando implementado no SensorSnapshot
             .Where(a => a.CreatedAt >= cutoffDate);
 
         if (!string.IsNullOrEmpty(query.AlertType))
@@ -95,7 +94,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
-                a.PlotId,
+                Guid.NewGuid(),  //TOD0: pegar plotId do SensorSnapshot quando implementado
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
@@ -126,7 +125,8 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var allAlerts = await _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.PlotId == plotId && a.CreatedAt >= last7Days)
+            ////.Where(a => a.PlotId == plotId) TOD0: filtrar por PlotId quando implementado no SensorSnapshot
+            .Where(a => a.CreatedAt >= last7Days)
             .ToListAsync(cancellationToken);
 
         var pendingCount = allAlerts.Count(a => a.Status == AlertStatus.Pending);

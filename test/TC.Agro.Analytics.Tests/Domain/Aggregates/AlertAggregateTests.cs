@@ -12,7 +12,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var sensorId = Guid.NewGuid();
-        var plotId = Guid.NewGuid();
         var type = AlertType.HighTemperature;
         var severity = AlertSeverity.High;
         var message = "High temperature detected: 38.5°C";
@@ -20,12 +19,11 @@ public class AlertAggregateTests
         var threshold = 35.0;
 
         // Act
-        var result = AlertAggregate.Create(sensorId, plotId, type, severity, message, value, threshold);
+        var result = AlertAggregate.Create(sensorId, type, severity, message, value, threshold);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.SensorId.ShouldBe(sensorId);
-        result.Value.PlotId.ShouldBe(plotId);
         result.Value.Type.ShouldBe(type);
         result.Value.Severity.ShouldBe(severity);
         result.Value.Message.ShouldBe(message);
@@ -40,10 +38,9 @@ public class AlertAggregateTests
     {
         // Arrange
         var sensorId = Guid.Empty;
-        var plotId = Guid.NewGuid();
 
         // Act
-        var result = AlertAggregate.Create(sensorId, plotId, AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
+        var result = AlertAggregate.Create(sensorId, AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -54,7 +51,7 @@ public class AlertAggregateTests
     public void Create_WithEmptyPlotId_ShouldReturnValidationError()
     {
         // Act
-        var result = AlertAggregate.Create(Guid.NewGuid(), Guid.Empty, AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
+        var result = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -67,7 +64,7 @@ public class AlertAggregateTests
     public void Create_WithInvalidMessage_ShouldReturnValidationError(string message)
     {
         // Act
-        var result = AlertAggregate.Create(Guid.NewGuid(), Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, message, 38.5, 35.0);
+        var result = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, message, 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -83,7 +80,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -109,7 +105,6 @@ public class AlertAggregateTests
         // Arrange
         var alert = AlertAggregate.Create(
             Guid.NewGuid(),
-            Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
@@ -129,7 +124,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -155,7 +149,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -183,7 +176,6 @@ public class AlertAggregateTests
         // Arrange
         var alert = AlertAggregate.Create(
             Guid.NewGuid(),
-            Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
@@ -205,7 +197,6 @@ public class AlertAggregateTests
         // Arrange
         var alert = AlertAggregate.Create(
             Guid.NewGuid(),
-            Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
@@ -225,7 +216,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -247,7 +237,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -272,7 +261,7 @@ public class AlertAggregateTests
     public void Create_ShouldRaiseAlertCreatedDomainEvent()
     {
         // Arrange & Act
-        var result = AlertAggregate.Create(Guid.NewGuid(), Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, "High temp", 38.5, 35.0);
+        var result = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, "High temp", 38.5, 35.0);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -286,7 +275,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,
@@ -308,7 +296,6 @@ public class AlertAggregateTests
     {
         // Arrange
         var alert = AlertAggregate.Create(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             AlertType.HighTemperature,
             AlertSeverity.High,

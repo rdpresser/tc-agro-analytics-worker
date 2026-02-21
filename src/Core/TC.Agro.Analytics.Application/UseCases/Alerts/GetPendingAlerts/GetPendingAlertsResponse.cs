@@ -5,7 +5,6 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
 /// </summary>
 public sealed record PendingAlertResponse(
     Guid Id,
-    Guid SensorReadingId,
     Guid SensorId,
     Guid PlotId,
     string AlertType,
@@ -16,4 +15,4 @@ public sealed record PendingAlertResponse(
     double? Threshold,
     DateTimeOffset CreatedAt,
     DateTimeOffset? AcknowledgedAt,
-	Guid? AcknowledgedBy);
+    Guid? AcknowledgedBy);
