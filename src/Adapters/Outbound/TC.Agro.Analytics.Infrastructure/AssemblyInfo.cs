@@ -15,7 +15,7 @@ global using Serilog;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
-global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Analytics.Infrastructure.Messaging;
@@ -30,6 +30,8 @@ global using TC.Agro.SharedKernel.Infrastructure.Pagination;
 global using Wolverine.EntityFrameworkCore;
 global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.SharedKernel.Domain.Events;
+global using TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold;
+
 
 [assembly: InternalsVisibleTo("TC.Agro.Analytics.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

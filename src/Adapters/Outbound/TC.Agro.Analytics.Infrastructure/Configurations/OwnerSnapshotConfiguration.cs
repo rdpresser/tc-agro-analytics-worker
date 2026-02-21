@@ -33,12 +33,5 @@ internal sealed class OwnerSnapshotConfiguration : IEntityTypeConfiguration<Owne
 
         builder.Property(o => o.UpdatedAt)
             .HasColumnType("timestamptz");
-
-        // Relationship: OwnerSnapshot -> AlertAggregate (One-to-Many)
-        // An owner can have many alerts acknowledged/resolved by them
-        builder.HasMany(o => o.Alerts)
-            .WithOne(a => a.Owner)
-            .HasForeignKey(a => a.OwnerId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 }

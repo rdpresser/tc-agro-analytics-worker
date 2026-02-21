@@ -9,8 +9,6 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
 
-        public ICollection<AlertAggregate> Alerts { get; private set; } = [];
-
         private OwnerSnapshot() { } // EF
 
         private OwnerSnapshot(Guid id, string name, string email, bool isActive, DateTimeOffset createdAt, DateTimeOffset? updatedAt)

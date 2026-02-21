@@ -34,7 +34,6 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId (removed ownership violation)
                 a.SensorId,
-                a.PlotId,
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
@@ -61,7 +60,7 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var alertsQuery = _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.PlotId == query.PlotId)
+            .Where(a => a.SensorId == query.SensorId)
             .Where(a => a.CreatedAt >= cutoffDate);
 
         if (!string.IsNullOrEmpty(query.AlertType))
@@ -95,7 +94,6 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Id,
                 a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
-                a.PlotId,
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
@@ -117,8 +115,8 @@ public sealed class AlertReadStore : IAlertReadStore
             query.PageSize);
     }
 
-    public async Task<GetPlotStatusResponse> GetPlotStatusAsync(
-        Guid plotId,
+    public async Task<GetSensorStatusResponse> GetSensorStatusAsync(
+        Guid sensorId,
         CancellationToken cancellationToken = default)
     {
         var last7Days = DateTimeOffset.UtcNow.AddDays(-7);
@@ -126,7 +124,7 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var allAlerts = await _dbContext.Alerts
             .AsNoTracking()
-            .Where(a => a.PlotId == plotId && a.CreatedAt >= last7Days)
+            .Where(a => a.SensorId == sensorId && a.CreatedAt >= last7Days)
             .ToListAsync(cancellationToken);
 
         var pendingCount = allAlerts.Count(a => a.Status == AlertStatus.Pending);
@@ -145,7 +143,7 @@ public sealed class AlertReadStore : IAlertReadStore
             .FirstOrDefault();
 
         var mostRecentAlert = mostRecent != null
-            ? new PlotStatusAlertResponse(
+            ? new SensorStatusAlertResponse(
                 mostRecent.Id,
                 mostRecent.Id, // AlertAggregate doesn't have SensorReadingId
                 mostRecent.SensorId,
@@ -165,8 +163,8 @@ public sealed class AlertReadStore : IAlertReadStore
             _ => "Critical"
         };
 
-        return new GetPlotStatusResponse(
-            plotId,
+        return new GetSensorStatusResponse(
+            sensorId,
             pendingCount,
             last24HoursCount,
             allAlerts.Count,

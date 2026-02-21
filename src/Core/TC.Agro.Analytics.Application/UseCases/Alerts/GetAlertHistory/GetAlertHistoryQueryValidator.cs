@@ -7,10 +7,10 @@ public sealed class GetAlertHistoryQueryValidator : AbstractValidator<GetAlertHi
 {
     public GetAlertHistoryQueryValidator()
     {
-        RuleFor(x => x.PlotId)
+        RuleFor(x => x.SensorId)
             .NotEmpty()
-                .WithMessage("PlotId is required.")
-                .WithErrorCode($"{nameof(GetAlertHistoryQuery.PlotId)}.Required");
+                .WithMessage("SensorId is required.")
+                .WithErrorCode($"{nameof(GetAlertHistoryQuery.SensorId)}.Required");
 
         RuleFor(x => x.Days)
             .GreaterThan(0)

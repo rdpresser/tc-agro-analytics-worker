@@ -9,7 +9,7 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert
         [
             CacheTagCatalog.Alerts,
             CacheTagCatalog.AlertHistory,
-            CacheTagCatalog.PlotStatus
+            CacheTagCatalog.SensorStatus
         ];
     }
 }

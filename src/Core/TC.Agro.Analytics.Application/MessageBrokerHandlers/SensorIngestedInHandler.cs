@@ -29,7 +29,6 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 
             var alertsResult = AlertAggregate.CreateFromSensorData(
                 sensorId: @event.EventData.SensorId,
-                plotId: @event.EventData.PlotId,
                 temperature: @event.EventData.Temperature,
                 soilMoisture: @event.EventData.SoilMoisture,
                 batteryLevel: @event.EventData.BatteryLevel,

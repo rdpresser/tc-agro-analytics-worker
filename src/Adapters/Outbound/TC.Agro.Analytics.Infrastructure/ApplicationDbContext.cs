@@ -5,6 +5,7 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public DbSet<AlertAggregate> Alerts { get; set; } = default!;
     public DbSet<OwnerSnapshot> OwnerSnapshots { get; set; } = default!;
+    public DbSet<SensorSnapshot> SensorSnapshots { get; set; } = default!;
 
     public DbContext DbContext => this;
 
@@ -29,6 +30,9 @@ public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
 
         // OwnerSnapshot: Only soft delete (no owner filter needed)
         modelBuilder.Entity<OwnerSnapshot>().HasQueryFilter(o => o.IsActive);
+
+        // SensorSnapshot: Only active sensors
+        modelBuilder.Entity<SensorSnapshot>().HasQueryFilter(s => s.IsActive);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }

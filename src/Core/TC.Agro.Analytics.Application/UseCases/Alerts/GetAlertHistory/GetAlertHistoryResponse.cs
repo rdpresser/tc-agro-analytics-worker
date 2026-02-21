@@ -7,7 +7,6 @@ public sealed record AlertHistoryResponse(
     Guid Id,
     Guid SensorReadingId,
     Guid SensorId,
-    Guid PlotId,
     string AlertType,
     string Message,
     string Status,

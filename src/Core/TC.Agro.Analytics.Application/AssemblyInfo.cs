@@ -14,7 +14,7 @@ global using TC.Agro.Analytics.Application.Abstractions;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
-global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 global using TC.Agro.Analytics.Domain.Aggregates;
 global using TC.Agro.Analytics.Domain.ValueObjects;
 global using TC.Agro.Contracts.Events;
@@ -32,6 +32,8 @@ global using Wolverine;
 global using CacheTagCatalog = TC.Agro.Analytics.Application.Abstractions.CacheTags;
 global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Contracts.Events.Identity;
+global using TC.Agro.Contracts.Events.Farm;
+global using TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold;
 
 //**//
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

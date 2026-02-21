@@ -210,6 +210,8 @@ internal static class ServiceCollectionExtensions
 
             // Include Application assembly for handlers
             opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorIngestedHandler).Assembly);
+            opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.OwnerSnapshotHandler).Assembly);
+            opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorSnapshotHandler).Assembly);
 
             // -------------------------------
             // Durability schema (same database, different schema)
@@ -281,6 +283,28 @@ internal static class ServiceCollectionExtensions
             opts.ConfigureSensorIngestSensorEventsConsumption(
                 exchangeName: "sensor-ingest.events-exchange",
                 queueName: "analytics-sensor-ingest-events-queue"
+            );
+
+            // ============================================================
+            // CONSUMING - Sensor Ingest Service (Inbound)
+            // Uses TC.Agro.Messaging extension for Identity Service user events
+            // Exchange: identity.events-exchange (TOPIC)
+            // Binding Key: identity.user.* (wildcard - receives all 3 user events)
+            // ============================================================
+            opts.ConfigureIdentityUserEventsConsumption(
+                exchangeName: "identity.events-exchange",
+                queueName: "sensor-ingest-identity-user-events-queue"
+            );
+
+            // ============================================================
+            // CONSUMING - Sensor Ingest Service (Inbound)
+            // Uses TC.Agro.Messaging extension for Farm Sensor events
+            // Exchange: farm.events-exchange (TOPIC)
+            // Binding Key: farm.sensor.* (wildcard - receives all sensor events)
+            // ============================================================
+            opts.ConfigureFarmSensorEventsConsumption(
+                exchangeName: "farm.events-exchange",
+                queueName: "sensor-ingest-farm-sensor-events-queue"
             );
         });
 

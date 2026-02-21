@@ -10,9 +10,6 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.Property(e => e.SensorId)
             .IsRequired();
 
-        builder.Property(e => e.PlotId)
-            .IsRequired();
-
         builder.Property(e => e.Message)
             .IsRequired()
             .HasMaxLength(500);
@@ -35,9 +32,6 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.Property(e => e.ResolutionNotes)
             .HasMaxLength(1000);
 
-        builder.Property(e => e.OwnerId)
-            .IsRequired(false);
-
         builder.Property(e => e.Type)
             .HasConversion(
                 v => v.Value,
@@ -59,9 +53,17 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.HasIndex(e => e.PlotId);
         builder.HasIndex(e => e.SensorId);
         builder.HasIndex(e => e.Status);
-        builder.HasIndex(e => new { e.PlotId, e.Status });
+        builder.HasIndex(e => new { e.Status });
+
+        // Relationship: Alert → Sensor (FK REQUIRED with Restrict)
+        // Per PR feedback: FK must be required, not nullable
+        builder.HasOne(a => a.Sensor)
+            .WithMany(s => s.Alerts)
+            .HasForeignKey(a => a.SensorId)
+            .IsRequired() // ✅ FK obrigatória
+            .OnDelete(DeleteBehavior.Restrict) // ✅ Não permite deletar sensor com alertas
+            .HasConstraintName("fk_alerts_sensor_snapshots_sensor_id");
     }
 }

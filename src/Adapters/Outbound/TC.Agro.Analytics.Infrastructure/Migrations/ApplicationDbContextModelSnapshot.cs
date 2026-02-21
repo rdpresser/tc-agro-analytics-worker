@@ -62,14 +62,6 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("metadata");
 
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
-
-                    b.Property<Guid>("PlotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plot_id");
-
                     b.Property<string>("ResolutionNotes")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
@@ -121,20 +113,11 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_alerts");
 
-                    b.HasIndex("OwnerId")
-                        .HasDatabaseName("ix_alerts_owner_id");
-
-                    b.HasIndex("PlotId")
-                        .HasDatabaseName("ix_alerts_plot_id");
-
                     b.HasIndex("SensorId")
                         .HasDatabaseName("ix_alerts_sensor_id");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_alerts_status");
-
-                    b.HasIndex("PlotId", "Status")
-                        .HasDatabaseName("ix_alerts_plot_id_status");
 
                     b.ToTable("alerts", "public");
                 });
@@ -180,6 +163,73 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasDatabaseName("ix_owner_snapshots_email");
 
                     b.ToTable("owner_snapshots", "public");
+                });
+
+            modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("label");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid>("PlotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("plot_id");
+
+                    b.Property<string>("PlotName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("plot_name");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("property_id");
+
+                    b.Property<string>("PropertyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("property_name");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sensor_snapshots");
+
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("ix_sensor_snapshots_owner_id");
+
+                    b.HasIndex("PlotId")
+                        .HasDatabaseName("ix_sensor_snapshots_plot_id");
+
+                    b.HasIndex("OwnerId", "IsActive")
+                        .HasDatabaseName("ix_sensor_snapshots_owner_id_is_active");
+
+                    b.HasIndex("PlotId", "IsActive")
+                        .HasDatabaseName("ix_sensor_snapshots_plot_id_is_active");
+
+                    b.ToTable("sensor_snapshots", "public");
                 });
 
             modelBuilder.Entity("Wolverine.EntityFrameworkCore.Internals.IncomingMessage", b =>
@@ -278,16 +328,29 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
 
             modelBuilder.Entity("TC.Agro.Analytics.Domain.Aggregates.AlertAggregate", b =>
                 {
-                    b.HasOne("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", "Owner")
+                    b.HasOne("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", "Sensor")
                         .WithMany("Alerts")
+                        .HasForeignKey("SensorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_alerts_sensor_snapshots_sensor_id");
+
+                    b.Navigation("Sensor");
+                });
+
+            modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", b =>
+                {
+                    b.HasOne("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", "Owner")
+                        .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("fk_alerts_owner_snapshots_owner_id");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_sensor_snapshots_owner_snapshots_owner_id");
 
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", b =>
+            modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", b =>
                 {
                     b.Navigation("Alerts");
                 });

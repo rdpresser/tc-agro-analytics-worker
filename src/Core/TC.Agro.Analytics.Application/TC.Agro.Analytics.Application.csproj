@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <None Remove="MessageBrokerHandlers\SensorSnapshotHandler.cs.bak" />
+  </ItemGroup>
+
+  <ItemGroup>
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.Contracts\TC.Agro.Contracts.csproj" />
 		<ProjectReference Include="..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
 		<ProjectReference Include="..\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />

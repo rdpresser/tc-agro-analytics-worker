@@ -18,7 +18,7 @@ public interface IAlertReadStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get alert history for a specific plot with optional filters and pagination.
+    /// Get alert history for a specific sensor with optional filters and pagination.
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
     Task<PaginatedResponse<AlertHistoryResponse>> GetAlertHistoryAsync(
@@ -26,10 +26,10 @@ public interface IAlertReadStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get aggregated status metrics for a specific plot.
+    /// Get aggregated status metrics for a specific sensor.
     /// Returns ready-to-use Response object (no mapping needed in handlers).
     /// </summary>
-    Task<GetPlotStatusResponse> GetPlotStatusAsync(
-        Guid plotId,
+    Task<GetSensorStatusResponse> GetSensorStatusAsync(
+        Guid sensorId,
         CancellationToken cancellationToken = default);
 }
