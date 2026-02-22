@@ -25,14 +25,14 @@ namespace TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold
 
         /// <summary>
         /// Minimum soil moisture percentage before triggering irrigation alert.
-        /// Default: 20%
+        /// Default: 30%
         /// </summary>
-        public double MinSoilMoisture { get; set; } = 20;
+        public double MinSoilMoisture { get; set; } = 30;
 
         /// <summary>
         /// Minimum battery level percentage before triggering low battery warning.
-        /// Default: 15%
+        /// Default: 20%
         /// </summary>
-        public double MinBatteryLevel { get; set; } = 15;
+        public double MinBatteryLevel { get; set; } = 20;
     }
 }
