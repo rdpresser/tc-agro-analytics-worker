@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
     /// Handles sensor integration events from the Farm microservice and maintains
     /// the SensorSnapshot store accordingly.
     /// This class projects external sensor events into a read-optimized snapshot
-    /// for the Sensor Ingest microservice.
+    /// used in the Analytics Service.
     /// </summary>
     public class SensorSnapshotHandler : IWolverineHandler
     {

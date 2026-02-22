@@ -28,6 +28,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositories
             ArgumentNullException.ThrowIfNull(snapshot);
 
             var existingSnapshot = await _dbContext.OwnerSnapshots
+                .IgnoreQueryFilters() 
                 .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -41,6 +42,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositories
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var snapshot = await _dbContext.OwnerSnapshots
+                .IgnoreQueryFilters() // ✅ Permite encontrar registros inativos para soft-delete
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
 

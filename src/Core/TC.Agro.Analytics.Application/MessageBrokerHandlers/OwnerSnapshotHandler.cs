@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
     /// Handles user integration events from the Identity microservice and maintains
     /// the OwnerSnapshot store accordingly.
     /// This class projects external user events into a read-optimized snapshot
-    /// for the Farm microservice.
+    /// used in the Analytics Service.
     /// </summary>
     public class OwnerSnapshotHandler : IWolverineHandler
     {
