@@ -10,5 +10,5 @@
 		<ProjectReference Include="..\..\..\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
 		<ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
 	</ItemGroup>
-  
+
 </Project>

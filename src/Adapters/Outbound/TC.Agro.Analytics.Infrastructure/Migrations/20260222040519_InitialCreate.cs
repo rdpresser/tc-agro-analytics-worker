@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,30 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TC.Agro.Analytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    /// <remarks>
-    /// IMPORTANT: This migration adds FK constraint from alerts.sensor_id to sensor_snapshots.id.
-    /// If alerts table already contains data, ensure sensor_snapshots are populated BEFORE running this migration.
-    /// Recommended: Clean database or run seed script to populate sensor_snapshots first.
-    /// </remarks>
-    public partial class AddOwnerSensorAlertRelationships : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "ix_alerts_plot_id",
-                schema: "public",
-                table: "alerts");
-
-            migrationBuilder.DropIndex(
-                name: "ix_alerts_plot_id_status",
-                schema: "public",
-                table: "alerts");
-
-            migrationBuilder.DropColumn(
-                name: "plot_id",
-                schema: "public",
-                table: "alerts");
+            migrationBuilder.EnsureSchema(
+                name: "public");
 
             migrationBuilder.CreateTable(
                 name: "owner_snapshots",
@@ -76,6 +59,53 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "alerts",
+                schema: "public",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    severity = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    message = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    value = table.Column<double>(type: "double precision", nullable: false),
+                    threshold = table.Column<double>(type: "double precision", nullable: false),
+                    metadata = table.Column<string>(type: "jsonb", nullable: true),
+                    acknowledged_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    acknowledged_by = table.Column<Guid>(type: "uuid", maxLength: 256, nullable: true),
+                    resolved_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    resolved_by = table.Column<Guid>(type: "uuid", maxLength: 256, nullable: true),
+                    resolution_notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_alerts", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_alerts_sensor_snapshots_sensor_id",
+                        column: x => x.sensor_id,
+                        principalSchema: "public",
+                        principalTable: "sensor_snapshots",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_alerts_sensor_id",
+                schema: "public",
+                table: "alerts",
+                column: "sensor_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_alerts_status",
+                schema: "public",
+                table: "alerts",
+                column: "status");
+
             migrationBuilder.CreateIndex(
                 name: "ix_owner_snapshots_email",
                 schema: "public",
@@ -106,25 +136,14 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                 schema: "public",
                 table: "sensor_snapshots",
                 columns: new[] { "plot_id", "is_active" });
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_alerts_sensor_snapshots_sensor_id",
-                schema: "public",
-                table: "alerts",
-                column: "sensor_id",
-                principalSchema: "public",
-                principalTable: "sensor_snapshots",
-                principalColumn: "id",
-                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "fk_alerts_sensor_snapshots_sensor_id",
-                schema: "public",
-                table: "alerts");
+            migrationBuilder.DropTable(
+                name: "alerts",
+                schema: "public");
 
             migrationBuilder.DropTable(
                 name: "sensor_snapshots",
@@ -133,26 +152,6 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "owner_snapshots",
                 schema: "public");
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "plot_id",
-                schema: "public",
-                table: "alerts",
-                type: "uuid",
-                nullable: false,
-                defaultValue: Guid.Empty);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_alerts_plot_id",
-                schema: "public",
-                table: "alerts",
-                column: "plot_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_alerts_plot_id_status",
-                schema: "public",
-                table: "alerts",
-                columns: new[] { "plot_id", "status" });
         }
     }
 }

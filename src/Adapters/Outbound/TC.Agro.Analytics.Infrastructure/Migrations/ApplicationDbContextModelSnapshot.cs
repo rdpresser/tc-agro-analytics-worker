@@ -125,7 +125,6 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
             modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 

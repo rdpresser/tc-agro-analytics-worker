@@ -9,7 +9,7 @@ internal sealed class OwnerSnapshotConfiguration : IEntityTypeConfiguration<Owne
         builder.HasKey(o => o.Id);
         builder.Property(x => x.Id)
             .IsRequired()
-            .ValueGeneratedOnAdd();
+            .ValueGeneratedNever();
 
         builder.Property(o => o.Name)
             .IsRequired()

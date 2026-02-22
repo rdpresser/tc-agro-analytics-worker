@@ -210,8 +210,6 @@ internal static class ServiceCollectionExtensions
 
             // Include Application assembly for handlers
             opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorIngestedHandler).Assembly);
-            opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.OwnerSnapshotHandler).Assembly);
-            opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.SensorSnapshotHandler).Assembly);
 
             // -------------------------------
             // Durability schema (same database, different schema)
