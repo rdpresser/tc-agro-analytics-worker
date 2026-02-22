@@ -55,7 +55,6 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
 
         builder.HasIndex(e => e.SensorId);
         builder.HasIndex(e => e.Status);
-        builder.HasIndex(e => new { e.Status });
 
         // Relationship: Alert → Sensor (FK REQUIRED with Restrict)
         // Per PR feedback: FK must be required, not nullable

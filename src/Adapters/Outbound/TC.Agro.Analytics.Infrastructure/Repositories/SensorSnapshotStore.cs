@@ -40,7 +40,8 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
         if (existingSnapshot == null)
             return;
 
-        _dbContext.SensorSnapshots.Update(snapshot);
+        // ✅ Atualiza a instância rastreada (evita conflito de tracking)
+        _dbContext.Entry(existingSnapshot).CurrentValues.SetValues(snapshot);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)

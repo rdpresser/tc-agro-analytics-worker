@@ -6,6 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TC.Agro.Analytics.Infrastructure.Migrations
 {
     /// <inheritdoc />
+    /// <remarks>
+    /// IMPORTANT: This migration adds FK constraint from alerts.sensor_id to sensor_snapshots.id.
+    /// If alerts table already contains data, ensure sensor_snapshots are populated BEFORE running this migration.
+    /// Recommended: Clean database or run seed script to populate sensor_snapshots first.
+    /// </remarks>
     public partial class AddOwnerSensorAlertRelationships : Migration
     {
         /// <inheritdoc />

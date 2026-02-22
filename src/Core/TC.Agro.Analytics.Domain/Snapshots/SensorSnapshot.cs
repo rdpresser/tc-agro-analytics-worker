@@ -94,27 +94,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
                 null);
         }
 
-        ////// Atualização quando vier evento SensorUpdated ou PlotUpdated
-        ////public void Update(
-        ////    Guid ownerId,
-        ////    Guid propertyId,
-        ////    Guid plotId,
-        ////    string sensorName,
-        ////    string plotName,
-        ////    string propertyName,
-        ////    bool isActive)
-        ////{
-        ////    OwnerId = ownerId;
-        ////    PropertyId = propertyId;
-        ////    PlotId = plotId;
-        ////    SensorName = sensorName;
-        ////    PlotName = plotName;
-        ////    PropertyName = propertyName;
-        ////    IsActive = isActive;
-        ////    UpdatedAt = DateTimeOffset.UtcNow;
-        ////}
-
-        // Desativação quando sensor for removido
+        // Soft delete - marks sensor as inactive when removed
         public void Delete()
         {
             if (!IsActive)

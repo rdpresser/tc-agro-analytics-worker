@@ -35,7 +35,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositories
             if (existingSnapshot == null)
                 return;
 
-            _dbContext.OwnerSnapshots.Update(snapshot);
+            _dbContext.Entry(existingSnapshot).CurrentValues.SetValues(snapshot);
         }
 
         /// <inheritdoc />
