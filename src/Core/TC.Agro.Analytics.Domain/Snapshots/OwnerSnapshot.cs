@@ -8,6 +8,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public bool IsActive { get; private set; }
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
+        public ICollection<SensorSnapshot> Sensors { get; private set; } = [];
 
         private OwnerSnapshot() { } // EF
 
