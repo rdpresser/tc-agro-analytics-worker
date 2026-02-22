@@ -286,25 +286,25 @@ internal static class ServiceCollectionExtensions
             );
 
             // ============================================================
-            // CONSUMING - Sensor Ingest Service (Inbound)
+            // CONSUMING - Analytics Service (Inbound)
             // Uses TC.Agro.Messaging extension for Identity Service user events
             // Exchange: identity.events-exchange (TOPIC)
             // Binding Key: identity.user.* (wildcard - receives all 3 user events)
             // ============================================================
             opts.ConfigureIdentityUserEventsConsumption(
                 exchangeName: "identity.events-exchange",
-                queueName: "sensor-ingest-identity-user-events-queue"
+                queueName: "analytics-identity-user-events-queue"
             );
 
             // ============================================================
-            // CONSUMING - Sensor Ingest Service (Inbound)
+            // CONSUMING - Analytics Service (Inbound)
             // Uses TC.Agro.Messaging extension for Farm Sensor events
             // Exchange: farm.events-exchange (TOPIC)
             // Binding Key: farm.sensor.* (wildcard - receives all sensor events)
             // ============================================================
             opts.ConfigureFarmSensorEventsConsumption(
                 exchangeName: "farm.events-exchange",
-                queueName: "sensor-ingest-farm-sensor-events-queue"
+                queueName: "analytics-farm-sensor-events-queue"
             );
         });
 
