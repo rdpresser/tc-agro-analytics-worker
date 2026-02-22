@@ -32,7 +32,6 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(pageSize)
             .Select(a => new PendingAlertResponse(
                 a.Id,
-                a.Id, // AlertAggregate doesn't have SensorReadingId (removed ownership violation)
                 a.SensorId,
                 a.Type.Value,
                 a.Message,
@@ -92,7 +91,6 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(query.PageSize)
             .Select(a => new AlertHistoryResponse(
                 a.Id,
-                a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
                 a.Type.Value,
                 a.Message,
@@ -145,7 +143,6 @@ public sealed class AlertReadStore : IAlertReadStore
         var mostRecentAlert = mostRecent != null
             ? new SensorStatusAlertResponse(
                 mostRecent.Id,
-                mostRecent.Id, // AlertAggregate doesn't have SensorReadingId
                 mostRecent.SensorId,
                 mostRecent.Type.Value,
                 mostRecent.Message,

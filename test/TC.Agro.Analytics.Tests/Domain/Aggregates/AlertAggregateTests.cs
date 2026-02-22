@@ -69,7 +69,9 @@ public class AlertAggregateTests
     public void Acknowledge_WithValidUserId_ShouldSucceed()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "High temperature detected",
             38.5,
@@ -91,7 +93,9 @@ public class AlertAggregateTests
     public void Acknowledge_WithInvalidUserId_ShouldReturnValidationError()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -109,7 +113,9 @@ public class AlertAggregateTests
     public void Acknowledge_WhenAlreadyAcknowledged_ShouldReturnValidationError()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -132,7 +138,9 @@ public class AlertAggregateTests
     public void Resolve_WithValidParameters_ShouldSucceed()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "High temperature detected",
             38.5,
@@ -156,7 +164,9 @@ public class AlertAggregateTests
     public void Resolve_FromAcknowledgedStatus_ShouldSucceed()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -175,7 +185,9 @@ public class AlertAggregateTests
     public void Resolve_WithInvalidUserId_ShouldReturnValidationError()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -193,7 +205,9 @@ public class AlertAggregateTests
     public void Resolve_WhenAlreadyResolved_ShouldReturnValidationError()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -212,7 +226,9 @@ public class AlertAggregateTests
     public void Resolve_WithoutNotes_ShouldSucceed()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -248,7 +264,9 @@ public class AlertAggregateTests
     public void Acknowledge_ShouldRaiseAlertAcknowledgedDomainEvent()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,
@@ -267,7 +285,9 @@ public class AlertAggregateTests
     public void Resolve_ShouldRaiseAlertResolvedDomainEvent()
     {
         // Arrange
-        var alert = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature,
+        var alert = AlertAggregate.Create(
+            Guid.NewGuid(),
+            AlertType.HighTemperature,
             AlertSeverity.High,
             "Test message",
             38.5,

@@ -434,13 +434,13 @@ public sealed class AlertAggregate : BaseAggregateRoot
     public record AlertAcknowledgedDomainEvent(
         Guid AggregateId,
         DateTimeOffset AcknowledgedAt,
-		Guid AcknowledgedBy,
+        Guid AcknowledgedBy,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
     public record AlertResolvedDomainEvent(
         Guid AggregateId,
         DateTimeOffset ResolvedAt,
-		Guid ResolvedBy,
+        Guid ResolvedBy,
         string? ResolutionNotes,
         DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 

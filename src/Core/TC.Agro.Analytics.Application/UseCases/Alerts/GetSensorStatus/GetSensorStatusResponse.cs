@@ -5,7 +5,6 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 /// </summary>
 public sealed record SensorStatusAlertResponse(
     Guid Id,
-    Guid SensorReadingId,
     Guid SensorId,
     string AlertType,
     string Message,
