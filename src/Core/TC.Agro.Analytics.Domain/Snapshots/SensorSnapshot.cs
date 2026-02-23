@@ -98,7 +98,9 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public void Delete()
         {
             if (!IsActive)
+            {
                 return;
+            }
 
             IsActive = false;
             UpdatedAt = DateTimeOffset.UtcNow;
