@@ -8,7 +8,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public Guid PropertyId { get; private set; }
         public Guid PlotId { get; private set; }
 
-        public string? Label { get; private set; } = default!;
+        public string? Label { get; private set; }
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
 

@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
     /// This class projects external sensor events into a read-optimized snapshot
     /// used in the Analytics Service.
     /// </summary>
-    public class SensorSnapshotHandler : IWolverineHandler
+    public sealed class SensorSnapshotHandler : IWolverineHandler
     {
         private readonly ISensorSnapshotStore _store;
         private readonly IUnitOfWork _unitOfWork;

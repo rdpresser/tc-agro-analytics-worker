@@ -33,11 +33,21 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             return new OwnerSnapshot(id, name, email, true, createdAt, null);
         }
 
-        public void Update(string name, string email, bool isActive)
+        public void Update(string name, string email)
         {
             Name = name;
             Email = email;
-            IsActive = isActive;
+            UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        public void Activate()
+        {
+            if (IsActive)
+            {
+                return;
+            }
+
+            IsActive = true;
             UpdatedAt = DateTimeOffset.UtcNow;
         }
 

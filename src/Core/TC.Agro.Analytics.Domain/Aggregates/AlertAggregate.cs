@@ -18,7 +18,7 @@ namespace TC.Agro.Analytics.Domain.Aggregates;
 public sealed class AlertAggregate : BaseAggregateRoot
 {
     public Guid SensorId { get; private set; }
-    public SensorSnapshot Sensor { get; init; } = default!;
+    public SensorSnapshot Sensor { get; private set; } = default!;
 
     public AlertType Type { get; private set; } = default!;
     public AlertSeverity Severity { get; private set; } = default!;

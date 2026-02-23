@@ -6,7 +6,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
     /// This class projects external user events into a read-optimized snapshot
     /// used in the Analytics Service.
     /// </summary>
-    public class OwnerSnapshotHandler : IWolverineHandler
+    public sealed class OwnerSnapshotHandler : IWolverineHandler
     {
         private readonly IOwnerSnapshotStore _store;
         private readonly IUnitOfWork _unitOfWork;
@@ -60,8 +60,8 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             if (snapshot == null)
                 return;
 
-            // Update snapshot
-            snapshot.Update(@event.EventData.Name, @event.EventData.Email, isActive: true);
+            // Update snapshot (only name/email - preserves current IsActive state)
+            snapshot.Update(@event.EventData.Name, @event.EventData.Email);
 
             // Update in store
             await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);

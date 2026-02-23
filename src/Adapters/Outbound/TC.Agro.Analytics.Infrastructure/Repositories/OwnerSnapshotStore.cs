@@ -57,6 +57,7 @@ namespace TC.Agro.Analytics.Infrastructure.Repositories
         public async Task<OwnerSnapshot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _dbContext.OwnerSnapshots
+                .IgnoreQueryFilters() // ✅ Permite encontrar registros inativos para Update
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
