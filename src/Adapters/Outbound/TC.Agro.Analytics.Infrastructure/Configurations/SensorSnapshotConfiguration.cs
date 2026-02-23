@@ -44,8 +44,9 @@ namespace TC.Agro.Analytics.Infrastructure.Configurations
                 .HasColumnType("timestamptz");
 
             // Relationship with OwnerSnapshot
+            // Configured here (not in OwnerSnapshotConfiguration) to avoid duplication
             builder.HasOne(s => s.Owner)
-                .WithMany()
+                .WithMany(o => o.Sensors)
                 .HasForeignKey(s => s.OwnerId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict)

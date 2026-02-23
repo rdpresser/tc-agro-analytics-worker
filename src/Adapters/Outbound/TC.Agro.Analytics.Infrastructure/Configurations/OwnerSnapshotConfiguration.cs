@@ -33,11 +33,5 @@ internal sealed class OwnerSnapshotConfiguration : IEntityTypeConfiguration<Owne
 
         builder.Property(o => o.UpdatedAt)
             .HasColumnType("timestamptz");
-
-        // Navigation property to SensorSnapshots owned by this owner
-        builder.HasMany(o => o.Sensors)
-            .WithOne(s => s.Owner)
-            .HasForeignKey(s => s.OwnerId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

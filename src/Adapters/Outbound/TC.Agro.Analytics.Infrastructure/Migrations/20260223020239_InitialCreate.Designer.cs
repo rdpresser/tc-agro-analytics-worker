@@ -12,7 +12,7 @@ using TC.Agro.Analytics.Infrastructure;
 namespace TC.Agro.Analytics.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260222040519_InitialCreate")]
+    [Migration("20260223020239_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -343,13 +343,18 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
             modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", b =>
                 {
                     b.HasOne("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", "Owner")
-                        .WithMany()
+                        .WithMany("Sensors")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_sensor_snapshots_owner_snapshots_owner_id");
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.OwnerSnapshot", b =>
+                {
+                    b.Navigation("Sensors");
                 });
 
             modelBuilder.Entity("TC.Agro.Analytics.Domain.Snapshots.SensorSnapshot", b =>

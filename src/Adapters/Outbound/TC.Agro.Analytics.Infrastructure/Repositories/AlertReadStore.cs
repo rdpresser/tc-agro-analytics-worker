@@ -39,7 +39,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt.DateTime,
+                a.CreatedAt,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy))
             .ToListAsync(cancellationToken);
@@ -98,7 +98,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt.DateTime,
+                a.CreatedAt,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy,
                 a.ResolvedAt,
@@ -150,7 +150,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 mostRecent.Severity.Value,
                 mostRecent.Value,
                 mostRecent.Threshold,
-                mostRecent.CreatedAt.DateTime)
+                mostRecent.CreatedAt)
             : null;
 
         var overallStatus = pendingCount switch
