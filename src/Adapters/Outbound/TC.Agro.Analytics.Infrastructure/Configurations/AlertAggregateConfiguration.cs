@@ -61,8 +61,8 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
         builder.HasOne(a => a.Sensor)
             .WithMany(s => s.Alerts)
             .HasForeignKey(a => a.SensorId)
-            .IsRequired() // ✅ FK obrigatória
-            .OnDelete(DeleteBehavior.Restrict) // ✅ Não permite deletar sensor com alertas
+            .IsRequired() // ✅ Required FK
+            .OnDelete(DeleteBehavior.Restrict) // ✅ Does not allow deleting a sensor that has alerts
             .HasConstraintName("fk_alerts_sensor_snapshots_sensor_id");
     }
 }
