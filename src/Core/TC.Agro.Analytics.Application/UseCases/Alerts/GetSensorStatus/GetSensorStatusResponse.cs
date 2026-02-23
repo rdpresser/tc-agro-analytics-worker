@@ -1,11 +1,10 @@
-namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPlotStatus;
+namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 
 /// <summary>
-/// Alert information included in plot status.
+/// Alert information included in sensor status.
 /// </summary>
-public sealed record PlotStatusAlertResponse(
+public sealed record SensorStatusAlertResponse(
     Guid Id,
-    Guid SensorReadingId,
     Guid SensorId,
     string AlertType,
     string Message,
@@ -16,14 +15,14 @@ public sealed record PlotStatusAlertResponse(
     DateTimeOffset CreatedAt);
 
 /// <summary>
-/// Plot status summary response with aggregated alert information.
+/// Sensor status summary response with aggregated alert information.
 /// </summary>
-public sealed record GetPlotStatusResponse(
-    Guid PlotId,
+public sealed record GetSensorStatusResponse(
+    Guid SensorId,
     int PendingAlertsCount,
     int TotalAlertsLast24Hours,
     int TotalAlertsLast7Days,
-    PlotStatusAlertResponse? MostRecentAlert,
+    SensorStatusAlertResponse? MostRecentAlert,
     Dictionary<string, int> AlertsByType,
     Dictionary<string, int> AlertsBySeverity,
     string OverallStatus);

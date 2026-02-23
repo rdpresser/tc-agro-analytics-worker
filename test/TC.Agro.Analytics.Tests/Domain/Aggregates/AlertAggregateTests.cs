@@ -12,6 +12,7 @@ public class AlertAggregateTests
     {
         // Arrange
         var sensorId = Guid.NewGuid();
+        
         var type = AlertType.HighTemperature;
         var severity = AlertSeverity.High;
         var message = "High temperature detected: 38.5°C";
@@ -45,17 +46,6 @@ public class AlertAggregateTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.ValidationErrors.ShouldContain(e => e.Identifier == "SensorId.Required");
-    }
-
-    [Fact]
-    public void Create_WithEmptyPlotId_ShouldReturnValidationError()
-    {
-        // Act
-        var result = AlertAggregate.Create(Guid.NewGuid(), AlertType.HighTemperature, AlertSeverity.High, "Test message", 38.5, 35.0);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ValidationErrors.ShouldContain(e => e.Identifier == "PlotId.Required");
     }
 
     [Theory]

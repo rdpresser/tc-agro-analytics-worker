@@ -1,15 +1,15 @@
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
-/// Endpoint to retrieve alert history for a specific plot.
-/// GET /alerts/history/{plotId}?days=30&alertType=HighTemperature&status=Pending&pageNumber=1&pageSize=100
+/// Endpoint to retrieve alert history for a specific sensor.
+/// GET /alerts/history/{sensorId}?days=30&alertType=HighTemperature&status=Pending&pageNumber=1&pageSize=100
 /// Uses PaginatedResponse from SharedKernel (standard pattern).
 /// </summary>
 public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>
 {
     public override void Configure()
     {
-        Get("/alerts/history/{plotId}");
+        Get("/alerts/history/{sensorId}");
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
@@ -24,9 +24,9 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
 
         Summary(s =>
         {
-            s.Summary = "Get alert history for a plot";
-            s.Description = "Retrieves historical alerts for a specific plot with optional filters and pagination";
-            s.Params["plotId"] = "Plot ID (GUID)";
+            s.Summary = "Get alert history for a sensor";
+            s.Description = "Retrieves historical alerts for a specific sensor with optional filters and pagination";
+            s.Params["sensorId"] = "Sensor ID (GUID)";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
             s.Params["days"] = "Number of days to look back (default: 30)";
@@ -35,7 +35,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
 
             s.ExampleRequest = new GetAlertHistoryQuery
             {
-                PlotId = Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                SensorId = Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
                 Days = 30,
                 AlertType = "HighTemperature",
                 Status = "Pending",
@@ -48,9 +48,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                 {
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
                         "HighTemperature",
                         "High temperature detected: 42.5°C",
                         "Pending",
@@ -65,9 +63,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                         null),
                     new AlertHistoryResponse(
                         Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        Guid.Parse("ae57f8d7-d491-4899-bb39-30124093e683"),
+                        Guid.Parse("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d"),
                         "LowSoilMoisture",
                         "Low soil moisture detected: 12.0% - Irrigation may be needed",
                         "Pending",
@@ -85,11 +81,11 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
                 pageNumber: 1,
                 pageSize: 20);
 
-            s.Responses[200] = "Returned when alerts are found for the plot.";
+            s.Responses[200] = "Returned when alerts are found for the sensor.";
             s.Responses[400] = "Returned when the request is invalid (e.g., invalid GUID format).";
             s.Responses[401] = "Returned when the request is made without a valid user token.";
             s.Responses[403] = "Returned when the caller lacks the required role.";
-            s.Responses[404] = "Returned when no alerts are found for the given plot ID.";
+            s.Responses[404] = "Returned when no alerts are found for the given sensor ID.";
         });
     }
 

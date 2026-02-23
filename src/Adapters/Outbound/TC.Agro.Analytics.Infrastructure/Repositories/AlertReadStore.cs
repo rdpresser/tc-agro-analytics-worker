@@ -33,14 +33,13 @@ public sealed class AlertReadStore : IAlertReadStore
             .Select(a => new PendingAlertResponse(
                 a.Id,
                 a.SensorId,
-                Guid.NewGuid(),  //TOD0: pegar plotId do SensorSnapshot quando implementado
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
                 a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt.DateTime,
+                a.CreatedAt,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy))
             .ToListAsync(cancellationToken);
@@ -60,7 +59,7 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var alertsQuery = _dbContext.Alerts
             .AsNoTracking()
-            ////.Where(a => a.PlotId == query.PlotId) TOD0: filtrar por PlotId quando implementado no SensorSnapshot
+            .Where(a => a.SensorId == query.SensorId)
             .Where(a => a.CreatedAt >= cutoffDate);
 
         if (!string.IsNullOrEmpty(query.AlertType))
@@ -92,16 +91,14 @@ public sealed class AlertReadStore : IAlertReadStore
             .Take(query.PageSize)
             .Select(a => new AlertHistoryResponse(
                 a.Id,
-                a.Id, // AlertAggregate doesn't have SensorReadingId
                 a.SensorId,
-                Guid.NewGuid(),  //TOD0: pegar plotId do SensorSnapshot quando implementado
                 a.Type.Value,
                 a.Message,
                 a.Status.Value,
                 a.Severity.Value,
                 a.Value,
                 a.Threshold,
-                a.CreatedAt.DateTime,
+                a.CreatedAt,
                 a.AcknowledgedAt,
                 a.AcknowledgedBy,
                 a.ResolvedAt,
@@ -116,8 +113,8 @@ public sealed class AlertReadStore : IAlertReadStore
             query.PageSize);
     }
 
-    public async Task<GetPlotStatusResponse> GetPlotStatusAsync(
-        Guid plotId,
+    public async Task<GetSensorStatusResponse> GetSensorStatusAsync(
+        Guid sensorId,
         CancellationToken cancellationToken = default)
     {
         var last7Days = DateTimeOffset.UtcNow.AddDays(-7);
@@ -125,8 +122,7 @@ public sealed class AlertReadStore : IAlertReadStore
 
         var allAlerts = await _dbContext.Alerts
             .AsNoTracking()
-            ////.Where(a => a.PlotId == plotId) TOD0: filtrar por PlotId quando implementado no SensorSnapshot
-            .Where(a => a.CreatedAt >= last7Days)
+            .Where(a => a.SensorId == sensorId && a.CreatedAt >= last7Days)
             .ToListAsync(cancellationToken);
 
         var pendingCount = allAlerts.Count(a => a.Status == AlertStatus.Pending);
@@ -145,9 +141,8 @@ public sealed class AlertReadStore : IAlertReadStore
             .FirstOrDefault();
 
         var mostRecentAlert = mostRecent != null
-            ? new PlotStatusAlertResponse(
+            ? new SensorStatusAlertResponse(
                 mostRecent.Id,
-                mostRecent.Id, // AlertAggregate doesn't have SensorReadingId
                 mostRecent.SensorId,
                 mostRecent.Type.Value,
                 mostRecent.Message,
@@ -155,7 +150,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 mostRecent.Severity.Value,
                 mostRecent.Value,
                 mostRecent.Threshold,
-                mostRecent.CreatedAt.DateTime)
+                mostRecent.CreatedAt)
             : null;
 
         var overallStatus = pendingCount switch
@@ -165,8 +160,8 @@ public sealed class AlertReadStore : IAlertReadStore
             _ => "Critical"
         };
 
-        return new GetPlotStatusResponse(
-            plotId,
+        return new GetSensorStatusResponse(
+            sensorId,
             pendingCount,
             last24HoursCount,
             allAlerts.Count,

@@ -55,5 +55,14 @@ public class AlertAggregateConfiguration : BaseEntityConfiguration<AlertAggregat
 
         builder.HasIndex(e => e.SensorId);
         builder.HasIndex(e => e.Status);
+
+        // Relationship: Alert → Sensor (FK REQUIRED with Restrict)
+        // Per PR feedback: FK must be required, not nullable
+        builder.HasOne(a => a.Sensor)
+            .WithMany(s => s.Alerts)
+            .HasForeignKey(a => a.SensorId)
+            .IsRequired() // ✅ Required FK
+            .OnDelete(DeleteBehavior.Restrict) // ✅ Does not allow deleting a sensor that has alerts
+            .HasConstraintName("fk_alerts_sensor_snapshots_sensor_id");
     }
 }

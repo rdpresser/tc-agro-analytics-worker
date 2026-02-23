@@ -1,5 +1,3 @@
-using TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold;
-
 namespace TC.Agro.Analytics.Infrastructure;
 
 [ExcludeFromCodeCoverage]
@@ -11,6 +9,10 @@ public static class DependencyInjection
         // Register Read Stores (Read side - CQRS)
         services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
         services.AddScoped<IAlertReadStore, AlertReadStore>();
+
+        // Snapshot stores
+        services.AddScoped<IOwnerSnapshotStore, OwnerSnapshotStore>();
+        services.AddScoped<ISensorSnapshotStore, SensorSnapshotStore>();
 
         // -------------------------------
         // EF Core with Wolverine Integration

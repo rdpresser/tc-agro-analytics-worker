@@ -11,6 +11,6 @@ public sealed record AcknowledgeAlertCommand(Guid AlertId)
     [
         CacheTagCatalog.Alerts,
         CacheTagCatalog.AlertHistory,
-        CacheTagCatalog.PlotStatus
+        CacheTagCatalog.SensorStatus
     ];
 }
