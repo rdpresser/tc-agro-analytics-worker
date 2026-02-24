@@ -11,7 +11,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public string? Label { get; private set; }
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
-
+        public string? Status { get; private set; }
         public bool IsActive { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; }
@@ -31,7 +31,8 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             string propertyName,
             bool isActive,
             DateTimeOffset createdAt,
-            DateTimeOffset? updatedAt)
+            DateTimeOffset? updatedAt,
+            string? status = null)
         {
             Id = id;
             OwnerId = ownerId;
@@ -42,6 +43,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             PropertyName = propertyName;
             IsActive = isActive;
             CreatedAt = createdAt;
+            Status = status;
             UpdatedAt = updatedAt;
         }
 
@@ -53,7 +55,9 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             Guid plotId,
             string? label,
             string plotName,
-            string propertyName)
+            string propertyName,
+            string? status = null
+            )
         {
             var now = DateTimeOffset.UtcNow;
 
@@ -67,7 +71,9 @@ namespace TC.Agro.Analytics.Domain.Snapshots
                 propertyName,
                 true,
                 now,
-                null);
+                null,
+                status
+                );
         }
 
         // Factory quando evento já traz createdAt
@@ -79,7 +85,8 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             string? label,
             string plotName,
             string propertyName,
-            DateTimeOffset createdAt)
+            DateTimeOffset createdAt,
+            string? status = null)
         {
             return new SensorSnapshot(
                 id,
@@ -91,7 +98,28 @@ namespace TC.Agro.Analytics.Domain.Snapshots
                 propertyName,
                 true,
                 createdAt,
-                null);
+                null,
+                status);
+        }
+
+        // Atualização quando vier evento SensorUpdated ou PlotUpdated
+        public void Update(
+            Guid ownerId,
+            Guid propertyId,
+            Guid plotId,
+            string sensorName,
+            string plotName,
+            string propertyName,
+            string status)
+        {
+            OwnerId = ownerId;
+            PropertyId = propertyId;
+            PlotId = plotId;
+            Status = status;
+            Label = sensorName;
+            PlotName = plotName;
+            PropertyName = propertyName;
+            UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         // Soft delete - marks sensor as inactive when removed
