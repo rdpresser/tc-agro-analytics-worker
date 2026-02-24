@@ -47,7 +47,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
             UpdatedAt = updatedAt;
         }
 
-        // Factory usada quando chega evento SensorRegistered
+        // Factory used when SensorRegistered event arrives
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -76,7 +76,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
                 );
         }
 
-        // Factory quando evento já traz createdAt
+        // Factory when event already includes createdAt
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -102,7 +102,7 @@ namespace TC.Agro.Analytics.Domain.Snapshots
                 status);
         }
 
-        // Atualização quando vier evento SensorUpdated ou PlotUpdated
+        // Update when SensorUpdated or PlotUpdated event arrives
         public void Update(
             Guid ownerId,
             Guid propertyId,

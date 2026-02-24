@@ -33,21 +33,21 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
         ArgumentNullException.ThrowIfNull(snapshot);
 
         var existingSnapshot = await _dbContext.SensorSnapshots
-            .IgnoreQueryFilters() // ✅ Permite encontrar/atualizar registros inativos
+            .IgnoreQueryFilters() // Allows finding/updating inactive records
             .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
             .ConfigureAwait(false);
 
         if (existingSnapshot == null)
             return;
 
-        // ✅ Atualiza a instância rastreada (evita conflito de tracking)
+        // Updates the tracked instance (avoids tracking conflict)
         _dbContext.Entry(existingSnapshot).CurrentValues.SetValues(snapshot);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var snapshot = await _dbContext.SensorSnapshots
-               .IgnoreQueryFilters() // ✅ Permite encontrar registros inativos para soft-delete
+               .IgnoreQueryFilters() // Allows finding inactive records for soft-delete
                .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                .ConfigureAwait(false);
 

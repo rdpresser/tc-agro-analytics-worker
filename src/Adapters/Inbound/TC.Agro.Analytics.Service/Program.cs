@@ -46,7 +46,7 @@ app.UseStaticFiles();
 app.UseAuthentication()
    .UseAuthorization();
 
-app.MapHub<AlertHub>("/analytics/alertshub");
+app.MapHub<AlertHub>("/dashboard/alertshub");
 
 app.UseCustomFastEndpoints(app.Configuration);
 
