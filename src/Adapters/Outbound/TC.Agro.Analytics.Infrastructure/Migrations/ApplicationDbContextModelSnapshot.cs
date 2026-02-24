@@ -209,6 +209,11 @@ namespace TC.Agro.Analytics.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("property_name");
 
+                    b.Property<string>("Status")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
