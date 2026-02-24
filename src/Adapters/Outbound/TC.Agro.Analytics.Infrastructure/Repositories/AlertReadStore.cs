@@ -170,4 +170,37 @@ public sealed class AlertReadStore : IAlertReadStore
             alertsBySeverity,
             overallStatus);
     }
+
+    public async Task<IReadOnlyList<PendingAlertResponse>> GetPendingAlertsBySensorIdsAsync(
+        IEnumerable<Guid> sensorIds,
+        int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var sensorIdsList = sensorIds.ToList();
+
+        if (!sensorIdsList.Any())
+            return Array.Empty<PendingAlertResponse>();
+
+        var alerts = await _dbContext.Alerts
+            .AsNoTracking()
+            .Where(a => sensorIdsList.Contains(a.SensorId))
+            .Where(a => a.Status == AlertStatus.Pending || a.Status == AlertStatus.Acknowledged)
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(limit)
+            .Select(a => new PendingAlertResponse(
+                a.Id,
+                a.SensorId,
+                a.Type.Value,
+                a.Message,
+                a.Status.Value,
+                a.Severity.Value,
+                a.Value,
+                a.Threshold,
+                a.CreatedAt,
+                a.AcknowledgedAt,
+                a.AcknowledgedBy))
+            .ToListAsync(cancellationToken);
+
+        return alerts;
+    }
 }

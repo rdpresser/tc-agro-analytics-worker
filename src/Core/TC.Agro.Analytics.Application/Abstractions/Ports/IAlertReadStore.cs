@@ -18,6 +18,16 @@ public interface IAlertReadStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get pending alerts for specific sensors (filtered at database level).
+    /// Used by SignalR hub to send recent alerts for a plot without loading all alerts.
+    /// Returns ordered by CreatedAt descending (most recent first).
+    /// </summary>
+    Task<IReadOnlyList<PendingAlertResponse>> GetPendingAlertsBySensorIdsAsync(
+        IEnumerable<Guid> sensorIds,
+        int limit = 20,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get alert history for a specific sensor with optional filters and pagination.
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>

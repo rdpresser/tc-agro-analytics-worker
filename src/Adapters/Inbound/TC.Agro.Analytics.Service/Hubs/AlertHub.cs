@@ -44,21 +44,19 @@ public sealed class AlertHub : Hub<IAlertHubClient>
 
         var sensorIds = sensors.Select(s => s.Id).ToList();
 
-        var activeAlerts = await _alertReadStore.GetPendingAlertsAsync(
-            pageNumber: 1,
-            pageSize: 100,
+        // Get pending alerts filtered by sensorIds at database level (performance optimization)
+        var plotAlerts = await _alertReadStore.GetPendingAlertsBySensorIdsAsync(
+            sensorIds,
+            limit: 20,
             cancellationToken: cancellationToken);
 
-        var plotAlerts = activeAlerts.Data
-            .Where(a => sensorIds.Contains(a.SensorId))
-            .OrderByDescending(a => a.CreatedAt)
-            .Take(20)
-            .ToList();
+        // Create dictionary for O(1) sensor lookup (performance optimization)
+        var sensorLookup = sensors.ToDictionary(s => s.Id);
 
         foreach (var alert in plotAlerts)
         {
-            var sensor = sensors.FirstOrDefault(s => s.Id == alert.SensorId);
-            if (sensor == null)
+            // O(1) lookup instead of O(m) FirstOrDefault
+            if (!sensorLookup.TryGetValue(alert.SensorId, out var sensor))
                 continue;
 
             var notification = new AlertCreatedNotification(

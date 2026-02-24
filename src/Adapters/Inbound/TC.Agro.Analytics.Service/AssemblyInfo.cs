@@ -69,8 +69,6 @@ global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 global using TC.Agro.Analytics.Application.Abstractions.Ports;
 global using Microsoft.AspNetCore.Authorization;
-global using Microsoft.AspNetCore.Connections.Features;
-global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.SignalR;
 global using TC.Agro.Analytics.Domain.Snapshots;
 global using TC.Agro.Analytics.Service.Hubs;

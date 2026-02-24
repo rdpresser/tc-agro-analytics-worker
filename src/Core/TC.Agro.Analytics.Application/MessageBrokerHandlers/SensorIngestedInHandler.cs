@@ -39,9 +39,6 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 minSoilMoisture: _alertThreshold.MinSoilMoisture,
                 minBatteryLevel: _alertThreshold.MinBatteryLevel);
 
-            if (!alertsResult.Value.Any())
-                return;
-
             _alertRepository.AddRange(alertsResult.Value);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

@@ -2,7 +2,7 @@ namespace TC.Agro.Analytics.Service.Services;
 
 internal sealed class AlertHubNotifier : IAlertHubNotifier
 {
-    private static readonly TimeSpan PlotIdCacheDuration = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan SensorSnapshotCacheDuration = TimeSpan.FromMinutes(10);
 
     private readonly IHubContext<AlertHub, IAlertHubClient> _hubContext;
     private readonly ISensorSnapshotStore _snapshotStore;
@@ -163,6 +163,7 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
     /// <summary>
     /// Resolves sensor snapshot from cache or database.
     /// Pattern: Same caching strategy as SensorHubNotifier.
+    /// Cache duration: 10 minutes to reduce database queries.
     /// </summary>
     private async Task<SensorSnapshot?> ResolveSensorAsync(Guid sensorId)
     {
@@ -175,6 +176,6 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
                 var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
                 return snapshot;
             },
-            new FusionCacheEntryOptions { Duration = PlotIdCacheDuration }).ConfigureAwait(false);
+            new FusionCacheEntryOptions { Duration = SensorSnapshotCacheDuration }).ConfigureAwait(false);
     }
 }
