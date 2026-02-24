@@ -34,5 +34,14 @@ namespace TC.Agro.Analytics.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The sensor snapshot, or null if not found</returns>
         Task<SensorSnapshot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all active sensor snapshots for a specific plot.
+        /// Used by AlertHub to resolve sensors when sending real-time notifications.
+        /// </summary>
+        /// <param name="plotId">The plot identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>A read-only list of active sensor snapshots in the plot</returns>
+        Task<IReadOnlyList<SensorSnapshot>> GetByPlotIdAsync(Guid plotId, CancellationToken cancellationToken = default);
     }
 }

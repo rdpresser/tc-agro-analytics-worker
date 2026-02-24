@@ -2,29 +2,31 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert;
 
 /// <summary>
 /// Handler for resolving alerts.
-/// Invalidates cache after successful resolution.
+/// Sends real-time SignalR notifications after successful resolution.
 /// </summary>
 internal sealed class ResolveAlertCommandHandler :
     BaseCommandHandler<ResolveAlertCommand, ResolveAlertResponse, AlertAggregate, IAlertAggregateRepository>
 {
     private readonly IUserContext _userContext;
+    private readonly IAlertHubNotifier _alertHubNotifier;
 
     public ResolveAlertCommandHandler(
        IAlertAggregateRepository repository,
        IUserContext userContext,
        ITransactionalOutbox outbox,
-       ICacheService cacheService,
+       IAlertHubNotifier alertHubNotifier,
        ILogger<ResolveAlertCommandHandler> logger)
        : base(repository, userContext, outbox, logger)
     {
         _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
+        _alertHubNotifier = alertHubNotifier ?? throw new ArgumentNullException(nameof(alertHubNotifier));
     }
 
     protected override async Task<Result<AlertAggregate>> MapAsync(ResolveAlertCommand command, CancellationToken ct)
     {
         var alert = await Repository.GetByIdAsync(command.AlertId, ct).ConfigureAwait(false);
         if (alert == null)
-            return Result<AlertAggregate>.NotFound("Alert not found");        
+            return Result<AlertAggregate>.NotFound("Alert not found");
 
         var resolveResult = alert.Resolve(_userContext.Id, command.ResolutionNotes);
 
@@ -39,8 +41,16 @@ internal sealed class ResolveAlertCommandHandler :
         return Task.CompletedTask;
     }
 
-    protected override Task<ResolveAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)
+    protected override async Task<ResolveAlertResponse> BuildResponseAsync(AlertAggregate aggregate, CancellationToken ct)
     {
-        return Task.FromResult(ResolveAlertMapper.FromAggregate(aggregate));
+        await _alertHubNotifier.NotifyAlertResolvedAsync(
+            alertId: aggregate.Id,
+            sensorId: aggregate.SensorId,
+            resolvedBy: aggregate.ResolvedBy!.Value,
+            resolutionNotes: aggregate.ResolutionNotes,
+            resolvedAt: aggregate.ResolvedAt!.Value
+        ).ConfigureAwait(false);
+
+        return ResolveAlertMapper.FromAggregate(aggregate);
     }
 }
