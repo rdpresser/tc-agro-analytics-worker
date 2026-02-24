@@ -25,6 +25,11 @@ internal static class ServiceCollectionExtensions
             // ENHANCED: Register telemetry metrics
             .AddSingleton<AnalyticsMetrics>()
             .AddSingleton<SystemMetrics>();
+
+        services.AddSignalR();
+
+        services.AddScoped<IAlertHubNotifier, Services.AlertHubNotifier>();
+
         return services;
     }
 

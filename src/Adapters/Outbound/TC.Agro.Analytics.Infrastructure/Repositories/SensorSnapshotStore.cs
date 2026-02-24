@@ -57,4 +57,13 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
         snapshot.Delete();
         _dbContext.SensorSnapshots.Update(snapshot);
     }
+
+    public async Task<IReadOnlyList<SensorSnapshot>> GetByPlotIdAsync(Guid plotId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.SensorSnapshots
+            .AsNoTracking()
+            .Where(s => s.PlotId == plotId && s.IsActive)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
 }

@@ -41,9 +41,13 @@ app.UseCustomMiddlewares();
 // CRITICAL: TelemetryMiddleware MUST come AFTER CorrelationMiddleware to access correlationIdGenerator.CorrelationId
 app.UseMiddleware<TC.Agro.Analytics.Service.Middleware.TelemetryMiddleware>();
 
-// 6. FastEndpoints with Swagger (handles routing + OpenAPI generation)
+app.UseStaticFiles();
+
 app.UseAuthentication()
-   .UseAuthorization()
-   .UseCustomFastEndpoints(app.Configuration);
+   .UseAuthorization();
+
+app.MapHub<AlertHub>("/analytics/alertshub");
+
+app.UseCustomFastEndpoints(app.Configuration);
 
 await app.RunAsync();
