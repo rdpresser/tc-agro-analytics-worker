@@ -4,7 +4,7 @@ namespace TC.Agro.Analytics.Service.Services;
 
 internal sealed class AlertHubNotifier : IAlertHubNotifier
 {
-    private static readonly TimeSpan SensorSnapshotCacheDuration = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan _sensorSnapshotCacheDuration = TimeSpan.FromMinutes(10);
 
     private readonly IHubContext<AlertHub, IAlertHubClient> _hubContext;
     private readonly ISensorSnapshotStore _snapshotStore;
@@ -178,6 +178,6 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
                 var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
                 return snapshot;
             },
-            duration: SensorSnapshotCacheDuration).ConfigureAwait(false);
+            duration: _sensorSnapshotCacheDuration).ConfigureAwait(false);
     }
 }

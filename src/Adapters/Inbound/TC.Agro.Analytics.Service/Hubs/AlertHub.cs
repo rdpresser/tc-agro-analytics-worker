@@ -36,7 +36,6 @@ public sealed class AlertHub : Hub<IAlertHubClient>
     private async Task SendRecentAlertsForPlotAsync(Guid plotId, CancellationToken cancellationToken)
     {
         var sensors = await _snapshotStore.GetByPlotIdAsync(plotId, cancellationToken);
-
         if (!sensors.Any())
         {
             return;
