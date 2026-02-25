@@ -1,21 +1,23 @@
-# 🧪 **GUIA COMPLETO - TESTES E2E COM RABBITMQ + POSTGRESQL**
+# 🧪 **COMPREHENSIVE GUIDE - E2E TESTING WITH RABBITMQ + POSTGRESQL**
 
-**Objetivo:** Testar fluxo completo desde consumo de mensagem RabbitMQ até persistência no PostgreSQL.
-
----
-
-## 📋 **PRÉ-REQUISITOS**
-
-- ✅ Docker Desktop instalado e rodando
-- ✅ .NET 10 SDK instalado
-- ✅ Visual Studio Code ou Rider
-- ✅ Git Bash ou PowerShell
+**Objective:** Test complete flow from RabbitMQ message consumption to PostgreSQL persistence, including real-time SignalR notifications.
 
 ---
 
-## 🐳 **PASSO 1: CONFIGURAR DOCKER COMPOSE**
+## 📋 **PREREQUISITES**
 
-### **1.1 Criar docker-compose.yml na raiz do projeto:**
+- ✅ Docker Desktop installed and running
+- ✅ .NET 10 SDK installed
+- ✅ Visual Studio 2022/2026, VS Code, or JetBrains Rider
+- ✅ PowerShell 7+ or Git Bash
+- ✅ Python 3.8+ (for test scripts)
+- ✅ `jq` command-line JSON processor (optional, for pretty output)
+
+---
+
+## 🐳 **STEP 1: CONFIGURE DOCKER COMPOSE**
+
+### **1.1 Create docker-compose.yml in project root:**
 
 ```yaml
 version: '3.8'
@@ -70,11 +72,11 @@ networks:
     driver: bridge
 ```
 
-### **1.2 Criar init-db.sql na raiz do projeto:**
+### **1.2 Create init-db.sql in project root:**
 
 ```sql
--- Script de inicialização do banco de dados
--- Cria o schema analytics se não existir
+-- Database initialization script
+-- Creates analytics schema if it doesn't exist
 
 CREATE SCHEMA IF NOT EXISTS analytics;
 
@@ -97,26 +99,26 @@ ALTER SYSTEM SET work_mem = '4MB';
 ALTER SYSTEM SET min_wal_size = '1GB';
 ALTER SYSTEM SET max_wal_size = '4GB';
 
--- Log para debug
+-- Log for debugging
 \echo 'Database tc-agro-analytics-db initialized successfully!'
 ```
 
-### **1.3 Iniciar containers:**
+### **1.3 Start containers:**
 
 ```bash
-# Na raiz do projeto (onde está docker-compose.yml)
+# From project root (where docker-compose.yml is located)
 docker-compose up -d
 
-# Verificar se os containers estão rodando
+# Check if containers are running
 docker-compose ps
 
-# Saída esperada:
+# Expected output:
 # NAME                  STATUS         PORTS
 # tc-agro-postgres      Up (healthy)   0.0.0.0:5432->5432/tcp
 # tc-agro-rabbitmq      Up (healthy)   0.0.0.0:5672->5672/tcp, 0.0.0.0:15672->15672/tcp
 ```
 
-### **1.4 Verificar logs:**
+### **1.4 Check logs:**
 
 ```bash
 # PostgreSQL
@@ -125,78 +127,108 @@ docker-compose logs postgres
 # RabbitMQ
 docker-compose logs rabbitmq
 
-# Ambos em tempo real
+# Both in real-time
 docker-compose logs -f
 ```
 
 ---
 
-## 🗄️ **PASSO 2: CONFIGURAR BANCO DE DADOS**
+## 🗄️ **STEP 2: CONFIGURE DATABASE**
 
-### **2.1 Aplicar Migrations:**
+### **2.1 Apply Migrations:**
 
 ```bash
-# Restaurar dependências
+# Restore dependencies
 dotnet restore
 
-# Aplicar migrations
+# Apply EF Core migrations
 dotnet ef database update \
   --project src/Adapters/Outbound/TC.Agro.Analytics.Infrastructure \
   --startup-project src/Adapters/Inbound/TC.Agro.Analytics.Service
 
-# Saída esperada:
+# Expected output:
 # Build succeeded.
-# Applying migration '20260201211711_AddAlertsReadModel'...
+# Applying migration '20260201_InitialCreate'...
+# Applying migration '20260201_AddSensorSnapshots'...
+# Applying migration '20260201_AddOwnerSnapshots'...
 # Done.
 ```
 
-### **2.2 Verificar tabelas criadas:**
+### **2.2 Verify created tables:**
 
 ```bash
-# Conectar no PostgreSQL via docker
+# Connect to PostgreSQL via docker
 docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db
 
-# No psql, executar:
-\dn  # Listar schemas
-\dt analytics.*  # Listar tabelas do schema analytics
+# In psql, execute:
+\dn  # List schemas
+\dt analytics.*  # List tables in analytics schema
 
-# Saída esperada:
-# Schema   | Name         | Type  | Owner
-# ---------+--------------+-------+--------
-# analytics| alerts       | table | postgres
-# analytics| mt_events    | table | postgres (Marten)
-# analytics| mt_streams   | table | postgres (Marten)
-# analytics| mt_doc_outbox| table | postgres (Marten)
+# Expected output:
+# Schema   | Name               | Type  | Owner
+# ---------+--------------------+-------+--------
+# analytics| alerts             | table | postgres
+# analytics| sensor_snapshots   | table | postgres
+# analytics| owner_snapshots    | table | postgres
+# analytics| __EFMigrationsHistory | table | postgres
 
-# Verificar índices
+# Check indexes
 \di analytics.*
 
-# Saída esperada: 8+ índices na tabela alerts
+# Expected output: Multiple indexes on alerts and snapshot tables
 
-# Sair do psql
+# Exit psql
 \q
 ```
 
-### **2.3 Inserir dados de teste (opcional):**
+### **2.3 Insert test data (optional):**
 
 ```bash
-# Copiar arquivo SQL para dentro do container
+# Create test data SQL file
+cat > test-data-e2e.sql << 'EOF'
+-- Insert test sensor snapshot
+INSERT INTO analytics.sensor_snapshots 
+  (id, owner_id, property_id, plot_id, label, plot_name, property_name, is_active, created_at)
+VALUES 
+  ('550e8400-e29b-41d4-a716-446655440001', 
+   '650e8400-e29b-41d4-a716-446655440001',
+   '750e8400-e29b-41d4-a716-446655440001',
+   '850e8400-e29b-41d4-a716-446655440001',
+   'Sensor Test 001',
+   'Plot A',
+   'Farm XYZ',
+   true,
+   NOW());
+
+-- Insert test owner snapshot
+INSERT INTO analytics.owner_snapshots
+  (id, first_name, last_name, email, is_active, created_at)
+VALUES
+  ('650e8400-e29b-41d4-a716-446655440001',
+   'John',
+   'Doe',
+   'john.doe@example.com',
+   true,
+   NOW());
+EOF
+
+# Copy SQL file into container
 docker cp test-data-e2e.sql tc-agro-postgres:/tmp/
 
-# Executar script
+# Execute script
 docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db -f /tmp/test-data-e2e.sql
 
-# Verificar dados
-docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db -c "SELECT COUNT(*) FROM analytics.alerts;"
+# Verify data
+docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db -c "SELECT COUNT(*) FROM analytics.sensor_snapshots;"
 
-# Saída esperada: 10 (ou 0 se não executou o script)
+# Expected output: 1
 ```
 
 ---
 
-## 🐰 **PASSO 3: CONFIGURAR RABBITMQ**
+## 🐰 **STEP 3: CONFIGURE RABBITMQ**
 
-### **3.1 Acessar Management UI:**
+### **3.1 Access Management UI:**
 
 ```
 URL: http://localhost:15672
@@ -204,67 +236,747 @@ User: guest
 Password: guest
 ```
 
-### **3.2 Criar Exchange e Queues manualmente:**
+### **3.2 Create Exchanges and Queues manually:**
 
-**Opção A: Via Management UI:**
+**Option A: Via Management UI:**
 
 1. **Exchanges Tab** → **Add a new exchange**
-   - Name: `analytics.sensor.ingested`
-   - Type: `topic`
-   - Durability: `Durable`
-   - Click **Add exchange**
+
+   Create these exchanges:
+   - Name: `farm-events`, Type: `topic`, Durability: `Durable`
+   - Name: `sensor-readings`, Type: `topic`, Durability: `Durable`
+   - Name: `analytics-events`, Type: `topic`, Durability: `Durable`
 
 2. **Queues Tab** → **Add a new queue**
-   - Name: `analytics.sensor.ingested.queue`
-   - Durability: `Durable`
-   - Click **Add queue**
 
-3. **Bindings** → **Add binding from this queue**
-   - From exchange: `analytics.sensor.ingested`
-   - Routing key: `#` (aceita tudo)
-   - Click **Bind**
+   Create these queues:
+   - Name: `analytics.sensor.reading.queue`, Durability: `Durable`
+   - Name: `analytics.sensor.snapshot.queue`, Durability: `Durable`
+   - Name: `analytics.owner.snapshot.queue`, Durability: `Durable`
 
-**Opção B: Via CLI (dentro do container):**
+3. **Bindings** (for each queue, click on queue name → Bindings section)
+
+   Add bindings:
+   - Queue: `analytics.sensor.reading.queue`
+     - From exchange: `sensor-readings`
+     - Routing key: `#`
+   - Queue: `analytics.sensor.snapshot.queue`
+     - From exchange: `farm-events`
+     - Routing key: `sensor.#`
+   - Queue: `analytics.owner.snapshot.queue`
+     - From exchange: `farm-events`
+     - Routing key: `owner.#`
+
+**Option B: Via Python Script (Automated):**
 
 ```bash
-# Entrar no container RabbitMQ
-docker exec -it tc-agro-rabbitmq bash
+# Install pika library
+pip install pika
 
-# Criar exchange
-rabbitmqadmin declare exchange \
-  name=analytics.sensor.ingested \
-  type=topic \
-  durable=true
+# Create setup script
+cat > scripts/setup-rabbitmq.py << 'EOF'
+import pika
 
-# Criar queue
-rabbitmqadmin declare queue \
-  name=analytics.sensor.ingested.queue \
-  durable=true
+# Connect to RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
 
-# Criar binding
-rabbitmqadmin declare binding \
-  source=analytics.sensor.ingested \
-  destination=analytics.sensor.ingested.queue \
-  routing_key="#"
+# Declare exchanges
+exchanges = [
+    'farm-events',
+    'sensor-readings',
+    'analytics-events'
+]
 
-# Verificar
-rabbitmqadmin list exchanges
-rabbitmqadmin list queues
-rabbitmqadmin list bindings
+for exchange in exchanges:
+    channel.exchange_declare(
+        exchange=exchange,
+        exchange_type='topic',
+        durable=True
+    )
+    print(f"✅ Exchange created: {exchange}")
 
-# Sair do container
-exit
+# Declare queues
+queues = [
+    'analytics.sensor.reading.queue',
+    'analytics.sensor.snapshot.queue',
+    'analytics.owner.snapshot.queue'
+]
+
+for queue in queues:
+    channel.queue_declare(queue=queue, durable=True)
+    print(f"✅ Queue created: {queue}")
+
+# Create bindings
+bindings = [
+    ('sensor-readings', 'analytics.sensor.reading.queue', '#'),
+    ('farm-events', 'analytics.sensor.snapshot.queue', 'sensor.#'),
+    ('farm-events', 'analytics.owner.snapshot.queue', 'owner.#')
+]
+
+for exchange, queue, routing_key in bindings:
+    channel.queue_bind(
+        exchange=exchange,
+        queue=queue,
+        routing_key=routing_key
+    )
+    print(f"✅ Binding created: {exchange} → {queue} ({routing_key})")
+
+connection.close()
+print("\n✅ RabbitMQ configuration completed!")
+EOF
+
+# Run setup script
+python scripts/setup-rabbitmq.py
 ```
 
-### **3.3 Verificar configuração:**
+### **3.3 Verify Configuration:**
 
-No Management UI:
-- **Exchanges** → Deve ter `analytics.sensor.ingested`
-- **Queues** → Deve ter `analytics.sensor.ingested.queue` com binding
+```bash
+# List exchanges
+docker exec tc-agro-rabbitmq rabbitmqctl list_exchanges
 
----
+# Expected output:
+# farm-events       topic
+# sensor-readings   topic
+# analytics-events  topic
 
-## ⚙️ **PASSO 4: CONFIGURAR APLICAÇÃO**
+# List queues
+docker exec tc-agro-rabbitmq rabbitmqctl list_queues
+
+# Expected output:
+# analytics.sensor.reading.queue    0
+# analytics.sensor.snapshot.queue   0
+# analytics.owner.snapshot.queue    0
+
+# List bindings
+docker exec tc-agro-rabbitmq rabbitmqctl list_bindings
+
+# Should show bindings between exchanges and queues
+```
+   ---
+
+   ## ⚙️ **STEP 4: CONFIGURE APPLICATION**
+
+   ### **4.1 Update appsettings.Development.json:**
+
+   ```json
+   {
+     "Serilog": {
+       "MinimumLevel": {
+         "Default": "Information",
+         "Override": {
+           "Microsoft": "Warning",
+           "System": "Warning",
+           "Wolverine": "Information"
+         }
+       }
+     },
+     "Database": {
+       "Postgres": {
+         "Host": "localhost",
+         "Port": 5432,
+         "Database": "tc-agro-analytics-db",
+         "UserName": "postgres",
+         "Password": "postgres",
+         "Schema": "analytics",
+         "SslMode": "Prefer"
+       }
+     },
+     "Messaging": {
+       "RabbitMQ": {
+         "Host": "localhost",
+         "Port": 5672,
+         "UserName": "guest",
+         "Password": "guest",
+         "VirtualHost": "/"
+       }
+     },
+     "AlertThresholds": {
+       "MaxTemperature": 35.0,
+       "MinSoilMoisture": 20.0,
+       "MinBatteryLevel": 15.0
+     },
+     "SignalR": {
+       "Enabled": true,
+       "HubPath": "/dashboard/alertshub"
+     }
+   }
+   ```
+
+   ### **4.2 Verify Program.cs Configuration:**
+
+   Ensure the following components are configured:
+
+   ```csharp
+   // Wolverine with RabbitMQ
+   builder.Host.UseWolverine(opts =>
+   {
+       var rabbitConfig = builder.Configuration.GetSection("Messaging:RabbitMQ");
+
+       opts.UseRabbitMq(rabbit =>
+       {
+           rabbit.HostName = rabbitConfig["Host"];
+           rabbit.Port = int.Parse(rabbitConfig["Port"]);
+           rabbit.UserName = rabbitConfig["UserName"];
+           rabbit.Password = rabbitConfig["Password"];
+           rabbit.VirtualHost = rabbitConfig["VirtualHost"];
+       })
+       .AutoProvision()
+       .UseConventionalRouting();
+
+       // Listen to queues
+       opts.ListenToRabbitQueue("analytics.sensor.reading.queue");
+       opts.ListenToRabbitQueue("analytics.sensor.snapshot.queue");
+       opts.ListenToRabbitQueue("analytics.owner.snapshot.queue");
+   });
+
+   // SignalR
+   builder.Services.AddSignalR();
+   app.MapHub<AlertHub>("/dashboard/alertshub");
+
+   // FastEndpoints
+   builder.Services.AddFastEndpoints();
+   app.UseFastEndpoints();
+
+   // EF Core
+   builder.Services.AddDbContext<AnalyticsDbContext>();
+   ```
+
+   **⚠️ IMPORTANT:** All these configurations should already be in place. This is just for verification.
+
+   ---
+
+   ## 🚀 **STEP 5: RUN APPLICATION**
+
+   ### **5.1 Build Project:**
+
+   ```bash
+   # Clean and build
+   dotnet clean
+   dotnet build
+
+   # Expected output:
+   # Build succeeded. 0 Warning(s). 0 Error(s).
+   ```
+
+   ### **5.2 Run Application:**
+
+   ```bash
+   # From project root
+   dotnet run --project src/Adapters/Inbound/TC.Agro.Analytics.Service
+
+   # Expected output:
+   info: Wolverine.Runtime.WolverineRuntime[0]
+         Wolverine messaging service is starting
+   info: Wolverine.RabbitMQ.RabbitMqTransport[0]
+         Connected to RabbitMQ at localhost:5672
+   info: Wolverine.Runtime.WolverineRuntime[0]
+         Listening to queues:
+           - analytics.sensor.reading.queue
+           - analytics.sensor.snapshot.queue
+           - analytics.owner.snapshot.queue
+   info: Microsoft.Hosting.Lifetime[0]
+         Application started. Press Ctrl+C to shut down.
+   info: Microsoft.Hosting.Lifetime[0]
+         Hosting environment: Development
+   info: Microsoft.Hosting.Lifetime[0]
+         Now listening on: http://localhost:5174
+   ```
+
+   ### **5.3 Verify Health Check:**
+
+   ```bash
+   # In another terminal
+   curl http://localhost:5174/health
+
+   # Expected output:
+   {
+     "status": "Healthy",
+     "timestamp": "2025-02-01T10:00:00Z",
+     "service": "Analytics Worker Service",
+     "checks": {
+       "database": "Healthy",
+       "rabbitmq": "Healthy"
+     }
+   }
+   ```
+
+   ### **5.4 Verify SignalR Hub:**
+
+   ```bash
+   # Open in browser
+   http://localhost:5174/signalr-test.html
+
+   # Click "Connect" button
+   # Should see: "Connected to SignalR hub"
+   ```
+
+   ---
+
+   ## 📨 **STEP 6: PUBLISH TEST MESSAGE**
+
+   ### **6.1 Via Python Script (Recommended):**
+
+   ```bash
+   # Install dependencies (first time only)
+   pip install pika
+
+   # Publish high temperature message
+   python scripts/publish_test_message.py --scenario high-temp
+
+   # Expected output:
+   ✅ Connected to RabbitMQ at localhost:5672
+   ✅ Message published to queue: analytics.sensor.reading.queue
+   📊 Scenario: high-temp
+      Sensor ID: 550e8400-e29b-41d4-a716-446655440001
+      Temperature: 42.5°C (threshold: 35.0°C)
+      Expected: HighTemperature alert (Critical severity)
+   ```
+
+   **Test Payload (high-temp scenario):**
+
+   ```json
+   {
+     "eventId": "12345678-1234-1234-1234-123456789012",
+     "aggregateId": "87654321-4321-4321-4321-210987654321",
+     "occurredOn": "2025-02-01T10:00:00Z",
+     "eventName": "SensorReadingIntegrationEvent",
+     "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+     "ownerId": "650e8400-e29b-41d4-a716-446655440001",
+     "plotId": "750e8400-e29b-41d4-a716-446655440001",
+     "timestamp": "2025-02-01T09:55:00Z",
+     "temperature": 42.5,
+     "humidity": 65.0,
+     "soilMoisture": 45.0,
+     "rainfall": 2.5,
+     "batteryLevel": 85.0
+   }
+   ```
+
+   **📌 IMPORTANT:** 
+   - `Temperature: 42.5°C` is **ABOVE** threshold (35°C) → Will generate alert!
+   - `SoilMoisture: 45.0%` is **OK** (above 20%) → No alert
+   - `BatteryLevel: 85.0%` is **OK** (above 15%) → No alert
+
+   ### **6.2 Via RabbitMQ Management UI:**
+
+   1. Access **Queues** → `analytics.sensor.reading.queue`
+   2. Scroll to **Publish message** section
+   3. **Payload:** Paste JSON from above
+   4. **Properties:** 
+      - delivery_mode: `2` (persistent)
+      - content_type: `application/json`
+   5. Click **Publish message**
+
+   ### **6.3 Via curl (Alternative):**
+
+   ```bash
+   curl -u guest:guest -X POST \
+     'http://localhost:15672/api/exchanges/%2F/sensor-readings/publish' \
+     -H 'Content-Type: application/json' \
+     -d '{
+       "properties": {
+         "delivery_mode": 2,
+         "content_type": "application/json"
+       },
+       "routing_key": "sensor.reading",
+       "payload": "{\"eventId\":\"12345678-1234-1234-1234-123456789012\",\"aggregateId\":\"87654321-4321-4321-4321-210987654321\",\"occurredOn\":\"2025-02-01T10:00:00Z\",\"eventName\":\"SensorReadingIntegrationEvent\",\"sensorId\":\"550e8400-e29b-41d4-a716-446655440001\",\"ownerId\":\"650e8400-e29b-41d4-a716-446655440001\",\"plotId\":\"750e8400-e29b-41d4-a716-446655440001\",\"timestamp\":\"2025-02-01T09:55:00Z\",\"temperature\":42.5,\"humidity\":65.0,\"soilMoisture\":45.0,\"rainfall\":2.5,\"batteryLevel\":85.0}",
+       "payload_encoding": "string"
+     }'
+   ```
+
+   ---
+
+   ## ✅ **STEP 7: VERIFY PROCESSING**
+
+   ### **7.1 Check Application Logs:**
+
+   In the terminal where the application is running, you should see:
+
+   ```
+   info: TC.Agro.Analytics.Application.MessageBrokerHandlers.SensorIngestedInHandler[0]
+         Processing SensorReadingIntegrationEvent for Sensor 550e8400-e29b-41d4-a716-446655440001
+
+   info: TC.Agro.Analytics.Application.MessageBrokerHandlers.SensorIngestedInHandler[0]
+         Alert created: Type=HighTemperature, Severity=Critical, 
+         Value=42.5°C, Threshold=35.0°C
+
+   info: TC.Agro.Analytics.Service.Services.AlertHubNotifier[0]
+         Real-time notification sent via SignalR to subscribed clients
+
+   info: TC.Agro.Analytics.Application.MessageBrokerHandlers.SensorIngestedInHandler[0]
+         Sensor reading processed successfully for Sensor 550e8400-e29b-41d4-a716-446655440001
+   ```
+
+   ### **7.2 Check RabbitMQ Management UI:**
+
+   1. Access **Queues** → `analytics.sensor.reading.queue`
+   2. **Ready** messages → Should be **0** (message consumed)
+   3. **Total** messages → Should show +1 in **Ack** (acknowledged)
+   4. **Message rates** → Should show spike in "Deliver / get" and "Ack"
+
+   ### **7.3 Check Database - Alerts Table:**
+
+   ```bash
+   docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db
+
+   # In psql:
+   SELECT 
+     id,
+     sensor_id,
+     type,
+     severity,
+     status,
+     message,
+     value,
+     threshold,
+     created_at
+   FROM analytics.alerts
+   ORDER BY created_at DESC
+   LIMIT 5;
+
+   # Expected output:
+   # id   | sensor_id    | type             | severity | status  | message                        | value | threshold | created_at
+   # -----+--------------+------------------+----------+---------+--------------------------------+-------+-----------+-------------------
+   # ...  | 550e8400-... | HighTemperature  | Critical | Pending | High temperature detected: ... | 42.5  | 35.0      | 2025-02-01 10:00
+
+   \q
+   ```
+
+   ### **7.4 Check Database - Sensor Snapshots:**
+
+   ```bash
+   docker exec -it tc-agro-postgres psql -U postgres -d tc-agro-analytics-db
+
+   # In psql:
+   SELECT 
+     id,
+     label,
+     plot_name,
+     property_name,
+     status,
+     is_active,
+     created_at
+   FROM analytics.sensor_snapshots
+   ORDER BY created_at DESC
+   LIMIT 5;
+
+   # Should show sensor snapshot if SensorRegisteredIntegrationEvent was processed
+
+   \q
+   ```
+
+   ### **7.5 Check SignalR Notifications:**
+
+   ```
+   # In browser with signalr-test.html open:
+   # Should see real-time alert appearing in the "Received Alerts" section:
+
+   Alert Received:
+     ID: ...
+     Type: HighTemperature
+     Severity: Critical
+     Sensor: 550e8400-e29b-41d4-a716-446655440001
+     Message: High temperature detected: 42.5°C (threshold: 35.0°C)
+     Value: 42.5
+     Timestamp: 2025-02-01T10:00:00Z
+   ```
+
+   ---
+
+   ## 🌐 **STEP 8: TEST REST API**
+
+   ### **8.1 Test GET /health:**
+
+   ```bash
+   curl http://localhost:5174/health | jq
+   ```
+
+   ### **8.2 Test GET /api/alerts/pending:**
+
+   ```bash
+   curl http://localhost:5174/api/alerts/pending | jq
+
+   # Expected output:
+   {
+     "alerts": [
+       {
+         "id": "...",
+         "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+         "sensorLabel": "Sensor 001",
+         "plotName": "Plot A",
+         "propertyName": "Farm XYZ",
+         "ownerName": "John Doe",
+         "type": "HighTemperature",
+         "severity": "Critical",
+         "status": "Pending",
+         "message": "High temperature detected: 42.5°C (threshold: 35.0°C)",
+         "value": 42.5,
+         "threshold": 35.0,
+         "createdAt": "2025-02-01T10:00:00Z",
+         "acknowledgedAt": null,
+         "resolvedAt": null
+       }
+     ],
+     "totalCount": 1,
+     "pageNumber": 1,
+     "pageSize": 10
+   }
+   ```
+
+   ### **8.3 Test GET /api/alerts/history/{sensorId}:**
+
+   ```bash
+   curl "http://localhost:5174/api/alerts/history/550e8400-e29b-41d4-a716-446655440001?days=30" | jq
+
+   # Expected output: List of alerts for that sensor
+   ```
+
+   ### **8.4 Test GET /api/alerts/status/{sensorId}:**
+
+   ```bash
+   curl "http://localhost:5174/api/alerts/status/550e8400-e29b-41d4-a716-446655440001" | jq
+
+   # Expected output:
+   {
+     "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+     "sensorLabel": "Sensor 001",
+     "plotName": "Plot A",
+     "propertyName": "Farm XYZ",
+     "ownerName": "John Doe",
+     "status": "Active",
+     "overallHealthStatus": "Critical",
+     "pendingAlertCount": 1,
+     "criticalAlertCount": 1,
+     "last24HoursAlertCount": 1,
+     "last7DaysAlertCount": 1,
+     "alertsByType": {
+       "HighTemperature": 1
+     },
+     "alertsBySeverity": {
+       "Critical": 1
+     },
+     "lastAlertDate": "2025-02-01T10:00:00Z"
+   }
+   ```
+
+   ### **8.5 Test POST /api/alerts/{id}/acknowledge:**
+
+   ```bash
+   # Get alert ID from pending alerts
+   ALERT_ID=$(curl -s http://localhost:5174/api/alerts/pending | jq -r '.alerts[0].id')
+
+   # Acknowledge alert
+   curl -X POST "http://localhost:5174/api/alerts/$ALERT_ID/acknowledge" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "userId": "650e8400-e29b-41d4-a716-446655440001"
+     }' | jq
+
+   # Expected output:
+   {
+     "success": true,
+     "alertId": "...",
+     "newStatus": "Acknowledged",
+     "acknowledgedAt": "2025-02-01T10:05:00Z",
+     "acknowledgedBy": "650e8400-e29b-41d4-a716-446655440001"
+   }
+   ```
+
+   ### **8.6 Test POST /api/alerts/{id}/resolve:**
+
+   ```bash
+   # Resolve alert
+   curl -X POST "http://localhost:5174/api/alerts/$ALERT_ID/resolve" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "userId": "650e8400-e29b-41d4-a716-446655440001",
+       "resolutionNotes": "Temperature normalized after irrigation"
+     }' | jq
+
+   # Expected output:
+   {
+     "success": true,
+     "alertId": "...",
+     "newStatus": "Resolved",
+     "resolvedAt": "2025-02-01T10:10:00Z",
+     "resolvedBy": "650e8400-e29b-41d4-a716-446655440001",
+     "resolutionNotes": "Temperature normalized after irrigation"
+   }
+   ```
+
+   ---
+
+   ## 🧪 **STEP 9: TEST ADDITIONAL SCENARIOS**
+
+   ### **Scenario 1: Low Soil Moisture Alert**
+
+   ```bash
+   python scripts/publish_test_message.py --scenario low-soil
+   ```
+
+   **Expected Result:**
+   - ✅ `LowSoilMoisture` alert created (soil moisture < 20%)
+   - ✅ Severity: High or Critical (depending on value)
+   - ✅ SignalR notification sent
+   - ✅ API returns new alert
+
+   ### **Scenario 2: Battery Low Warning**
+
+   ```bash
+   python scripts/publish_test_message.py --scenario low-battery
+   ```
+
+   **Expected Result:**
+   - ✅ `LowBattery` alert created (battery level < 15%)
+   - ✅ Severity: Medium or High
+   - ✅ SignalR notification sent
+   - ✅ API returns new alert
+
+   ### **Scenario 3: Multiple Simultaneous Alerts**
+
+   ```bash
+   python scripts/publish_test_message.py --scenario multiple
+   ```
+
+   **Expected Result:**
+   - ✅ 3 alerts created simultaneously:
+     - HighTemperature
+     - LowSoilMoisture
+     - LowBattery
+   - ✅ All alerts have Critical/High severity
+   - ✅ SignalR sends 3 notifications
+   - ✅ API returns all 3 alerts
+
+   ### **Scenario 4: Normal Values (No Alerts)**
+
+   ```bash
+   python scripts/publish_test_message.py --scenario normal
+   ```
+
+   **Expected Result:**
+   - ✅ Message processed successfully
+   - ❌ NO alerts created (all values within thresholds)
+   - ❌ NO SignalR notifications
+   - ✅ Logs show: "No alerts detected"
+
+   ### **Scenario 5: Duplicate Message (Idempotency)**
+
+   ```bash
+   # Publish same message twice
+   python scripts/publish_test_message.py --scenario high-temp
+   python scripts/publish_test_message.py --scenario high-temp
+   ```
+
+   **Expected Result:**
+   - ✅ First message: Alert created
+   - ⚠️ Second message: Duplicate detected (same sensorId + timestamp)
+   - ❌ NO duplicate alert created
+   - ✅ Logs show: "Duplicate sensor reading detected, skipping alert creation"
+
+   ---
+
+   ## 🔄 **STEP 10: TEST ALERT LIFECYCLE**
+
+   ### **Complete Lifecycle Test:**
+
+   ```bash
+   # 1. Create alert (high temperature)
+   python scripts/publish_test_message.py --scenario high-temp
+
+   # 2. Get alert ID
+   ALERT_ID=$(curl -s http://localhost:5174/api/alerts/pending | jq -r '.alerts[0].id')
+   echo "Alert ID: $ALERT_ID"
+
+   # 3. Check status (should be Pending)
+   curl "http://localhost:5174/api/alerts/history/550e8400-e29b-41d4-a716-446655440001" | jq '.alerts[] | select(.id=="'$ALERT_ID'") | .status'
+   # Output: "Pending"
+
+   # 4. Acknowledge alert
+   curl -X POST "http://localhost:5174/api/alerts/$ALERT_ID/acknowledge" \
+     -H "Content-Type: application/json" \
+     -d '{"userId": "650e8400-e29b-41d4-a716-446655440001"}' | jq
+
+   # 5. Check status (should be Acknowledged)
+   curl "http://localhost:5174/api/alerts/history/550e8400-e29b-41d4-a716-446655440001" | jq '.alerts[] | select(.id=="'$ALERT_ID'") | .status'
+   # Output: "Acknowledged"
+
+   # 6. Resolve alert
+   curl -X POST "http://localhost:5174/api/alerts/$ALERT_ID/resolve" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "userId": "650e8400-e29b-41d4-a716-446655440001",
+       "resolutionNotes": "Issue resolved - temperature back to normal"
+     }' | jq
+
+   # 7. Check status (should be Resolved)
+   curl "http://localhost:5174/api/alerts/history/550e8400-e29b-41d4-a716-446655440001" | jq '.alerts[] | select(.id=="'$ALERT_ID'") | .status'
+   # Output: "Resolved"
+
+   # 8. Verify SignalR received 3 events:
+   #    - ReceiveAlert (when created)
+   #    - AlertAcknowledged (when acknowledged)
+   #    - AlertResolved (when resolved)
+   ```
+
+   ---
+
+   ## 🎯 **STEP 11: VALIDATION CHECKLIST**
+
+   After completing all steps, verify:
+
+   - [ ] ✅ Docker containers running (PostgreSQL + RabbitMQ)
+   - [ ] ✅ Database migrations applied
+   - [ ] ✅ RabbitMQ exchanges and queues configured
+   - [ ] ✅ Application starts without errors
+   - [ ] ✅ Wolverine connects to RabbitMQ
+   - [ ] ✅ Messages consumed from queues
+   - [ ] ✅ Alerts created in database
+   - [ ] ✅ Sensor snapshots created/updated
+   - [ ] ✅ SignalR hub accessible
+   - [ ] ✅ Real-time notifications working
+   - [ ] ✅ REST API endpoints returning correct data
+   - [ ] ✅ Alert lifecycle working (Pending → Acknowledged → Resolved)
+   - [ ] ✅ All test scenarios passing
+   - [ ] ✅ No critical errors in logs
+
+   ---
+
+   ## 🏆 **SUCCESS!**
+
+   If all validation items are checked, you have successfully:
+
+   ```
+   ╔══════════════════════════════════════════════════════════╗
+   ║                                                          ║
+   ║   🎉 E2E TESTING COMPLETE AND SUCCESSFUL! 🎉            ║
+   ║                                                          ║
+   ║  ✅ Infrastructure: Docker + PostgreSQL + RabbitMQ      ║
+   ║  ✅ Database: Migrations + Tables + Indexes             ║
+   ║  ✅ Messaging: WolverineFx + 3 Queues + 3 Exchanges     ║
+   ║  ✅ Domain Logic: AlertAggregate + Business Rules       ║
+   ║  ✅ Persistence: EF Core + Snapshots                    ║
+   ║  ✅ API: FastEndpoints + 6 Endpoints                    ║
+   ║  ✅ Real-time: SignalR + WebSocket Notifications        ║
+   ║  ✅ Lifecycle: Pending → Acknowledged → Resolved        ║
+   ║                                                          ║
+   ║  🎯 STATUS: PRODUCTION READY                            ║
+   ║                                                          ║
+   ╚══════════════════════════════════════════════════════════╝
+   ```
+
+   ---
+
+   **Congratulations! Your Analytics Worker is fully tested and ready for production deployment!** 🚀
+
+   ---
+
+   **Documentation Version:** 2.0  
+   **Last Updated:** February 2025  
+   **Status:** ✅ Complete  
+   **Target Framework:** .NET 10
+
 
 ### **4.1 Atualizar appsettings.Development.json:**
 
