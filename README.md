@@ -3,839 +3,1536 @@
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-> **Event-Driven Microservice** para processamento de dados de sensores agrícolas com detecção automática de alertas.
+> **Event-Driven Microservice** for processing agricultural IoT sensor data with automatic alert detection and real-time notifications.
 
-## 📋 Índice
+🇺🇸 **English Documentation** | 🇧🇷 **[Documentação em Português](README.md)**
 
-- [Visão Geral](#-visão-geral)
-- [Arquitetura](#-arquitetura)
-- [Tecnologias](#-tecnologias)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação](#-instalação)
-- [Configuração](#-configuração)
-- [Execução](#-execução)
-- [Testes](#-testes)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Arquitetura](#-arquitetura)
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Technologies](#-technologies)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [Configuration](#-configuration)
+- [Running](#-running)
+- [Testing](#-testing)
+- [Project Structure](#-project-structure)
 - [Domain-Driven Design](#-domain-driven-design)
-- [Event Sourcing](#-event-sourcing)
-- [Alertas Suportados](#-alertas-suportados)
-- [API de Integração](#-api-de-integração)
-- [Métricas e Observabilidade](#-métricas-e-observabilidade)
-- [Documentação](#-documentação)
-- [Contribuindo](#-contribuindo)
-- [Licença](#-licença)
+- [Supported Alerts](#-supported-alerts)
+- [REST API](#-rest-api)
+- [Real-Time Notifications (SignalR)](#-real-time-notifications-signalr)
+- [Metrics & Observability](#-metrics--observability)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## 🎯 Visão Geral
+## 🎯 Overview
 
-O **TC.Agro Analytics Worker** é um microserviço especializado no processamento de dados de sensores IoT agrícolas. Ele:
+**TC.Agro Analytics Worker** is a specialized microservice for processing agricultural IoT sensor data in real-time. It:
 
-- ✅ Processa eventos de ingestão de sensores em tempo real
-- ✅ Avalia condições críticas (temperatura, umidade do solo, bateria)
-- ✅ Gera alertas automáticos para outros serviços
-- ✅ Mantém histórico completo via Event Sourcing
-- ✅ Garante consistência transacional com Outbox Pattern
+- ✅ **Processes events** from sensor readings via RabbitMQ
+- ✅ **Evaluates business rules** for anomaly detection (high temperature, dry soil, low battery)
+- ✅ **Generates automatic alerts** with complete lifecycle (Pending → Acknowledged → Resolved)
+- ✅ **Notifies in real-time** via SignalR WebSocket to connected dashboards
+- ✅ **Exposes REST API** for alert queries and history
+- ✅ **Maintains snapshots** of sensors and owners for query optimization
+- ✅ **Persists data** in PostgreSQL via Entity Framework Core
+- ✅ **Ensures consistency** with Wolverine Outbox Pattern
 
-### Fluxo de Processamento
+### Processing Flow
 
-```
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  Sensor Ingest   │────▶│ Analytics Worker │────▶│  Alert Service   │
-│     Service      │     │  (Este Projeto)  │     │                  │
-└──────────────────┘     └──────────────────┘     └──────────────────┘
-         │                        │                         │
-         │                        │                         │
-         ▼                        ▼                         ▼
-   RabbitMQ Topic          Event Store               Notifications
-sensor.ingested         (PostgreSQL)              (SMS/Email/Push)
+```mermaid
+graph LR
+    A[Farm Management<br/>Service] -->|Sensor Lifecycle<br/>Events| B[RabbitMQ]
+    C[Sensor Ingest<br/>Service] -->|Sensor Reading<br/>Events| B
+    B -->|Consume Events| D[Analytics Worker<br/>Message Handlers]
+    D -->|Evaluate Rules| E[AlertAggregate<br/>Domain Logic]
+    E -->|Create/Update| F[(PostgreSQL<br/>Database)]
+    E -->|Publish Events| B
+    D -->|Trigger| G[SignalR Hub]
+    G -.Real-time Push.-> H[Dashboard UI]
+    F -->|Query| I[REST API<br/>FastEndpoints]
+    I -->|HTTP/JSON| H
 ```
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-Este projeto implementa **Clean Architecture** com **Domain-Driven Design** (DDD):
+This project implements **Clean Architecture** with **Domain-Driven Design** (DDD) and **CQRS**:
 
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        A[FastEndpoints<br/>REST API]
+        B[SignalR Hub<br/>WebSocket]
+        C[Message Handlers<br/>WolverineFx]
+    end
+    
+    subgraph "Application Layer"
+        D[Query Handlers<br/>Read Side]
+        E[Command Handlers<br/>Write Side]
+        F[Message Broker Handlers]
+    end
+    
+    subgraph "Domain Layer"
+        G[AlertAggregate<br/>Business Rules]
+        H[Value Objects<br/>AlertType, Status, Severity]
+        I[Snapshots<br/>Sensor, Owner]
+    end
+    
+    subgraph "Infrastructure Layer"
+        J[(PostgreSQL<br/>EF Core)]
+        K[RabbitMQ<br/>Wolverine]
+        L[Repositories]
+    end
+    
+    A --> D
+    A --> E
+    B --> G
+    C --> F
+    D --> L
+    E --> G
+    F --> G
+    G --> J
+    L --> J
+    K --> C
+    E --> K
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Presentation Layer                   │
-│                  (API / Message Handlers)               │
-├─────────────────────────────────────────────────────────┤
-│                    Application Layer                    │
-│           (Use Cases / Application Services)            │
-├─────────────────────────────────────────────────────────┤
-│                      Domain Layer                       │
-│        (Entities / Aggregates / Domain Events)          │
-├─────────────────────────────────────────────────────────┤
-│                  Infrastructure Layer                   │
-│         (Database / Message Broker / External)          │
-└─────────────────────────────────────────────────────────┘
-```
 
-### Padrões Arquiteturais
+### Architectural Patterns
 
-- ✅ **Domain-Driven Design (DDD)** - Modelagem rica do domínio
-- ✅ **Event Sourcing** - Histórico completo de eventos
-- ✅ **CQRS** - Separação de comandos e consultas
-- ✅ **Outbox Pattern** - Consistência transacional de mensagens
-- ✅ **Repository Pattern** - Abstração de persistência
-- ✅ **Result Pattern** - Tratamento de erros sem exceções
+- ✅ **Clean Architecture** - Separation of concerns in layers
+- ✅ **Domain-Driven Design (DDD)** - Rich domain modeling with Aggregates and Value Objects
+- ✅ **CQRS** - Separation of commands (write) and queries (read)
+- ✅ **Event-Driven Architecture** - Asynchronous communication via RabbitMQ
+- ✅ **Outbox Pattern** - Transactional consistency of messages (Wolverine)
+- ✅ **Repository Pattern** - Persistence abstraction
+- ✅ **Result Pattern** - Error handling without exceptions
+- ✅ **Snapshot Pattern** - Denormalized data cache for query optimization
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
 ### Core
 
-- **.NET 10.0** - Framework principal
-- **C# 14.0** - Linguagem de programação
+- **.NET 10.0** - Modern, high-performance framework
+- **C# 14.0** - Programming language with advanced features
 
-### Persistência
+### API & Web
 
-- **Marten 8.19** - Event Store + Document Database (PostgreSQL)
-- **PostgreSQL 16+** - Banco de dados
-- **Npgsql 10.0** - Driver PostgreSQL
+- **FastEndpoints 7.2** - Minimalist, high-performance API framework
+- **SignalR** - Real-time bidirectional communication (WebSocket)
+- **Swagger/OpenAPI** - Automatic API documentation
+
+### Persistence
+
+- **Entity Framework Core 10.0** - Modern ORM for .NET
+- **PostgreSQL 16+** - Relational database
+- **Npgsql 10.0** - High-performance PostgreSQL driver
 
 ### Message Broker
 
-- **Wolverine 5.12** - Framework de mensageria
-- **RabbitMQ** - Message Broker (produção)
+- **WolverineFx 5.15** - Messaging framework with integrated Outbox Pattern
+- **RabbitMQ 4.0** - Enterprise-grade message broker
 
-### Testes
+### Observability
 
-- **xUnit v3 (3.2.2)** - Framework de testes
-- **Shouldly 4.3** - Assertions fluentes
+- **Serilog 4.1** - Structured logging
+- **OpenTelemetry** - Distributed tracing and metrics
+- **Azure Monitor / Application Insights** - APM (Application Performance Monitoring)
+
+### Testing
+
+- **xUnit v3 (3.2.2)** - Unit testing framework
 - **FakeItEasy 9.0** - Mocking framework
-- **Microsoft.NET.Test.Sdk 18.0** - Test SDK
+- **FastEndpoints.Testing 7.2** - Helpers for endpoint testing
 
-### Ferramentas
+### Tools
 
-- **Ardalis.Result 10.1** - Result Pattern
-- **FluentValidation 12.1** - Validações
-- **Serilog 10.0** - Logging estruturado
+- **Ardalis.Result 10.1** - Result Pattern for error handling
+- **FluentValidation 12.1** - Data validations
+- **Polly 8.6** - Resilience (retry, circuit breaker)
+- **AspNetCore.HealthChecks.NpgSql 9.0** - PostgreSQL health checks
 
 ---
 
-## 📦 Pré-requisitos
+## 📦 Prerequisites
 
-### Software Necessário
+### Required Software
 
 ```bash
-# .NET SDK 10.0 ou superior
+# .NET SDK 10.0 or higher
 dotnet --version
-# Saída esperada: 10.0.x
+# Expected output: 10.0.x
 
-# Docker (para executar dependências)
+# Docker (to run dependencies locally)
 docker --version
-# Saída esperada: 24.0.x ou superior
+# Expected output: 24.0.x or higher
 
-# Docker Compose
+# Docker Compose (optional for local development)
 docker-compose --version
-# Saída esperada: 2.x ou superior
+# Expected output: 2.x or higher
 ```
 
-### Dependências Externas
+### External Dependencies
 
-- **PostgreSQL 16+** (via Docker)
-- **RabbitMQ 4.0+** (via Docker)
-- **TC.Agro.Contracts** (NuGet package ou ProjectReference)
+#### Production (Cloud)
+- **PostgreSQL** - Managed database in the cloud (Azure Database, AWS RDS, or other provider)
+- **RabbitMQ** - Managed message broker (CloudAMQP, Azure Service Bus, or other provider)
+
+#### Local Development
+- **PostgreSQL 16+** (via Docker or local installation)
+- **RabbitMQ 4.0+** (via Docker or local installation)
+
+### Shared Packages
+
+This project depends on shared packages from the `tc-agro-common` repository:
+- `TC.Agro.Contracts` - Integration events and DTOs
+- `TC.Agro.Messaging` - Messaging configurations
+- `TC.Agro.SharedKernel` - Base classes (Aggregate, Repository, etc.)
 
 ---
 
-## 🚀 Instalação
+## 🚀 Quick Start
 
-### 1. Clone o Repositório
+### Option 1: Automatic Setup (Recommended)
+
+```powershell
+# Windows PowerShell
+.\scripts\setup-e2e.ps1
+
+# Linux/Mac
+chmod +x scripts/setup-e2e.sh
+./scripts/setup-e2e.sh
+```
+
+This script automatically:
+- ✅ Verifies prerequisites
+- ✅ Starts Docker containers (PostgreSQL + RabbitMQ)
+- ✅ Applies database migrations
+- ✅ Configures RabbitMQ (exchanges, queues, bindings)
+- ✅ Compiles the application
+- ✅ Runs unit tests
+
+**Estimated time:** 2-3 minutes
+
+### Option 2: Manual Setup
 
 ```bash
-# Clone o repositório principal
+# 1. Clone the repository
 git clone https://github.com/rdpresser/tc-agro-analytics-worker.git
 cd tc-agro-analytics-worker
 
-# Clone o repositório de contratos (shared kernel)
-cd ../
-git clone https://github.com/rdpresser/tc-agro-common.git
-```
-
-### 2. Restaure as Dependências
-
-```bash
-cd tc-agro-analytics-worker
+# 2. Restore dependencies
 dotnet restore
-```
 
-### 3. Inicie as Dependências com Docker
-
-```bash
-# Na raiz do projeto
+# 3. Start dependencies with Docker (local development)
 docker-compose up -d
 
-# Verifique se os containers estão rodando
-docker-compose ps
+# 4. Apply migrations
+dotnet ef database update --project src/Adapters/Outbound/TC.Agro.Analytics.Infrastructure --startup-project src/Adapters/Inbound/TC.Agro.Analytics.Service
+
+# 5. Run the application
+dotnet run --project src/Adapters/Inbound/TC.Agro.Analytics.Service
 ```
 
-**Serviços iniciados:**
+**Verify it's working:**
 
-- PostgreSQL: `localhost:5432`
-- RabbitMQ: `localhost:5672` (Management UI: `http://localhost:15672`)
+```bash
+# Health check
+curl http://localhost:5174/health
+
+# Swagger UI
+open http://localhost:5174/swagger
+```
+
+**📖 Detailed guides:**
+- [Quick Start E2E](docs/QUICK_START_E2E.md) - Quick setup in 5 minutes
+- [RUN_PROJECT.md](docs/RUN_PROJECT.md) - Complete execution guide
+- [E2E Testing Guide](docs/E2E_TESTING_GUIDE.md) - Complete end-to-end tests
 
 ---
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-### appsettings.json (Produção)
+### Configuration Structure
+
+The project uses ASP.NET Core's hierarchical configuration pattern:
+
+```
+appsettings.json (base - empty by default)
+├── appsettings.Development.json (local development)
+├── appsettings.Production.json (production/cloud)
+└── Environment Variables (Docker/Kubernetes - override)
+```
+
+### appsettings.Development.json (Example)
 
 ```json
 {
-  "Database": {
-    "Postgres": {
-      "Host": "localhost",
-      "Port": 5432,
-      "Database": "tc-agro-analytics-db",
-      "UserName": "postgres",
-      "Password": "postgres"
-    }
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=tc-agro-analytics-db;Username=postgres;Password=postgres"
   },
-  "Messaging": {
-    "RabbitMQ": {
-      "Host": "localhost",
-      "Port": 5672,
-      "UserName": "guest",
-      "Password": "guest"
-    }
+  "RabbitMQ": {
+    "Host": "localhost",
+    "Port": 5672,
+    "Username": "guest",
+    "Password": "guest"
   },
   "AlertThresholds": {
     "MaxTemperature": 35.0,
     "MinSoilMoisture": 20.0,
     "MinBatteryLevel": 15.0
-  }
+  },
+  "TimeZone": "America/Sao_Paulo"
 }
 ```
 
-### appsettings.Development.json
+### appsettings.Production.json (Cloud Example)
 
 ```json
 {
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=your-db-server.com;Port=5432;Database=tc-agro-analytics-db;Username=postgres;Password=${DB_PASSWORD};SSL Mode=Require"
+  },
+  "RabbitMQ": {
+    "Host": "xxx.cloudamqp.com",
+    "Port": 5672,
+    "Username": "xxx",
+    "Password": "${RABBITMQ_PASSWORD}",
+    "VirtualHost": "xxx"
+  },
   "AlertThresholds": {
-    "MaxTemperature": 30.0,
-    "MinSoilMoisture": 25.0,
-    "MinBatteryLevel": 20.0
+    "MaxTemperature": 38.0,
+    "MinSoilMoisture": 18.0,
+    "MinBatteryLevel": 12.0
+  },
+  "ApplicationInsights": {
+    "ConnectionString": "${APPLICATIONINSIGHTS_CONNECTION_STRING}"
   }
 }
 ```
 
-### Variáveis de Ambiente (Docker/Kubernetes)
+### Environment Variables (Docker/Kubernetes)
 
 ```bash
-# Thresholds
+# Database
+export ConnectionStrings__DefaultConnection="Host=postgres;Port=5432;Database=tc-agro-analytics-db;Username=postgres;Password=${DB_PASSWORD}"
+
+# RabbitMQ
+export RabbitMQ__Host=rabbitmq
+export RabbitMQ__Password=${RABBITMQ_PASSWORD}
+
+# Alert Thresholds
 export AlertThresholds__MaxTemperature=40
 export AlertThresholds__MinSoilMoisture=15
 export AlertThresholds__MinBatteryLevel=10
 
-# Database
-export Database__Postgres__Host=postgres-server
-export Database__Postgres__Password=strong_password
-
-# RabbitMQ
-export Messaging__RabbitMQ__Host=rabbitmq-server
-export Messaging__RabbitMQ__Password=rabbitmq_password
+# Observability
+export ApplicationInsights__ConnectionString=${APPINSIGHTS_CONN_STRING}
 ```
+
+### Configuration via Azure App Configuration (Optional)
+
+For cloud environments, it's recommended to use **Azure App Configuration** or **AWS Parameter Store** to centralize configurations and secrets.
 
 ---
 
-## 🏃 Execução
+## 🏃 Running
 
-### Desenvolvimento
+### Local Development
 
 ```bash
-# Executar o serviço
-dotnet run --project src/Adapters/Inbound/TC.Agro.Analytics.Service
-
-# Ou com hot reload
+# Run with hot reload (recommended)
 dotnet watch run --project src/Adapters/Inbound/TC.Agro.Analytics.Service
+
+# Or without hot reload
+dotnet run --project src/Adapters/Inbound/TC.Agro.Analytics.Service
 ```
 
-### Produção
+**Expected output:**
+```
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5174
+info: WolverineFx[0]
+      Wolverine messaging service is starting
+info: Wolverine.RabbitMQ[0]
+      Connected to RabbitMQ at localhost:5672
+      Listening to queue: 'analytics.sensor.reading.queue'
+```
+
+**Available endpoints:**
+- API: `http://localhost:5174`
+- Swagger UI: `http://localhost:5174/swagger`
+- Health Check: `http://localhost:5174/health`
+- SignalR Hub: `ws://localhost:5174/dashboard/alertshub`
+
+### Production (Build & Publish)
 
 ```bash
-# Build
+# Optimized build
 dotnet build -c Release
 
-# Publicar
+# Publish artifacts
 dotnet publish -c Release -o ./publish
 
-# Executar
+# Run
 cd publish
 dotnet TC.Agro.Analytics.Service.dll
 ```
 
 ### Docker
 
-```bash
-# Build da imagem
-docker build -t tc-agro-analytics-worker:latest .
+#### Build Image
 
-# Executar container
+```bash
+docker build -t tc-agro-analytics-worker:latest .
+```
+
+#### Run Container
+
+```bash
 docker run -d \
   --name analytics-worker \
-  -p 5004:5004 \
-  -e Database__Postgres__Host=postgres \
-  -e Messaging__RabbitMQ__Host=rabbitmq \
+  -p 5174:8080 \
+  -e ConnectionStrings__DefaultConnection="Host=postgres;Port=5432;Database=tc-agro-analytics-db;Username=postgres;Password=postgres" \
+  -e RabbitMQ__Host=rabbitmq \
+  -e RabbitMQ__Password=guest \
+  --network tc-agro-network \
   tc-agro-analytics-worker:latest
 ```
 
-### Health Check
+### Health Checks
 
 ```bash
-# Verificar saúde do serviço
-curl http://localhost:5004/health
+# Check general health
+curl http://localhost:5174/health
 
-# Resposta esperada:
+# Expected response:
 {
   "status": "Healthy",
-  "timestamp": "2026-01-31T16:00:00Z",
+  "timestamp": "2025-02-01T20:00:00Z",
   "service": "Analytics Worker Service"
 }
 ```
 
----
+### Testing Complete Flow
 
-## 🧪 Testes
-
-### Executar Todos os Testes
+1. **Publish test message to RabbitMQ:**
 
 ```bash
-# Executar suite completa
-dotnet test
+# Using Python script
+python scripts/publish_test_message.py --scenario high-temp
 
-# Saída esperada:
-# Total: 52 | Passed: 52 | Failed: 0 | Duration: 3s
+# Or using curl (direct to RabbitMQ Management API)
+curl -u guest:guest -X POST http://localhost:15672/api/exchanges/%2F/analytics.sensor.reading/publish \
+  -H "Content-Type: application/json" \
+  -d '{
+    "properties": {},
+    "routing_key": "sensor.reading",
+    "payload": "{\"sensorId\":\"550e8400-e29b-41d4-a716-446655440001\",\"temperature\":42.5}",
+    "payload_encoding": "string"
+  }'
 ```
 
-### Executar com Cobertura
+2. **Check application logs:**
 
 ```bash
-# Gerar relatório de cobertura
+# Logs should show:
+info: SensorIngestedInHandler - Processing sensor reading for sensor 550e8400...
+warn: SensorIngestedInHandler - Alert created: HighTemperature for sensor 550e8400...
+info: AlertHubNotifier - Real-time notification sent via SignalR
+```
+
+3. **Query alerts via API:**
+
+```bash
+# View pending alerts
+curl http://localhost:5174/api/alerts/pending | jq
+
+# View alert history for a sensor
+curl "http://localhost:5174/api/alerts/history/550e8400-e29b-41d4-a716-446655440001?days=30" | jq
+```
+
+📖 **Complete guide:** [RUN_PROJECT.md](docs/RUN_PROJECT.md)
+
+---
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+# Complete suite
+dotnet test
+
+# With details
+dotnet test --verbosity normal
+
+# Only tests from a category
+dotnet test --filter "FullyQualifiedName~Domain"
+dotnet test --filter "FullyQualifiedName~Application"
+```
+
+### Run with Code Coverage
+
+```bash
+# Collect coverage
 dotnet test --collect:"XPlat Code Coverage"
 
-# Gerar relatório HTML (requer reportgenerator)
+# Generate HTML report (requires ReportGenerator)
+dotnet tool install -g dotnet-reportgenerator-globaltool
+
 reportgenerator \
   -reports:"**/coverage.cobertura.xml" \
   -targetdir:"coveragereport" \
   -reporttypes:Html
 
-# Abrir relatório
-open coveragereport/index.html
+# Open report
+start coveragereport/index.html  # Windows
+open coveragereport/index.html   # Mac/Linux
 ```
 
-### Executar Testes por Categoria
+### Test Structure
 
-```bash
-# Apenas testes de domínio
-dotnet test --filter "FullyQualifiedName~Domain"
-
-# Apenas testes de aplicação
-dotnet test --filter "FullyQualifiedName~Application"
-
-# Testes de um agregado específico
-dotnet test --filter "FullyQualifiedName~SensorReadingAggregateTests"
+```
+test/TC.Agro.Analytics.Tests/
+├── Domain/
+│   ├── Aggregates/
+│   │   └── AlertAggregateTests.cs          # Aggregate root tests
+│   ├── ValueObjects/
+│   │   ├── AlertTypeTests.cs
+│   │   ├── AlertStatusTests.cs
+│   │   ├── AlertSeverityTests.cs
+│   │   └── AlertThresholdsTests.cs
+│   └── Snapshots/
+│       ├── SensorSnapshotTests.cs
+│       └── OwnerSnapshotTests.cs
+├── Application/
+│   ├── MessageBrokerHandlers/
+│   │   ├── SensorIngestedInHandlerTests.cs
+│   │   ├── SensorSnapshotHandlerTests.cs
+│   │   └── OwnerSnapshotHandlerTests.cs
+│   └── UseCases/
+│       ├── AcknowledgeAlertCommandHandlerTests.cs
+│       ├── ResolveAlertCommandHandlerTests.cs
+│       └── GetPendingAlertsQueryHandlerTests.cs
+└── Infrastructure/
+    └── Repositories/
+        └── AlertAggregateRepositoryTests.cs (integration tests)
 ```
 
-### Testes em Watch Mode
+### Tests in Watch Mode
 
 ```bash
+# Run tests automatically on file save
 dotnet watch test --project test/TC.Agro.Analytics.Tests
 ```
 
+### Integration Tests (E2E)
+
+For complete end-to-end tests with RabbitMQ and PostgreSQL:
+
+```bash
+# Automatic setup and execution
+.\scripts\setup-e2e.ps1  # Windows
+./scripts/setup-e2e.sh   # Linux/Mac
+```
+
+📖 **Detailed guides:**
+- [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) - Complete testing guide
+- [E2E_TESTING_GUIDE.md](docs/E2E_TESTING_GUIDE.md) - End-to-end tests
+- [VALIDATION_CHECKLIST.md](docs/VALIDATION_CHECKLIST.md) - Validation checklist
+
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Project Structure
 
 ```
 tc-agro-analytics-worker/
 ├── src/
-│   ├── Core/                                    # Core Domain Logic
+│   ├── Core/                                           # Domain + Application Logic
 │   │   ├── TC.Agro.Analytics.Domain/
 │   │   │   ├── Aggregates/
-│   │   │   │   └── SensorReadingAggregate.cs   # Aggregate Root + Domain Events
+│   │   │   │   ├── AlertAggregate.cs                   # 🎯 Aggregate Root with business rules
+│   │   │   │   └── AnalyticsDomainErrors.cs            # Domain errors
 │   │   │   ├── ValueObjects/
-│   │   │   │   └── AlertThresholds.cs          # Value Object
-│   │   │   └── Abstractions/Ports/             # Repository Interfaces
+│   │   │   │   ├── AlertType.cs                        # HighTemperature, LowSoilMoisture, LowBattery, SensorOffline
+│   │   │   │   ├── AlertStatus.cs                      # Pending, Acknowledged, Resolved, Expired
+│   │   │   │   ├── AlertSeverity.cs                    # Low, Medium, High, Critical
+│   │   │   │   └── AlertThresholds.cs                  # Configurable thresholds
+│   │   │   ├── Snapshots/
+│   │   │   │   ├── SensorSnapshot.cs                   # Denormalized sensor cache
+│   │   │   │   └── OwnerSnapshot.cs                    # Denormalized owner cache
+│   │   │   └── Abstractions/
+│   │   │       └── DomainError.cs                      # Base error class
 │   │   │
 │   │   └── TC.Agro.Analytics.Application/
-│   │       ├── MessageBrokerHandlers/
-│   │       │   └── SensorIngestedHandler.cs    # Event Handler
-│   │       ├── Configuration/
-│   │       │   └── AlertThresholdsOptions.cs   # Configuration Model
+│   │       ├── MessageBrokerHandlers/                  # 📨 WolverineFx Handlers
+│   │       │   ├── SensorIngestedInHandler.cs          # Processes sensor readings
+│   │       │   ├── SensorSnapshotHandler.cs            # Maintains sensor snapshots
+│   │       │   └── OwnerSnapshotHandler.cs             # Maintains owner snapshots
+│   │       ├── UseCases/Alerts/                        # 🎯 CQRS Handlers
+│   │       │   ├── GetPendingAlerts/
+│   │       │   │   ├── GetPendingAlertsQuery.cs
+│   │       │   │   └── GetPendingAlertsQueryHandler.cs
+│   │       │   ├── GetAlertHistory/
+│   │       │   │   ├── GetAlertHistoryQuery.cs
+│   │       │   │   └── GetAlertHistoryQueryHandler.cs
+│   │       │   ├── GetSensorStatus/
+│   │       │   │   ├── GetSensorStatusQuery.cs
+│   │       │   │   └── GetSensorStatusQueryHandler.cs
+│   │       │   ├── AcknowledgeAlert/
+│   │       │   │   ├── AcknowledgeAlertCommand.cs
+│   │       │   │   └── AcknowledgeAlertCommandHandler.cs
+│   │       │   └── ResolveAlert/
+│   │       │       ├── ResolveAlertCommand.cs
+│   │       │       └── ResolveAlertCommandHandler.cs
+│   │       ├── Abstractions/Ports/
+│   │       │   ├── IAlertAggregateRepository.cs        # Repository interface
+│   │       │   └── IAlertHubNotifier.cs                # SignalR notifier interface
 │   │       └── DependencyInjection.cs
 │   │
-│   └── Adapters/                                # Infrastructure & Presentation
-│       ├── Inbound/
+│   └── Adapters/                                       # Infrastructure & Presentation
+│       ├── Inbound/                                    # 🌐 Presentation Layer
 │       │   └── TC.Agro.Analytics.Service/
-│       │       ├── Program.cs                   # Bootstrap
-│       │       └── appsettings.json
+│       │       ├── Program.cs                          # Bootstrap + DI Container
+│       │       ├── Endpoints/Alerts/                   # 🚀 FastEndpoints
+│       │       │   ├── GetPendingAlertsEndpoint.cs
+│       │       │   ├── GetAlertHistoryEndpoint.cs
+│       │       │   ├── GetSensorStatusEndpoint.cs
+│       │       │   ├── AcknowledgeAlertEndpoint.cs
+│       │       │   └── ResolveAlertEndpoint.cs
+│       │       ├── Hubs/
+│       │       │   └── AlertHub.cs                     # 📡 SignalR Hub
+│       │       ├── Services/
+│       │       │   └── AlertHubNotifier.cs             # SignalR notification service
+│       │       ├── Middleware/
+│       │       │   └── TelemetryMiddleware.cs          # OpenTelemetry middleware
+│       │       ├── Extensions/
+│       │       │   └── ServiceCollectionExtensions.cs  # DI extensions
+│       │       ├── appsettings.json
+│       │       ├── appsettings.Development.json
+│       │       └── appsettings.Production.json
 │       │
-│       └── Outbound/
+│       └── Outbound/                                   # 🗄️ Infrastructure Layer
 │           └── TC.Agro.Analytics.Infrastructure/
-│               └── Repositories/
-│                   ├── BaseRepository.cs        # Marten Implementation
-│                   └── SensorReadingRepository.cs
+│               ├── Repositories/
+│               │   ├── BaseRepository.cs               # Generic repository base
+│               │   └── AlertAggregateRepository.cs     # Alert repository (EF Core)
+│               ├── Persistence/
+│               │   ├── AnalyticsDbContext.cs           # EF Core DbContext
+│               │   └── Configurations/                 # Entity configurations
+│               │       ├── AlertAggregateConfiguration.cs
+│               │       ├── SensorSnapshotConfiguration.cs
+│               │       └── OwnerSnapshotConfiguration.cs
+│               ├── Migrations/                         # EF Core migrations
+│               │   └── 20250201_InitialCreate.cs
+│               └── DependencyInjection.cs
 │
 ├── test/
 │   └── TC.Agro.Analytics.Tests/
-│       ├── Domain/
-│       │   ├── Aggregates/
-│       │   │   └── SensorReadingAggregateTests.cs    # 33 tests
-│       │   └── ValueObjects/
-│       │       └── AlertThresholdsTests.cs           # 7 tests
-│       ├── Application/
-│       │   ├── MessageBrokerHandlers/
-│       │   │   └── SensorIngestedHandlerTests.cs    # 8 tests
-│       │   └── Configuration/
-│       │       └── AlertThresholdsOptionsTests.cs   # 4 tests
-│       ├── Builders/
-│       │   └── SensorReadingAggregateBuilder.cs     # Test Data Builder
+│       ├── Domain/                                     # Domain tests (pure)
+│       ├── Application/                                # Application tests (with mocks)
+│       ├── Infrastructure/                             # Integration tests
+│       ├── Builders/                                   # Test data builders
 │       └── GlobalUsings.cs
 │
-├── docker-compose.yml                           # Local development stack
-├── Dockerfile                                   # Production container
-├── Directory.Packages.props                     # Central Package Management
-└── README.md
+├── docs/                                               # 📚 Technical documentation
+│   ├── C4_ARCHITECTURE_DIAGRAMS.md                     # C4 Model diagrams (Mermaid)
+│   ├── TESTING_GUIDE.md                                # Testing guide
+│   ├── E2E_TESTING_GUIDE.md                            # End-to-end tests
+│   ├── QUICK_START_E2E.md                              # Quick start
+│   ├── RUN_PROJECT.md                                  # Execution guide
+│   └── VALIDATION_CHECKLIST.md                         # Validation checklist
+│
+├── scripts/                                            # Utilities
+│   ├── setup-e2e.ps1                                   # Automatic setup (Windows)
+│   ├── setup-e2e.sh                                    # Automatic setup (Linux/Mac)
+│   └── publish_test_message.py                         # Publish test messages
+│
+├── docker-compose.yml                                  # Local stack (PostgreSQL + RabbitMQ)
+├── Dockerfile                                          # Production container
+├── Directory.Packages.props                            # Central Package Management (CPM)
+├── .editorconfig                                       # Code style
+├── .gitignore
+├── README.md                                           # 🇧🇷 Portuguese documentation
+├── README_EN.md                                        # 🇺🇸 English documentation
+└── LICENSE
 ```
+
+### Layers and Responsibilities
+
+| Layer | Responsibility | Dependencies |
+|-------|----------------|--------------|
+| **Domain** | Business rules, aggregates, value objects | None (pure domain) |
+| **Application** | Use cases, handlers, interfaces | Domain |
+| **Infrastructure** | Persistence, messaging, integrations | Application, Domain |
+| **Presentation** | REST API, SignalR Hub, endpoints | Application |
 
 ---
 
 ## 🎨 Domain-Driven Design
 
-### Agregados
+### AlertAggregate (Aggregate Root)
 
-#### **SensorReadingAggregate** (Aggregate Root)
-
-Representa uma leitura de sensor com regras de negócio.
+The **AlertAggregate** is the heart of the domain, managing the entire alert lifecycle.
 
 ```csharp
-var result = SensorReadingAggregate.Create(
-    sensorId: "SENSOR-001",
-    plotId: Guid.Parse("..."),
-    time: DateTime.UtcNow,
-    temperature: 28.5,
-    humidity: 65.0,
+// Factory method - Creates alerts from sensor data
+var alerts = AlertAggregate.CreateFromSensorData(
+    sensorSnapshot: sensorSnapshot,
+    timestamp: DateTime.UtcNow,
+    temperature: 42.5,
     soilMoisture: 35.0,
-    rainfall: 5.0,
-    batteryLevel: 85.0
+    batteryLevel: 85.0,
+    thresholds: new AlertThresholds(
+        maxTemperature: 35.0,
+        minSoilMoisture: 20.0,
+        minBatteryLevel: 15.0
+    )
 );
 
-if (result.IsSuccess)
+// Returns list of detected alerts (0 to N)
+foreach (var alert in alerts)
 {
-    var aggregate = result.Value;
-
-    // Avaliar alertas
-    aggregate.EvaluateAlerts(new AlertThresholds(
-        maxTemperature: 35,
-        minSoilMoisture: 20,
-        minBatteryLevel: 15
-    ));
-
-    // Eventos não commitados
-    foreach (var evt in aggregate.UncommittedEvents)
-    {
-        Console.WriteLine(evt.GetType().Name);
-        // Output: SensorReadingCreatedDomainEvent
-    }
+    Console.WriteLine($"Alert: {alert.Type}, Severity: {alert.Severity}");
+    // Alert: HighTemperature, Severity: Critical
 }
+
+// State transitions
+alert.Acknowledge(userId: adminUserId);  // Pending → Acknowledged
+alert.Resolve(userId: adminUserId, notes: "Irrigation activated");  // Acknowledged → Resolved
 ```
 
 ### Value Objects
 
-#### **AlertThresholds**
-
-Encapsula thresholds de alertas.
+#### **AlertType** - Alert Types
 
 ```csharp
-// Padrão
+public static class AlertType
+{
+    public static readonly AlertType HighTemperature = new("HighTemperature");
+    public static readonly AlertType LowSoilMoisture = new("LowSoilMoisture");
+    public static readonly AlertType LowBattery = new("LowBattery");
+    public static readonly AlertType SensorOffline = new("SensorOffline");
+}
+```
+
+#### **AlertStatus** - Lifecycle Status
+
+```csharp
+public static class AlertStatus
+{
+    public static readonly AlertStatus Pending = new("Pending");           // Newly created, awaiting action
+    public static readonly AlertStatus Acknowledged = new("Acknowledged"); // Acknowledged, being handled
+    public static readonly AlertStatus Resolved = new("Resolved");         // Resolved
+    public static readonly AlertStatus Expired = new("Expired");           // Expired without action
+}
+```
+
+#### **AlertSeverity** - Severity Levels
+
+```csharp
+public static class AlertSeverity
+{
+    public static readonly AlertSeverity Low = new("Low", level: 1);
+    public static readonly AlertSeverity Medium = new("Medium", level: 2);
+    public static readonly AlertSeverity High = new("High", level: 3);
+    public static readonly AlertSeverity Critical = new("Critical", level: 4);
+}
+```
+
+#### **AlertThresholds** - Threshold Configuration
+
+```csharp
+// Default values
 var defaultThresholds = AlertThresholds.Default;
 // MaxTemperature: 35°C
 // MinSoilMoisture: 20%
 // MinBatteryLevel: 15%
 
-// Customizado
+// Custom values
 var customThresholds = new AlertThresholds(
-    maxTemperature: 40.0,
-    minSoilMoisture: 15.0,
-    minBatteryLevel: 10.0
+    maxTemperature: 38.0,
+    minSoilMoisture: 18.0,
+    minBatteryLevel: 12.0
 );
 ```
 
-### Domain Events
+### Snapshots (Denormalization)
+
+To optimize queries, we maintain snapshots (denormalized caches) of entities from other contexts:
+
+#### **SensorSnapshot** - Sensor Cache
 
 ```csharp
-// Criação
-SensorReadingCreatedDomainEvent
-
-// Alertas
-HighTemperatureDetectedDomainEvent
-LowSoilMoistureDetectedDomainEvent
-BatteryLowWarningDomainEvent
-```
-
----
-
-## 📊 Event Sourcing
-
-### Event Store (Marten)
-
-Todos os eventos são persistidos no PostgreSQL:
-
-```sql
--- Tabela de eventos (gerenciada pelo Marten)
-SELECT * FROM mt_events 
-WHERE stream_id = 'sensor-reading-stream-{guid}' 
-ORDER BY version;
-
--- Exemplo de evento
+public class SensorSnapshot
 {
-  "id": "uuid",
-  "type": "sensor_reading_created",
-  "stream_id": "...",
-  "version": 1,
-  "data": {
-    "SensorId": "SENSOR-001",
-    "Temperature": 38.0,
-    "Time": "2026-01-31T16:00:00Z"
-  },
-  "timestamp": "2026-01-31T16:00:00.123Z"
+    public Guid Id { get; set; }              // SensorId
+    public string Label { get; set; }         // "Sensor-001"
+    public Guid PlotId { get; set; }
+    public string PlotName { get; set; }      // "Plot A"
+    public string PropertyName { get; set; }  // "Farm XYZ"
+    public Guid OwnerId { get; set; }
+    public SensorOperationalStatus Status { get; set; }  // Active, Inactive, Maintenance
+    public DateTimeOffset LastReadingAt { get; set; }
 }
 ```
 
-### Replay de Eventos
+#### **OwnerSnapshot** - Owner Cache
 
 ```csharp
-// Reconstruir agregado a partir dos eventos
-var aggregate = await documentSession.Events
-    .AggregateStreamAsync<SensorReadingAggregate>(aggregateId);
-```
-
-### Snapshots (Futuro)
-
-```csharp
-// Configurar snapshots para performance
-StoreOptions(opts =>
+public class OwnerSnapshot
 {
-    opts.Events.Inline = true;
-    opts.Events.UseAggregateSnapshots = true;
-});
-```
-
----
-
-## 🚨 Alertas Suportados
-
-### 1. Alta Temperatura 🌡️
-
-**Condição:** `Temperature > MaxTemperature` (padrão: 35°C)
-
-**Evento Gerado:** `HighTemperatureDetectedIntegrationEvent`
-
-**Consumidores:**
-- Alert Service → Notifica agrônomo
-- Dashboard Service → Atualiza gráficos
-- Notification Service → Envia SMS/Email
-
-**Exemplo:**
-```json
-{
-  "EventId": "uuid",
-  "SensorId": "SENSOR-001",
-  "PlotId": "uuid",
-  "Temperature": 38.5,
-  "Time": "2026-01-31T14:00:00Z",
-  "EventName": "HighTemperatureDetectedIntegrationEvent"
+    public Guid Id { get; set; }              // OwnerId (UserId)
+    public string FullName { get; set; }      // "John Doe"
+    public string Email { get; set; }
+    public string? PhoneNumber { get; set; }
 }
 ```
 
+These snapshots are automatically updated via event handlers (`SensorSnapshotHandler`, `OwnerSnapshotHandler`).
+
+### Business Rules
+
+Alert detection rules are implemented in the `CreateFromSensorData()` method:
+
+1. **High Temperature**
+   - Condition: `temperature > thresholds.MaxTemperature`
+   - Severity: Critical
+
+2. **Low Soil Moisture**
+   - Condition: `soilMoisture < thresholds.MinSoilMoisture`
+   - Severity: High
+
+3. **Low Battery**
+   - Condition: `batteryLevel < thresholds.MinBatteryLevel`
+   - Severity: Medium
+
+4. **Sensor Offline**
+   - Condition: `sensor.Status == SensorOperationalStatus.Inactive`
+   - Severity: Critical
+
 ---
 
-### 2. Baixa Umidade do Solo 💧
+## 🚨 Supported Alerts
 
-**Condição:** `SoilMoisture < MinSoilMoisture` (padrão: 20%)
+### 1. High Temperature 🌡️
 
-**Evento Gerado:** `LowSoilMoistureDetectedIntegrationEvent`
+**Condition:** `Temperature > MaxTemperature` (default: 35°C)
 
-**Consumidores:**
-- Irrigation Service → **Ativa irrigação automática**
-- Alert Service → Notifica necessidade de irrigação
-- Dashboard Service → Exibe alerta
+**Severity:** Critical
 
-**Exemplo:**
+**Automatic Actions:**
+- ✅ Creates alert in database (status: Pending)
+- ✅ Publishes `HighTemperatureDetectedIntegrationEvent` event to RabbitMQ
+- ✅ Notifies connected dashboards via SignalR in real-time
+
+**Event Consumers:**
+- **Alert Notification Service** → Sends SMS/Email/Push to farmer
+- **Dashboard UI** → Displays visual and audible alert
+- **Report Service** → Records in daily report
+
+**Published Event Example:**
 ```json
 {
-  "EventId": "uuid",
-  "SensorId": "SENSOR-002",
-  "PlotId": "uuid",
-  "SoilMoisture": 15.0,
-  "Time": "2026-01-31T14:00:00Z",
-  "EventName": "LowSoilMoistureDetectedIntegrationEvent"
-}
-```
-
----
-
-### 3. Bateria Baixa 🔋
-
-**Condição:** `BatteryLevel < MinBatteryLevel` (padrão: 15%)
-
-**Evento Gerado:** `BatteryLowWarningIntegrationEvent`
-
-**Consumidores:**
-- Maintenance Service → Agenda troca de bateria
-- Alert Service → Notifica equipe técnica
-- Dashboard Service → Exibe warning
-
-**Exemplo:**
-```json
-{
-  "EventId": "uuid",
-  "SensorId": "SENSOR-003",
-  "PlotId": "uuid",
-  "BatteryLevel": 10.0,
-  "Threshold": 15.0,
-  "EventName": "BatteryLowWarningIntegrationEvent"
-}
-```
-
----
-
-## 🔌 API de Integração
-
-### Eventos Consumidos
-
-#### **SensorIngestedIntegrationEvent** (Input)
-
-```json
-{
-  "EventId": "uuid",
-  "AggregateId": "uuid",
-  "OccurredOn": "2026-01-31T16:00:00Z",
-  "EventName": "SensorIngestedIntegrationEvent",
-  "SensorId": "SENSOR-001",
-  "PlotId": "uuid",
-  "Time": "2026-01-31T15:55:00Z",
-  "Temperature": 28.5,
-  "Humidity": 65.0,
-  "SoilMoisture": 35.0,
-  "Rainfall": 5.0,
-  "BatteryLevel": 85.0
-}
-```
-
-**Topic:** `analytics.sensor.ingested`
-
-**Fonte:** Sensor Ingest Service
-
----
-
-### Eventos Publicados
-
-#### **HighTemperatureDetectedIntegrationEvent** (Output)
-
-**Topic:** `analytics.alerts.hightemperature`
-
-**Schema:** Ver [Alertas Suportados](#-alertas-suportados)
-
-#### **LowSoilMoistureDetectedIntegrationEvent** (Output)
-
-**Topic:** `analytics.alerts.lowsoilmoisture`
-
-**Schema:** Ver [Alertas Suportados](#-alertas-suportados)
-
-#### **BatteryLowWarningIntegrationEvent** (Output)
-
-**Topic:** `analytics.alerts.batterylow`
-
-**Schema:** Ver [Alertas Suportados](#-alertas-suportados)
-
----
-
-## 📈 Métricas e Observabilidade
-
-### Logs Estruturados (Serilog)
-
-```csharp
-// Logs gerados automaticamente
-[Information] Sensor reading processed successfully for Sensor SENSOR-001, Plot {PlotId}
-[Warning] High temperature alert triggered for Sensor SENSOR-001. Temperature: 38°C
-[Warning] Duplicate event detected: {MessageId}
-[Error] Error processing SensorIngestedIntegrationEvent for Sensor SENSOR-001
-```
-
-### Métricas (Futuro - OpenTelemetry)
-
-- `analytics_worker_events_processed_total` - Total de eventos processados
-- `analytics_worker_alerts_generated_total{type="high_temperature"}` - Alertas por tipo
-- `analytics_worker_processing_duration_seconds` - Duração do processamento
-
-### Health Checks
-
-```bash
-GET /health
-
-{
-  "status": "Healthy",
-  "checks": {
-    "database": "Healthy",
-    "rabbitmq": "Healthy",
-    "event_store": "Healthy"
+  "eventId": "uuid",
+  "occurredOn": "2025-02-01T14:00:00Z",
+  "eventName": "HighTemperatureDetectedIntegrationEvent",
+  "aggregateId": "alert-uuid",
+  "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+  "sensorLabel": "Sensor-001",
+  "plotId": "plot-uuid",
+  "plotName": "Plot A",
+  "temperature": 38.5,
+  "threshold": 35.0,
+  "severity": "Critical",
+  "metadata": {
+    "humidity": 65.0,
+    "soilMoisture": 45.0
   }
 }
 ```
 
 ---
 
-## 🧑‍💻 Contribuindo
+### 2. Low Soil Moisture 💧
 
-### Fluxo de Desenvolvimento
+**Condition:** `SoilMoisture < MinSoilMoisture` (default: 20%)
 
-1. **Fork** o repositório
-2. Crie uma **feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit** suas mudanças (`git commit -m 'feat: add amazing feature'`)
-4. **Push** para a branch (`git push origin feature/amazing-feature`)
-5. Abra um **Pull Request**
+**Severity:** High
 
-### Padrões de Commit
+**Automatic Actions:**
+- ✅ Creates alert in database (status: Pending)
+- ✅ Publishes `LowSoilMoistureDetectedIntegrationEvent` event to RabbitMQ
+- ✅ Notifies connected dashboards via SignalR in real-time
 
-Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
+**Event Consumers:**
+- **Irrigation Service** → **Activates automatic irrigation** 🚰
+- **Alert Notification Service** → Notifies need for action
+- **Dashboard UI** → Displays irrigation recommendation
 
+**Published Event Example:**
+```json
+{
+  "eventId": "uuid",
+  "occurredOn": "2025-02-01T14:00:00Z",
+  "eventName": "LowSoilMoistureDetectedIntegrationEvent",
+  "aggregateId": "alert-uuid",
+  "sensorId": "550e8400-e29b-41d4-a716-446655440002",
+  "sensorLabel": "Sensor-002",
+  "plotId": "plot-uuid",
+  "plotName": "Plot B",
+  "soilMoisture": 15.0,
+  "threshold": 20.0,
+  "severity": "High"
+}
 ```
-feat: adiciona suporte a novo tipo de alerta
-fix: corrige cálculo de threshold
-docs: atualiza README com exemplos
-test: adiciona testes para AlertThresholds
-refactor: melhora performance do handler
+
+---
+
+### 3. Low Battery 🔋
+
+**Condition:** `BatteryLevel < MinBatteryLevel` (default: 15%)
+
+**Severity:** Medium
+
+**Automatic Actions:**
+- ✅ Creates alert in database (status: Pending)
+- ✅ Publishes `BatteryLowWarningIntegrationEvent` event to RabbitMQ
+- ✅ Notifies connected dashboards via SignalR in real-time
+
+**Event Consumers:**
+- **Maintenance Service** → Schedules battery replacement
+- **Alert Notification Service** → Notifies technical team
+- **Dashboard UI** → Displays maintenance warning
+
+**Published Event Example:**
+```json
+{
+  "eventId": "uuid",
+  "occurredOn": "2025-02-01T14:00:00Z",
+  "eventName": "BatteryLowWarningIntegrationEvent",
+  "aggregateId": "alert-uuid",
+  "sensorId": "550e8400-e29b-41d4-a716-446655440003",
+  "sensorLabel": "Sensor-003",
+  "plotId": "plot-uuid",
+  "plotName": "Plot C",
+  "batteryLevel": 10.0,
+  "threshold": 15.0,
+  "severity": "Medium"
+}
 ```
 
-### Executar Testes Antes de Commitar
+---
+
+### 4. Sensor Offline 📡❌
+
+**Condition:** `sensor.Status == SensorOperationalStatus.Inactive`
+
+**Severity:** Critical
+
+**Automatic Actions:**
+- ✅ Creates alert in database (status: Pending)
+- ✅ Publishes `SensorOfflineDetectedIntegrationEvent` event to RabbitMQ
+- ✅ Notifies connected dashboards via SignalR in real-time
+
+**Event Consumers:**
+- **Monitoring Service** → Records incident
+- **Alert Notification Service** → Urgently notifies technical team
+- **Dashboard UI** → Displays sensor as offline on map
+
+---
+
+## 🔌 REST API
+
+### Base URL
+
+- **Development:** `http://localhost:5174`
+- **Production:** `https://api.tc-agro.com/analytics`
+
+### Endpoints
+
+#### 1. **GET /api/alerts/pending** - List Pending Alerts
+
+Returns alerts with `Pending` status, ordered by severity and creation date.
+
+**Query Parameters:**
+- `pageNumber` (int, optional): Page number (default: 1)
+- `pageSize` (int, optional): Page size (default: 10, max: 100)
+
+**Response 200 OK:**
+```json
+{
+  "alerts": [
+    {
+      "id": "6e1d2316-c80b-4f6e-87a7-661172cea2f3",
+      "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+      "sensorLabel": "Sensor-001",
+      "plotName": "Plot A",
+      "propertyName": "Farm XYZ",
+      "ownerName": "John Doe",
+      "type": "HighTemperature",
+      "message": "High temperature detected: 42.5°C (threshold: 35.0°C)",
+      "status": "Pending",
+      "severity": "Critical",
+      "value": 42.5,
+      "threshold": 35.0,
+      "createdAt": "2025-02-01T14:00:00Z"
+    }
+  ],
+  "totalCount": 15,
+  "pageNumber": 1,
+  "pageSize": 10,
+  "hasNextPage": true,
+  "hasPreviousPage": false
+}
+```
+
+#### 2. **GET /api/alerts/history/{sensorId}** - Alert History
+
+Returns alert history for a specific sensor.
+
+**Path Parameters:**
+- `sensorId` (Guid, required): Sensor ID
+
+**Query Parameters:**
+- `days` (int, optional): Period in days (default: 30, max: 365)
+- `type` (string, optional): Filter by type (`HighTemperature`, `LowSoilMoisture`, `LowBattery`, `SensorOffline`)
+- `status` (string, optional): Filter by status (`Pending`, `Acknowledged`, `Resolved`, `Expired`)
+- `pageNumber` (int, optional): Page number (default: 1)
+- `pageSize` (int, optional): Page size (default: 20, max: 100)
+
+**Response 200 OK:**
+```json
+{
+  "alerts": [
+    {
+      "id": "uuid",
+      "type": "HighTemperature",
+      "severity": "Critical",
+      "message": "High temperature: 42.5°C",
+      "value": 42.5,
+      "threshold": 35.0,
+      "status": "Resolved",
+      "createdAt": "2025-02-01T14:00:00Z",
+      "acknowledgedAt": "2025-02-01T14:15:00Z",
+      "acknowledgedBy": "admin-user-id",
+      "resolvedAt": "2025-02-01T15:30:00Z",
+      "resolvedBy": "admin-user-id",
+      "resolutionNotes": "Irrigation activated, temperature normalized"
+    }
+  ],
+  "totalCount": 45,
+  "pageNumber": 1,
+  "pageSize": 20
+}
+```
+
+#### 3. **GET /api/alerts/status/{sensorId}** - Current Sensor Status
+
+Returns overview of alert status for a sensor.
+
+**Response 200 OK:**
+```json
+{
+  "sensorId": "550e8400-e29b-41d4-a716-446655440001",
+  "sensorLabel": "Sensor-001",
+  "plotName": "Plot A",
+  "propertyName": "Farm XYZ",
+  "hasActiveAlerts": true,
+  "pendingAlertsCount": 2,
+  "criticalAlertsCount": 1,
+  "lastAlertAt": "2025-02-01T14:00:00Z",
+  "lastReadingAt": "2025-02-01T14:30:00Z",
+  "overallStatus": "Critical"
+}
+```
+
+#### 4. **POST /api/alerts/{id}/acknowledge** - Acknowledge Alert
+
+Changes status from `Pending` to `Acknowledged`.
+
+**Request Body:**
+```json
+{
+  "userId": "650e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+**Response 200 OK:**
+```json
+{
+  "id": "alert-uuid",
+  "status": "Acknowledged",
+  "acknowledgedAt": "2025-02-01T14:15:00Z",
+  "acknowledgedBy": "650e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+#### 5. **POST /api/alerts/{id}/resolve** - Resolve Alert
+
+Changes status from `Acknowledged` to `Resolved`.
+
+**Request Body:**
+```json
+{
+  "userId": "650e8400-e29b-41d4-a716-446655440001",
+  "resolutionNotes": "Irrigation manually activated. Temperature normalized after 1h."
+}
+```
+
+**Response 200 OK:**
+```json
+{
+  "id": "alert-uuid",
+  "status": "Resolved",
+  "resolvedAt": "2025-02-01T15:30:00Z",
+  "resolvedBy": "650e8400-e29b-41d4-a716-446655440001",
+  "resolutionNotes": "Irrigation manually activated. Temperature normalized after 1h."
+}
+```
+
+### Swagger UI
+
+Interactive documentation available at: `http://localhost:5174/swagger`
+
+---
+
+## 📡 Real-Time Notifications (SignalR)
+
+### Hub Endpoint
+
+**WebSocket URL:** `ws://localhost:5174/dashboard/alertshub`
+
+### JavaScript Client
+
+```javascript
+// Connect to hub
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("http://localhost:5174/dashboard/alertshub")
+    .withAutomaticReconnect()
+    .build();
+
+// Subscribe to alerts from specific sensors
+await connection.start();
+await connection.invoke("SubscribeToAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+
+// Receive real-time alerts
+connection.on("ReceiveAlert", (alert) => {
+    console.log("🚨 New alert:", alert);
+    // { type: "HighTemperature", severity: "Critical", sensorLabel: "Sensor-001", ... }
+});
+
+// Receive acknowledgement notifications
+connection.on("AlertAcknowledged", (alertId, userId) => {
+    console.log(`✅ Alert ${alertId} acknowledged by ${userId}`);
+});
+
+// Receive resolution notifications
+connection.on("AlertResolved", (alertId, userId, notes) => {
+    console.log(`✔️ Alert ${alertId} resolved: ${notes}`);
+});
+
+// Unsubscribe
+await connection.invoke("UnsubscribeFromAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+```
+
+### Hub Methods
+
+| Method | Parameters | Description |
+|--------|------------|-------------|
+| `SubscribeToAlerts` | `string[] sensorIds` | Subscribes to alerts from specific sensors |
+| `UnsubscribeFromAlerts` | `string[] sensorIds` | Unsubscribes |
+
+### Received Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `ReceiveAlert` | `AlertDto` | New alert created |
+| `AlertAcknowledged` | `{ alertId, userId, timestamp }` | Alert acknowledged |
+| `AlertResolved` | `{ alertId, userId, notes, timestamp }` | Alert resolved |
+
+---
+
+## 📈 Metrics & Observability
+
+### Structured Logging (Serilog)
+
+All logs are structured and enriched with context:
+
+```json
+{
+  "timestamp": "2025-02-01T14:00:00.123Z",
+  "level": "Warning",
+  "message": "Alert created: HighTemperature for Sensor {SensorId}. Temperature: {Temperature}°C (Threshold: {Threshold}°C)",
+  "properties": {
+    "SensorId": "550e8400-e29b-41d4-a716-446655440001",
+    "Temperature": 42.5,
+    "Threshold": 35.0,
+    "AlertId": "6e1d2316-c80b-4f6e-87a7-661172cea2f3",
+    "CorrelationId": "trace-123",
+    "ServiceName": "AnalyticsWorker",
+    "Environment": "Production"
+  }
+}
+```
+
+**Configured sinks:**
+- Console (development)
+- File (rolling daily)
+- Azure Monitor / Application Insights (production)
+- Grafana Loki (optional)
+
+### OpenTelemetry (Distributed Tracing)
+
+Automatic instrumentation of:
+- HTTP requests (FastEndpoints)
+- Database calls (EF Core)
+- RabbitMQ messages (WolverineFx)
+- SignalR connections
+
+**Traces exported to:**
+- Azure Monitor / Application Insights
+- Jaeger (local development)
+- Grafana Tempo (optional)
+
+### Metrics (OpenTelemetry Metrics)
+
+Custom metrics implemented:
+
+```csharp
+// Counters
+analytics_worker_alerts_created_total{type="HighTemperature",severity="Critical"}
+analytics_worker_events_processed_total{handler="SensorIngestedInHandler"}
+analytics_worker_signalr_notifications_sent_total
+
+// Histograms
+analytics_worker_processing_duration_seconds{handler="SensorIngestedInHandler"}
+analytics_worker_database_query_duration_seconds{operation="GetPendingAlerts"}
+
+// Gauges
+analytics_worker_pending_alerts_count
+analytics_worker_connected_signalr_clients
+```
+
+**Export:**
+- Prometheus (scraping endpoint: `/metrics`)
+- Azure Monitor
+- Grafana Cloud
+
+### Dashboards
+
+#### **Grafana Dashboard - Analytics Worker**
+
+- 📊 Event processing rate (events/s)
+- 🚨 Alerts created by type and severity
+- ⏱️ Average processing latency
+- 💾 Database query performance
+- 🔌 Connected SignalR clients
+- ❌ Error and failure rate
+
+#### **Azure Application Insights**
+
+- Live Metrics (real-time)
+- Application Map (dependencies)
+- Transaction Search (distributed traces)
+- Failures (exceptions and errors)
+- Performance (slowest operations)
+
+### Health Checks
+
+Health check endpoints:
 
 ```bash
-# Executar todos os testes
-dotnet test
+# Basic health check
+GET /health
+Response: 200 OK { "status": "Healthy" }
 
-# Executar build
+# Detailed health check
+GET /health/detailed
+Response: 200 OK
+{
+  "status": "Healthy",
+  "checks": {
+    "database": {
+      "status": "Healthy",
+      "responseTime": "15ms"
+    },
+    "rabbitmq": {
+      "status": "Healthy",
+      "responseTime": "8ms"
+    }
+  },
+  "timestamp": "2025-02-01T14:00:00Z"
+}
+```
+
+**Implemented checks:**
+- PostgreSQL (connection + query test)
+- RabbitMQ (connection + queue existence)
+- Disk space
+- Memory usage
+
+---
+
+## 📚 Documentation
+
+### Complete Technical Documentation
+
+| Document | Description | Link |
+|----------|-------------|------|
+| **C4 Architecture Diagrams** | 12 complete Mermaid diagrams of architecture (Context, Container, Component, etc.) | [📐 View Diagrams](docs/C4_ARCHITECTURE_DIAGRAMS.md) |
+| **Testing Guide** | Complete guide for unit, integration, and E2E tests | [🧪 View Guide](docs/TESTING_GUIDE.md) |
+| **E2E Testing Guide** | Setup and execution of end-to-end tests with RabbitMQ + PostgreSQL | [🔄 View Guide](docs/E2E_TESTING_GUIDE.md) |
+| **Quick Start E2E** | Quick setup in 5 minutes | [⚡ View Guide](docs/QUICK_START_E2E.md) |
+| **RUN_PROJECT.md** | Detailed execution and configuration guide | [🚀 View Guide](docs/RUN_PROJECT.md) |
+| **Validation Checklist** | Complete step-by-step validation checklist | [✅ View Checklist](docs/VALIDATION_CHECKLIST.md) |
+
+### Available Diagrams (Mermaid)
+
+All diagrams are automatically rendered on GitHub:
+
+✅ **Level 1 - Context:** System in TC.Agro ecosystem  
+✅ **Level 2 - Container:** Containers, technologies, and communication  
+✅ **Level 3 - Component (Query Side):** Endpoints, handlers, repositories  
+✅ **Level 3 - Component (Command Side):** Message handlers and domain logic  
+✅ **Clean Architecture:** Layers and dependencies  
+✅ **CQRS Flow:** Separation of commands and queries  
+✅ **Event Flow:** Complete event processing sequence  
+✅ **Real-Time Flow:** SignalR notifications  
+✅ **Deployment:** Cloud architecture (Azure/AWS)  
+✅ **Domain Model:** Class diagram with aggregates and value objects  
+✅ **Database Schema:** Data model (EF Core)  
+✅ **Security:** Authentication, authorization, and communication security  
+
+### API Documentation
+
+- **Swagger UI:** `http://localhost:5174/swagger` (development environment)
+- **OpenAPI Spec:** `http://localhost:5174/swagger/v1/swagger.json`
+
+### External Documentation
+
+| Technology | Official Documentation |
+|------------|----------------------|
+| .NET 10 | https://learn.microsoft.com/en-us/dotnet/ |
+| Entity Framework Core | https://learn.microsoft.com/en-us/ef/core/ |
+| WolverineFx | https://wolverine.netlify.app/ |
+| FastEndpoints | https://fast-endpoints.com/ |
+| SignalR | https://learn.microsoft.com/en-us/aspnet/core/signalr/ |
+| RabbitMQ | https://www.rabbitmq.com/documentation.html |
+| PostgreSQL | https://www.postgresql.org/docs/ |
+
+---
+
+## 🧑‍💻 Contributing
+
+Contributions are welcome! 🎉
+
+### Development Flow
+
+1. **Fork** the repository
+2. Create a **feature branch** (`git checkout -b feature/new-feature`)
+3. **Commit** your changes using [Conventional Commits](#commit-standards)
+4. Run **tests** (`dotnet test`)
+5. **Push** to the branch (`git push origin feature/new-feature`)
+6. Open a **Pull Request** with detailed description
+
+### Commit Standards
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```bash
+feat: add endpoint for report export
+fix: correct alert severity calculation
+docs: update README with new endpoints
+test: add tests for AlertAggregate
+refactor: improve SensorIngestedInHandler performance
+chore: update project dependencies
+perf: optimize pending alerts query
+style: format code following .editorconfig
+```
+
+### Code Style
+
+The project follows **.editorconfig** conventions:
+
+- Indentation: 4 spaces
+- Naming: PascalCase for classes, camelCase for variables
+- Maximum line length: 120 characters
+- Use `var` when type is obvious
+- Always use `{}` in if/for/while blocks
+- Order usings alphabetically
+
+### Run Tests Before Committing
+
+```bash
+# Build without errors
 dotnet build
 
-# Verificar warnings do SonarLint
-dotnet build /p:TreatWarningsAsErrors=true
+# All tests passing
+dotnet test
+
+# Check code style (optional)
+dotnet format --verify-no-changes
 ```
 
 ### Code Review Checklist
 
-- [ ] Testes unitários adicionados/atualizados
-- [ ] Build passa sem erros
-- [ ] Todos os testes passam
-- [ ] Documentação atualizada (se necessário)
-- [ ] Commit message segue padrão
-- [ ] Código segue princípios DDD/Clean Architecture
+- [ ] ✅ Code follows DDD and Clean Architecture principles
+- [ ] ✅ Unit tests added/updated (minimum coverage: 80%)
+- [ ] ✅ Build passes without warnings
+- [ ] ✅ All tests pass
+- [ ] ✅ Commit message follows Conventional Commits
+- [ ] ✅ Documentation updated (if needed)
+- [ ] ✅ No commented code or console.logs
+- [ ] ✅ Variables and methods with descriptive names
+- [ ] ✅ Proper error handling (Result Pattern)
+- [ ] ✅ Structured logs added where relevant
+
+### Report Bugs
+
+Open an issue with:
+- **Clear title:** e.g., "Low battery alert is not being created"
+- **Description:** What happened vs. what should happen
+- **Steps to reproduce:** Numbered list
+- **Environment:** OS, .NET version, Docker version
+- **Logs:** Attach relevant logs (use `dotnet run --verbosity detailed`)
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
+This project is licensed under the **MIT License**.
 
----
+```
+MIT License
 
-## 📚 Documentação
+Copyright (c) 2025 FIAP - Class 3NETT
 
-### **Documentação Técnica Completa:**
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-| Documento | Descrição | Link |
-|-----------|-----------|------|
-| **C4 Architecture Diagrams** | 12 diagramas completos da arquitetura (Context, Container, Component) | [📐 Ver Diagramas](docs/C4_ARCHITECTURE_DIAGRAMS.md) |
-| **Architecture Validation Report** | Relatório completo de validação da arquitetura (Score: 98/100) | [📊 Ver Relatório](ARCHITECTURE_VALIDATION_REPORT.md) |
-| **Testing Guide** | Guia completo de testes (104 testes, 93% cobertura) | [🧪 Ver Guia](TESTING_GUIDE.md) |
-| **Validation Checklist** | Checklist de validação passo a passo | [✅ Ver Checklist](VALIDATION_CHECKLIST.md) |
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-### **Diagramas Disponíveis (Mermaid):**
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
-✅ **Nível 1 - Context:** Sistema no ecossistema  
-✅ **Nível 2 - Container:** Containers e tecnologias  
-✅ **Nível 3 - Component:** Componentes internos (Query + Command Side)  
-✅ **Clean Architecture:** Camadas e dependências  
-✅ **Event Flow:** Sequência completa de processamento  
-✅ **Data Flow:** Separação CQRS  
-✅ **Deployment:** Infraestrutura cloud  
-✅ **Domain Model:** Class diagram DDD  
-✅ **Performance:** Estratégias de otimização  
-✅ **Security:** Arquitetura de segurança  
-
-**Todos os diagramas são renderizados automaticamente no GitHub!** 🎨
+See [LICENSE](LICENSE) file for complete details.
 
 ---
 
-## 🤝 Créditos
+## 🤝 Credits
 
-**Desenvolvido por:** [FIAP - Turma 3NETT](https://www.fiap.com.br)
+**Developed by:** [FIAP - Class 3NETT](https://www.fiap.com.br) - Postgraduate in .NET Software Architecture
 
-**Arquitetura:** Clean Architecture + DDD + Event Sourcing
+**Architecture:** Clean Architecture + Domain-Driven Design + CQRS + Event-Driven Architecture
 
-**Frameworks Principais:**
-- [Marten](https://martendb.io/) - Event Store & Document DB
-- [Wolverine](https://wolverine.netlify.app/) - Message Bus
-- [Ardalis.Result](https://github.com/ardalis/Result) - Result Pattern
+**Main Technologies:**
+- [.NET 10](https://dotnet.microsoft.com/) - Modern, high-performance framework
+- [Entity Framework Core 10](https://learn.microsoft.com/en-us/ef/core/) - Powerful ORM
+- [WolverineFx 5](https://wolverine.netlify.app/) - Message Bus with Outbox Pattern
+- [FastEndpoints 7](https://fast-endpoints.com/) - Minimalist API framework
+- [SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/) - Real-time communication
+- [PostgreSQL 16](https://www.postgresql.org/) - Robust relational database
+- [RabbitMQ 4](https://www.rabbitmq.com/) - Enterprise message broker
+
+**Patterns & Practices:**
+- Clean Architecture (Robert C. Martin)
+- Domain-Driven Design (Eric Evans)
+- CQRS (Command Query Responsibility Segregation)
+- Event-Driven Architecture
+- Outbox Pattern (consistency guarantee)
+- Repository Pattern
+- Result Pattern (Ardalis)
 
 ---
 
-## 📞 Suporte
+## 📞 Support
 
 **Issues:** [GitHub Issues](https://github.com/rdpresser/tc-agro-analytics-worker/issues)
 
-**Documentação:** [Wiki](https://github.com/rdpresser/tc-agro-analytics-worker/wiki)
-
 **Email:** support@tc-agro.com
+
+**Discussions:** [GitHub Discussions](https://github.com/rdpresser/tc-agro-analytics-worker/discussions)
 
 ---
 
 ## 🎯 Roadmap
 
-### ✅ v1.0.0 (Atual)
+### ✅ v1.0.0 (Current - Release 2025-02-01)
 
-- [x] Event Sourcing com Marten
-- [x] CQRS completo (Command/Query separation)
-- [x] Outbox Pattern
-- [x] 3 tipos de alertas (HighTemp, LowSoilMoisture, BatteryLow)
-- [x] **104 testes automatizados (100% passing)** ⭐
-- [x] **93% de cobertura de testes** ⭐
-- [x] Configuração via appsettings
-- [x] **12 diagramas C4 Model completos** ⭐
-- [x] **Documentação técnica completa** ⭐
-- [x] FastEndpoints (Minimal APIs)
-- [x] Clean Architecture implementation
+- [x] Clean Architecture with DDD
+- [x] Complete CQRS (Command/Query separation)
+- [x] Event-Driven Architecture with RabbitMQ
+- [x] Outbox Pattern (Wolverine) for transactional consistency
+- [x] 4 alert types (HighTemp, LowSoilMoisture, LowBattery, SensorOffline)
+- [x] Complete alert lifecycle (Pending → Acknowledged → Resolved)
+- [x] REST API with FastEndpoints
+- [x] Real-time notifications with SignalR
+- [x] Snapshots for query optimization
+- [x] OpenTelemetry (traces + metrics)
+- [x] Unit and integration tests
+- [x] 12 C4 Model diagrams (Mermaid)
+- [x] Complete technical documentation
+- [x] Docker Compose for local development
+- [x] Health Checks
 
-### 🚧 v1.1.0 (Próxima Release)
+### 🚧 v1.1.0 (Next Release - Q2 2025)
 
-- [ ] OpenTelemetry integration
-- [ ] Prometheus metrics
-- [ ] Grafana dashboards
-- [ ] Rate limiting
-- [ ] Circuit breaker
+- [ ] Pre-configured Grafana dashboards
+- [ ] Alerts with automatic expiration (configurable TTL)
+- [ ] Multi-language support (i18n)
+- [ ] Advanced API filters (by severity, custom date range)
+- [ ] Report export (PDF, Excel)
+- [ ] Redis cache for frequent queries
+- [ ] Rate limiting and throttling
+- [ ] Circuit breaker with Polly
 
-### 🔮 v2.0.0 (Futuro)
+### 🔮 v2.0.0 (Future - Q4 2025)
 
-- [ ] Machine Learning para predição de alertas
-- [ ] Agregação de dados históricos
-- [ ] API GraphQL para consultas
-- [ ] Suporte a múltiplos tipos de sensores
+- [ ] Machine Learning for alert prediction (Azure ML)
+- [ ] Historical pattern analysis
+- [ ] Automatic action recommendations
+- [ ] GraphQL API (in addition to REST)
+- [ ] Support for custom webhooks
+- [ ] Integrations with Telegram, Slack, Microsoft Teams
+- [ ] Mobile dashboard (Blazor Hybrid)
+- [ ] Support for multiple sensor types (weather, soil, pests)
 
 ---
 
 <div align="center">
 
-**⭐ Se este projeto foi útil, considere dar uma estrela!**
+**⭐ If this project was helpful, consider giving it a star on GitHub!**
 
 [![GitHub stars](https://img.shields.io/github/stars/rdpresser/tc-agro-analytics-worker?style=social)](https://github.com/rdpresser/tc-agro-analytics-worker)
+
+---
+
+**🌾 TC.Agro Solutions - Technology for Smart Agribusiness**
+
+[Website](https://tc-agro.com) • [GitHub](https://github.com/rdpresser) • [LinkedIn](https://linkedin.com/company/tc-agro)
 
 </div>
