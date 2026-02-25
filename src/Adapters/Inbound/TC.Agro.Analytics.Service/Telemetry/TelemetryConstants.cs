@@ -9,7 +9,7 @@ internal static class TelemetryConstants
     public const string Version = "1.0.0";
 
     // Service Identity - Centralized for consistency (matches Docker Compose)
-    public const string ServiceName = "tc-agro-analytics";
+    public const string ServiceName = "tc-agro-analytics-worker";
     public const string ServiceNamespace = "tcagro";
 
     // Meter Names for OpenTelemetry Metrics
