@@ -229,7 +229,7 @@ internal static class ServiceCollectionExtensions
         builder.Host.UseWolverine(opts =>
         {
             opts.UseSystemTextJsonForSerialization();
-            opts.ServiceName = "tc-agro-analytics-worker";
+            opts.ServiceName = TelemetryConstants.ServiceName;
             opts.ApplicationAssembly = typeof(Program).Assembly;
 
             // Include Application assembly for handlers
