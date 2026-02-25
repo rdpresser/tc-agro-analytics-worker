@@ -7,7 +7,7 @@
 
 > **Event-Driven Microservice** for processing agricultural IoT sensor data with automatic alert detection and real-time notifications.
 
-🇺🇸 **English Documentation** | 🇧🇷 **[Documentação em Português](README.md)**
+
 
 ---
 
@@ -1124,9 +1124,10 @@ const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
-// Subscribe to alerts from specific sensors
+// Join a plot group to receive alerts from all sensors in that plot
 await connection.start();
-await connection.invoke("SubscribeToAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+const plotId = "550e8400-e29b-41d4-a716-446655440001"; // Your plot ID
+await connection.invoke("JoinPlotGroup", plotId);
 
 // Receive real-time alerts
 connection.on("ReceiveAlert", (alert) => {
@@ -1145,15 +1146,15 @@ connection.on("AlertResolved", (alertId, userId, notes) => {
 });
 
 // Unsubscribe
-await connection.invoke("UnsubscribeFromAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+await connection.invoke("LeavePlotGroup", plotId);
 ```
 
 ### Hub Methods
 
 | Method | Parameters | Description |
 |--------|------------|-------------|
-| `SubscribeToAlerts` | `string[] sensorIds` | Subscribes to alerts from specific sensors |
-| `UnsubscribeFromAlerts` | `string[] sensorIds` | Unsubscribes |
+| `JoinPlotGroup` | `string plotId` | Joins a plot group to receive alerts from all sensors in that plot |
+| `LeavePlotGroup` | `string plotId` | Leaves a plot group |
 
 ### Received Events
 
