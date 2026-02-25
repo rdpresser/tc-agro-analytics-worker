@@ -1,3 +1,5 @@
+using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
+
 namespace TC.Agro.Analytics.Service.Services;
 
 internal sealed class AlertHubNotifier : IAlertHubNotifier
@@ -6,18 +8,18 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
 
     private readonly IHubContext<AlertHub, IAlertHubClient> _hubContext;
     private readonly ISensorSnapshotStore _snapshotStore;
-    private readonly IFusionCache _cache;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<AlertHubNotifier> _logger;
 
     public AlertHubNotifier(
         IHubContext<AlertHub, IAlertHubClient> hubContext,
         ISensorSnapshotStore snapshotStore,
-        IFusionCache cache,
+        ICacheService cacheService,
         ILogger<AlertHubNotifier> logger)
     {
         _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
         _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
-        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -169,13 +171,13 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
     {
         var cacheKey = $"sensor:snapshot:{sensorId}";
 
-        return await _cache.GetOrSetAsync<SensorSnapshot?>(
+        return await _cacheService.GetOrSetAsync(
             cacheKey,
-            async (_, ct) =>
+            async ct =>
             {
                 var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
                 return snapshot;
             },
-            new FusionCacheEntryOptions { Duration = SensorSnapshotCacheDuration }).ConfigureAwait(false);
+            duration: SensorSnapshotCacheDuration).ConfigureAwait(false);
     }
 }
