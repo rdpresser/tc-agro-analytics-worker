@@ -7,8 +7,6 @@
 
 > **Event-Driven Microservice** for processing agricultural IoT sensor data with automatic alert detection and real-time notifications.
 
-
-
 ---
 
 ## 📋 Table of Contents
@@ -1124,10 +1122,9 @@ const connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build();
 
-// Join a plot group to receive alerts from all sensors in that plot
+// Subscribe to alerts from specific sensors
 await connection.start();
-const plotId = "550e8400-e29b-41d4-a716-446655440001"; // Your plot ID
-await connection.invoke("JoinPlotGroup", plotId);
+await connection.invoke("SubscribeToAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
 
 // Receive real-time alerts
 connection.on("ReceiveAlert", (alert) => {
@@ -1146,15 +1143,15 @@ connection.on("AlertResolved", (alertId, userId, notes) => {
 });
 
 // Unsubscribe
-await connection.invoke("LeavePlotGroup", plotId);
+await connection.invoke("UnsubscribeFromAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
 ```
 
 ### Hub Methods
 
 | Method | Parameters | Description |
 |--------|------------|-------------|
-| `JoinPlotGroup` | `string plotId` | Joins a plot group to receive alerts from all sensors in that plot |
-| `LeavePlotGroup` | `string plotId` | Leaves a plot group |
+| `SubscribeToAlerts` | `string[] sensorIds` | Subscribes to alerts from specific sensors |
+| `UnsubscribeFromAlerts` | `string[] sensorIds` | Unsubscribes |
 
 ### Received Events
 
