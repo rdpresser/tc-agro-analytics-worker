@@ -1,9 +1,9 @@
 namespace TC.Agro.Analytics.Service.Endpoints.Alerts;
 
 /// <summary>
-/// Endpoint to retrieve all active alerts (Pending + Acknowledged) across all plots.
+/// Endpoint to retrieve pending alerts across all plots.
 /// GET /alerts/pending?pageNumber=1&pageSize=100
-/// Returns alerts that need attention (excludes Resolved alerts).
+/// Returns alerts with status Pending.
 /// Uses PaginatedResponse from SharedKernel (standard pattern).
 /// </summary>
 public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>
@@ -26,13 +26,18 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
 
         Summary(s =>
         {
-            s.Summary = "Get active alerts (Pending + Acknowledged)";
-            s.Description = "Retrieves all alerts with status 'Pending' or 'Acknowledged' (excludes Resolved), ordered by creation date";
+            s.Summary = "Get pending alerts";
+            s.Description = "Retrieves all alerts with status 'Pending', ordered by creation date";
             s.Params["pageNumber"] = "Page number (default: 1)";
             s.Params["pageSize"] = "Page size (default: 100, max: 500)";
+            s.Params["ownerId"] = "Optional owner filter for Admin users. Ignored for Producer users (always scoped to authenticated owner).";
+            s.Params["search"] = "Optional backend search in alert type/message.";
+            s.Params["severity"] = "Optional severity filter: critical, warning, info, high, medium, low.";
+            s.Params["status"] = "Optional status filter: pending, acknowledged, resolved, all.";
 
             s.ExampleRequest = new GetPendingAlertsQuery
             {
+                OwnerId = Guid.Parse("d4d4c49a-5c31-4c9d-babf-a2be5148f0a8"),
                 PageNumber = 1,
                 PageSize = 20
             };

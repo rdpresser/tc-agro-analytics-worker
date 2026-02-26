@@ -7,11 +7,16 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
 /// </summary>
 public sealed record GetPendingAlertsQuery : ICachedQuery<PaginatedResponse<PendingAlertResponse>>
 {
+    public Guid? OwnerId { get; init; }
+    public string? Search { get; init; }
+    public string? Severity { get; init; }
+    public string? Status { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = PaginationParams.DefaultPageSize;
 
     private string? _cacheKey;
-    public string GetCacheKey => _cacheKey ?? $"GetPendingAlertsQuery-{PageNumber}:size-{PageSize}";
+    public string GetCacheKey => _cacheKey
+        ?? $"GetPendingAlertsQuery-{OwnerId}-page-{PageNumber}:size-{PageSize}:search-{Search}:severity-{Severity}:status-{Status}";
 
     public TimeSpan? Duration => TimeSpan.FromSeconds(10);
     public TimeSpan? DistributedCacheDuration => TimeSpan.FromSeconds(30);
@@ -24,6 +29,6 @@ public sealed record GetPendingAlertsQuery : ICachedQuery<PaginatedResponse<Pend
 
     public void SetCacheKey(string cacheKey)
     {
-        _cacheKey = $"GetPendingAlertsQuery:page-{PageNumber}:size-{PageSize}-{cacheKey}";
+        _cacheKey = $"GetPendingAlertsQuery-{OwnerId}-page-{PageNumber}:size-{PageSize}:search-{Search}:severity-{Severity}:status-{Status}-{cacheKey}";
     }
 }
