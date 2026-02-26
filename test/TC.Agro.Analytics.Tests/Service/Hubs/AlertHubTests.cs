@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FakeItEasy;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging.Abstractions;
 using TC.Agro.Analytics.Application.Abstractions.Ports;
 using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
 using TC.Agro.Analytics.Domain.Snapshots;
@@ -22,7 +23,7 @@ public class AlertHubTests
         _alertReadStore = A.Fake<IAlertReadStore>();
         _snapshotStore = A.Fake<ISensorSnapshotStore>();
         _callerClient = A.Fake<IAlertHubClient>();
-        _hub = new AlertHub(_alertReadStore, _snapshotStore);
+        _hub = new AlertHub(_alertReadStore, _snapshotStore, NullLogger<AlertHub>.Instance);
 
         _hubCallerContext = A.Fake<HubCallerContext>();
         A.CallTo(() => _hubCallerContext.ConnectionId).Returns("test-connection-id");
@@ -165,6 +166,26 @@ public class AlertHubTests
         {
             new Claim(ClaimTypes.Role, "Producer"),
             new Claim(ClaimTypes.NameIdentifier, claimOwnerId.ToString())
+        });
+
+        await _hub.JoinOwnerGroup(Guid.NewGuid().ToString());
+
+        A.CallTo(() => _groups.AddToGroupAsync(
+                "test-connection-id",
+                $"owner:{claimOwnerId}",
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task JoinOwnerGroup_WithProducerRoleAndOidClaim_ShouldUseOwnerFromClaims()
+    {
+        var claimOwnerId = Guid.NewGuid();
+
+        SetUserContext(new[]
+        {
+            new Claim(ClaimTypes.Role, "Producer"),
+            new Claim("oid", claimOwnerId.ToString())
         });
 
         await _hub.JoinOwnerGroup(Guid.NewGuid().ToString());
