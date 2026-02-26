@@ -43,5 +43,14 @@ namespace TC.Agro.Analytics.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>A read-only list of active sensor snapshots in the plot</returns>
         Task<IReadOnlyList<SensorSnapshot>> GetByPlotIdAsync(Guid plotId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all active sensor snapshots for a specific owner.
+        /// Used by AlertHub owner-group join to preload recent alerts in owner scope.
+        /// </summary>
+        /// <param name="ownerId">The owner identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>A read-only list of active sensor snapshots for the owner</returns>
+        Task<IReadOnlyList<SensorSnapshot>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
     }
 }

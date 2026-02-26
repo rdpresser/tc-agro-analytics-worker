@@ -3,7 +3,7 @@
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Tests](https://img.shields.io/badge/tests-155%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Tests](https://img.shields.io/badge/tests-170%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 

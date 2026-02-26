@@ -13,8 +13,20 @@ public interface IAlertReadStore
     /// Returns PaginatedResponse from SharedKernel (standard pattern).
     /// </summary>
     Task<PaginatedResponse<PendingAlertResponse>> GetPendingAlertsAsync(
+        Guid? ownerId = null,
+        string? search = null,
+        string? severity = null,
+        string? status = null,
         int pageNumber = 1,
         int pageSize = 100,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get aggregated summary for pending alerts (dashboard KPIs).
+    /// </summary>
+    Task<PendingAlertsSummaryResponse> GetPendingAlertsSummaryAsync(
+        Guid? ownerId = null,
+        int windowHours = 24,
         CancellationToken cancellationToken = default);
 
     /// <summary>

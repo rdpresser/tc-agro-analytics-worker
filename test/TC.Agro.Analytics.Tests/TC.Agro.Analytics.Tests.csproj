@@ -26,6 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\Adapters\Inbound\TC.Agro.Analytics.Service\TC.Agro.Analytics.Service.csproj" />
+		<ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Application\TC.Agro.Analytics.Application.csproj" />
 		<ProjectReference Include="..\..\src\Core\TC.Agro.Analytics.Domain\TC.Agro.Analytics.Domain.csproj" />
 	</ItemGroup>
 

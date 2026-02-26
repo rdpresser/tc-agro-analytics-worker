@@ -40,6 +40,7 @@ global using TC.Agro.Analytics.Application.Abstractions;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.AcknowledgeAlert;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
+global using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlertsSummary;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 global using TC.Agro.Analytics.Application.UseCases.Alerts.ResolveAlert;
 global using TC.Agro.Analytics.Infrastructure;
