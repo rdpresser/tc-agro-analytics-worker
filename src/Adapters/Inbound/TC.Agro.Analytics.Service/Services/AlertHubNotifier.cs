@@ -59,7 +59,7 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
                 createdAt);
 
             await _hubContext.Clients
-                .Group($"plot:{sensor.PlotId}")
+                .Groups(new[] { $"plot:{sensor.PlotId}", $"owner:{sensor.OwnerId}" })
                 .AlertCreated(notification)
                 .ConfigureAwait(false);
 
@@ -103,7 +103,7 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
                 acknowledgedAt);
 
             await _hubContext.Clients
-                .Group($"plot:{sensor.PlotId}")
+                .Groups(new[] { $"plot:{sensor.PlotId}", $"owner:{sensor.OwnerId}" })
                 .AlertAcknowledged(notification)
                 .ConfigureAwait(false);
 
@@ -147,7 +147,7 @@ internal sealed class AlertHubNotifier : IAlertHubNotifier
                 resolvedAt);
 
             await _hubContext.Clients
-                .Group($"plot:{sensor.PlotId}")
+                .Groups(new[] { $"plot:{sensor.PlotId}", $"owner:{sensor.OwnerId}" })
                 .AlertResolved(notification)
                 .ConfigureAwait(false);
 

@@ -16,7 +16,7 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
     public async Task<SensorSnapshot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.SensorSnapshots
-                .IgnoreQueryFilters() 
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
     }
@@ -63,6 +63,15 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
         return await _dbContext.SensorSnapshots
             .AsNoTracking()
             .Where(s => s.PlotId == plotId && s.IsActive)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<SensorSnapshot>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.SensorSnapshots
+            .AsNoTracking()
+            .Where(s => s.OwnerId == ownerId && s.IsActive)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
