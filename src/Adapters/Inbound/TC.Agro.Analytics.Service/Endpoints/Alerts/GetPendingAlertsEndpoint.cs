@@ -55,7 +55,12 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                         35.0,
                         DateTimeOffset.UtcNow.AddMinutes(-15),
                         null,
-                        null),
+                        null,
+                        null,
+                        null,
+                        null,
+                        "Plot North",
+                        "Farm Alpha"),
                     new PendingAlertResponse(
                         Guid.NewGuid(),
                         Guid.Parse("b2c3d4e5-f6a7-4b6c-9d0e-1f2a3b4c5d6e"),
@@ -67,7 +72,12 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
                         20.0,
                         DateTimeOffset.UtcNow.AddMinutes(-30),
                         null,
-                        null)
+                        null,
+                        null,
+                        null,
+                        null,
+                        "Plot South",
+                        "Farm Beta")
                 ],
                 totalCount: 15,
                 pageNumber: 1,

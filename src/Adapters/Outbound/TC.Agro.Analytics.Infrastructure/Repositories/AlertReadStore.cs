@@ -120,7 +120,12 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Threshold,
                 a.CreatedAt,
                 a.AcknowledgedAt,
-                a.AcknowledgedBy))
+                a.AcknowledgedBy,
+                a.ResolvedAt,
+                a.ResolvedBy,
+                a.ResolutionNotes,
+                a.Sensor.PlotName,
+                a.Sensor.PropertyName))
             .ToListAsync(cancellationToken);
 
         return new PaginatedResponse<PendingAlertResponse>(
@@ -342,7 +347,12 @@ public sealed class AlertReadStore : IAlertReadStore
                 a.Threshold,
                 a.CreatedAt,
                 a.AcknowledgedAt,
-                a.AcknowledgedBy))
+                a.AcknowledgedBy,
+                a.ResolvedAt,
+                a.ResolvedBy,
+                a.ResolutionNotes,
+                a.Sensor.PlotName,
+                a.Sensor.PropertyName))
             .ToListAsync(cancellationToken);
 
         return alerts;
