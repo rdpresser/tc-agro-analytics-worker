@@ -3,7 +3,7 @@
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Tests](https://img.shields.io/badge/tests-93%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Tests](https://img.shields.io/badge/tests-170%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -420,7 +420,7 @@ curl http://localhost:5174/health
 # Expected response:
 {
   "status": "Healthy",
-  "timestamp": "2025-02-01T20:00:00Z",
+  "timestamp": "2026-02-01T20:00:00Z",
   "service": "Analytics Worker Service"
 }
 ```
@@ -846,7 +846,7 @@ Alert detection rules are implemented in the `CreateFromSensorData()` method:
 ```json
 {
   "eventId": "uuid",
-  "occurredOn": "2025-02-01T14:00:00Z",
+  "occurredOn": "2026-02-01T14:00:00Z",
   "eventName": "HighTemperatureDetectedIntegrationEvent",
   "aggregateId": "alert-uuid",
   "sensorId": "550e8400-e29b-41d4-a716-446655440001",
@@ -885,7 +885,7 @@ Alert detection rules are implemented in the `CreateFromSensorData()` method:
 ```json
 {
   "eventId": "uuid",
-  "occurredOn": "2025-02-01T14:00:00Z",
+  "occurredOn": "2026-02-01T14:00:00Z",
   "eventName": "LowSoilMoistureDetectedIntegrationEvent",
   "aggregateId": "alert-uuid",
   "sensorId": "550e8400-e29b-41d4-a716-446655440002",
@@ -920,7 +920,7 @@ Alert detection rules are implemented in the `CreateFromSensorData()` method:
 ```json
 {
   "eventId": "uuid",
-  "occurredOn": "2025-02-01T14:00:00Z",
+  "occurredOn": "2026-02-01T14:00:00Z",
   "eventName": "BatteryLowWarningIntegrationEvent",
   "aggregateId": "alert-uuid",
   "sensorId": "550e8400-e29b-41d4-a716-446655440003",
@@ -987,7 +987,7 @@ Returns alerts with `Pending` status, ordered by severity and creation date.
       "severity": "Critical",
       "value": 42.5,
       "threshold": 35.0,
-      "createdAt": "2025-02-01T14:00:00Z"
+      "createdAt": "2026-02-01T14:00:00Z"
     }
   ],
   "totalCount": 15,
@@ -1024,10 +1024,10 @@ Returns alert history for a specific sensor.
       "value": 42.5,
       "threshold": 35.0,
       "status": "Resolved",
-      "createdAt": "2025-02-01T14:00:00Z",
-      "acknowledgedAt": "2025-02-01T14:15:00Z",
+      "createdAt": "2026-02-01T14:00:00Z",
+      "acknowledgedAt": "2026-02-01T14:15:00Z",
       "acknowledgedBy": "admin-user-id",
-      "resolvedAt": "2025-02-01T15:30:00Z",
+      "resolvedAt": "2026-02-01T15:30:00Z",
       "resolvedBy": "admin-user-id",
       "resolutionNotes": "Irrigation activated, temperature normalized"
     }
@@ -1052,8 +1052,8 @@ Returns overview of alert status for a sensor.
   "hasActiveAlerts": true,
   "pendingAlertsCount": 2,
   "criticalAlertsCount": 1,
-  "lastAlertAt": "2025-02-01T14:00:00Z",
-  "lastReadingAt": "2025-02-01T14:30:00Z",
+  "lastAlertAt": "2026-02-01T14:00:00Z",
+  "lastReadingAt": "2026-02-01T14:30:00Z",
   "overallStatus": "Critical"
 }
 ```
@@ -1074,7 +1074,7 @@ Changes status from `Pending` to `Acknowledged`.
 {
   "id": "alert-uuid",
   "status": "Acknowledged",
-  "acknowledgedAt": "2025-02-01T14:15:00Z",
+  "acknowledgedAt": "2026-02-01T14:15:00Z",
   "acknowledgedBy": "650e8400-e29b-41d4-a716-446655440001"
 }
 ```
@@ -1096,7 +1096,7 @@ Changes status from `Acknowledged` to `Resolved`.
 {
   "id": "alert-uuid",
   "status": "Resolved",
-  "resolvedAt": "2025-02-01T15:30:00Z",
+  "resolvedAt": "2026-02-01T15:30:00Z",
   "resolvedBy": "650e8400-e29b-41d4-a716-446655440001",
   "resolutionNotes": "Irrigation manually activated. Temperature normalized after 1h."
 }
@@ -1125,8 +1125,7 @@ const connection = new signalR.HubConnectionBuilder()
 
 // Subscribe to alerts from specific sensors
 await connection.start();
-const plotId = "550e8400-e29b-41d4-a716-446655440001"; // Your plot ID
-await connection.invoke("JoinPlotGroup", plotId);
+await connection.invoke("SubscribeToAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
 
 // Receive real-time alerts
 connection.on("ReceiveAlert", (alert) => {
@@ -1145,15 +1144,15 @@ connection.on("AlertResolved", (alertId, userId, notes) => {
 });
 
 // Unsubscribe
-await connection.invoke("LeavePlotGroup", plotId);
+await connection.invoke("UnsubscribeFromAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
 ```
 
 ### Hub Methods
 
 | Method | Parameters | Description |
 |--------|------------|-------------|
-| `JoinPlotGroup` | `string plotId` | Joins a plot group to receive alerts from all sensors in that plot |
-| `LeavePlotGroup` | `string plotId` | Leaves a plot group |
+| `SubscribeToAlerts` | `string[] sensorIds` | Subscribes to alerts from specific sensors |
+| `UnsubscribeFromAlerts` | `string[] sensorIds` | Unsubscribes |
 
 ### Received Events
 
@@ -1173,7 +1172,7 @@ All logs are structured and enriched with context:
 
 ```json
 {
-  "timestamp": "2025-02-01T14:00:00.123Z",
+  "timestamp": "2026-02-01T14:00:00.123Z",
   "level": "Warning",
   "message": "Alert created: HighTemperature for Sensor {SensorId}. Temperature: {Temperature}°C (Threshold: {Threshold}°C)",
   "properties": {
@@ -1274,7 +1273,7 @@ Response: 200 OK
       "responseTime": "8ms"
     }
   },
-  "timestamp": "2025-02-01T14:00:00Z"
+  "timestamp": "2026-02-01T14:00:00Z"
 }
 ```
 
@@ -1418,7 +1417,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2025 FIAP - Hackathon Phase 5 - FIAP 8NETT - Group 25
+Copyright (c) 2026 FIAP - Hackathon Phase 5 - FIAP 8NETT - Group 25
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1481,7 +1480,7 @@ See [LICENSE](LICENSE) file for complete details.
 
 ## 🎯 Roadmap
 
-### ✅ v1.0.0 (Current - Release 2025-02-01)
+### ✅ v1.0.0 (Current - Release 2026-02-01)
 
 - [x] Clean Architecture with DDD
 - [x] Complete CQRS (Command/Query separation)
@@ -1499,7 +1498,7 @@ See [LICENSE](LICENSE) file for complete details.
 - [x] Docker Compose for local development
 - [x] Health Checks
 
-### 🚧 v1.1.0 (Next Release - Q2 2025)
+### 🚧 v1.1.0 (Next Release - Q2 2026)
 
 - [ ] Pre-configured Grafana dashboards
 - [ ] Alerts with automatic expiration (configurable TTL)
@@ -1510,7 +1509,7 @@ See [LICENSE](LICENSE) file for complete details.
 - [ ] Rate limiting and throttling
 - [ ] Circuit breaker with Polly
 
-### 🔮 v2.0.0 (Future - Q4 2025)
+### 🔮 v2.0.0 (Future - Q4 2026)
 
 - [ ] Machine Learning for alert prediction (Azure ML)
 - [ ] Historical pattern analysis
