@@ -3,8 +3,8 @@
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Tests](https://img.shields.io/badge/tests-170%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
-[![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Tests](https://img.shields.io/badge/tests-93%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
+[![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)](https://github.com/rdpresser/tc-agro-analytics-worker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 > **Event-Driven Microservice** for processing agricultural IoT sensor data with automatic alert detection and real-time notifications.
@@ -636,7 +636,7 @@ tc-agro-analytics-worker/
 │               │       ├── SensorSnapshotConfiguration.cs
 │               │       └── OwnerSnapshotConfiguration.cs
 │               ├── Migrations/                         # EF Core migrations
-│               │   └── 20250201_InitialCreate.cs
+│               │   └── 20260201_InitialCreate.cs
 │               └── DependencyInjection.cs
 │
 ├── test/
@@ -666,7 +666,6 @@ tc-agro-analytics-worker/
 ├── .editorconfig                                       # Code style
 ├── .gitignore
 ├── README.md                                           # 🇧🇷 Portuguese documentation
-├── README_EN.md                                        # 🇺🇸 English documentation
 └── LICENSE
 ```
 
@@ -1126,7 +1125,8 @@ const connection = new signalR.HubConnectionBuilder()
 
 // Subscribe to alerts from specific sensors
 await connection.start();
-await connection.invoke("SubscribeToAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+const plotId = "550e8400-e29b-41d4-a716-446655440001"; // Your plot ID
+await connection.invoke("JoinPlotGroup", plotId);
 
 // Receive real-time alerts
 connection.on("ReceiveAlert", (alert) => {
@@ -1145,15 +1145,15 @@ connection.on("AlertResolved", (alertId, userId, notes) => {
 });
 
 // Unsubscribe
-await connection.invoke("UnsubscribeFromAlerts", ["550e8400-e29b-41d4-a716-446655440001"]);
+await connection.invoke("LeavePlotGroup", plotId);
 ```
 
 ### Hub Methods
 
 | Method | Parameters | Description |
 |--------|------------|-------------|
-| `SubscribeToAlerts` | `string[] sensorIds` | Subscribes to alerts from specific sensors |
-| `UnsubscribeFromAlerts` | `string[] sensorIds` | Unsubscribes |
+| `JoinPlotGroup` | `string plotId` | Joins a plot group to receive alerts from all sensors in that plot |
+| `LeavePlotGroup` | `string plotId` | Leaves a plot group |
 
 ### Received Events
 
@@ -1418,7 +1418,7 @@ This project is licensed under the **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2025 FIAP - Class 3NETT
+Copyright (c) 2025 FIAP - Hackathon Phase 5 - FIAP 8NETT - Group 25
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
