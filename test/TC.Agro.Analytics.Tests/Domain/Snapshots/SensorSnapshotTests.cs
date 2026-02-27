@@ -199,7 +199,8 @@ public class SensorSnapshotTests
             newLabel,
             newPlotName,
             newPropertyName,
-            newStatus);
+            newStatus,
+            null);
 
         // Assert
         snapshot.OwnerId.ShouldBe(newOwnerId);
@@ -234,7 +235,8 @@ public class SensorSnapshotTests
             "Label 1",
             "Plot 1",
             "Property 1",
-            "Active");
+            "Active",
+            null);
 
         var firstUpdateTime = snapshot.UpdatedAt;
         firstUpdateTime.ShouldNotBeNull();
@@ -249,7 +251,8 @@ public class SensorSnapshotTests
             "Label 2",
             "Plot 2",
             "Property 2",
-            "Inactive");
+            "Inactive",
+            null);
 
         var secondUpdateTime = snapshot.UpdatedAt;
         secondUpdateTime.ShouldNotBeNull();
@@ -281,7 +284,8 @@ public class SensorSnapshotTests
             "Sensor",
             "Plot",
             "Property",
-            status);
+            status,
+            null);
 
         // Assert
         snapshot.Status.ShouldBe(status);
@@ -404,7 +408,8 @@ public class SensorSnapshotTests
             "Updated Sensor",
             "Updated Plot",
             "Updated Property",
-            "Maintenance");
+            "Maintenance",
+            null);
 
         var updateTime = snapshot.UpdatedAt;
 
@@ -448,7 +453,8 @@ public class SensorSnapshotTests
             "Sensor V2",
             "Plot V2",
             "Property V2",
-            "Active");
+            "Active",
+            null);
         var update1Time = snapshot.UpdatedAt;
 
         // Act - Update 2
@@ -460,7 +466,8 @@ public class SensorSnapshotTests
             "Sensor V3",
             "Plot V3",
             "Property V3",
-            "Maintenance");
+            "Maintenance",
+            null);
         var update2Time = snapshot.UpdatedAt;
 
         // Act - Update 3
@@ -472,7 +479,8 @@ public class SensorSnapshotTests
             "Sensor V4",
             "Plot V4",
             "Property V4",
-            "Active");
+            "Active",
+            null);
         var update3Time = snapshot.UpdatedAt;
 
         // Assert
@@ -553,7 +561,8 @@ public class SensorSnapshotTests
             "Updated Sensor",
             "Updated Plot",
             "Updated Property",
-            "Active");
+            "Active",
+            null);
 
         // Assert
         snapshot.CreatedAt.ShouldBe(createdAt); // Should never change
@@ -629,7 +638,8 @@ public class SensorSnapshotTests
             "Updated Sensor",
             "Updated Plot",
             "Updated Property",
-            "Active");
+            "Active",
+            null);
 
         // Assert
         snapshot.OwnerId.ShouldBe(newOwnerId);
