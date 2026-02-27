@@ -75,9 +75,6 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             // Update snapshot (only name/email - preserves current IsActive state)
             snapshot.Update(@event.EventData.Name, @event.EventData.Email);
 
-            // Update in store
-            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
-
             // Persist changes
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -100,9 +97,6 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
 
             // Mark as inactive
             snapshot.Delete();
-
-            // Update in store
-            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
 
             // Persist changes
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

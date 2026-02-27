@@ -28,22 +28,6 @@ public sealed class SensorSnapshotStore : ISensorSnapshotStore
         await _dbContext.SensorSnapshots.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(snapshot);
-
-        var existingSnapshot = await _dbContext.SensorSnapshots
-            .IgnoreQueryFilters() // Allows finding/updating inactive records
-            .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (existingSnapshot == null)
-            return;
-
-        // Updates the tracked instance (avoids tracking conflict)
-        _dbContext.Entry(existingSnapshot).CurrentValues.SetValues(snapshot);
-    }
-
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var snapshot = await _dbContext.SensorSnapshots

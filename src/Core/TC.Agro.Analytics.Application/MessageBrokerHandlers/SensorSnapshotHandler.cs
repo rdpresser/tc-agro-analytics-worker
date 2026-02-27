@@ -12,7 +12,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
         private readonly IUnitOfWork _unitOfWork;
         private const string DefaultSensorLabel = "Unnamed Sensor";
         private readonly ILogger<SensorSnapshotHandler> _logger;
-                
+
         public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
@@ -54,7 +54,8 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
                 label,
                 plotName: data.PlotName,
                 propertyName: data.PropertyName,
-                status: data.Status);
+                status: data.Status,
+                reason: data.Reason);
 
         // -------------------------
         // Sensor Registered
@@ -88,7 +89,7 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(@event);
-            
+
             var data = @event.EventData;
             var snapshot = await _store.GetByIdAsync(
                 data.SensorId,
@@ -105,8 +106,6 @@ namespace TC.Agro.Analytics.Application.MessageBrokerHandlers
             else
             {
                 UpdateSnapshot(snapshot, data, label);
-
-                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

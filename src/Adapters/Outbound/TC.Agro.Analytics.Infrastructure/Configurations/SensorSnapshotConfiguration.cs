@@ -47,6 +47,12 @@ namespace TC.Agro.Analytics.Infrastructure.Configurations
             builder.Property(s => s.UpdatedAt)
                 .HasColumnType("timestamptz");
 
+            // StatusChangeReason - optional explanation for status changes
+            builder.Property(s => s.StatusChangeReason)
+                .HasColumnName("status_change_reason")
+                .IsRequired(false)
+                .HasMaxLength(500);
+
             // Relationship with OwnerSnapshot
             // Configured here (not in OwnerSnapshotConfiguration) to avoid duplication
             builder.HasOne(s => s.Owner)
