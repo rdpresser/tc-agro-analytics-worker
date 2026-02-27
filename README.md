@@ -1444,7 +1444,7 @@ See [LICENSE](LICENSE) file for complete details.
 
 ## 🤝 Credits
 
-**Developed by:** [FIAP - Class 3NETT](https://www.fiap.com.br) - Postgraduate in .NET Software Architecture
+**Developed by:** [FIAP - Hackathon Phase 5 - FIAP 8NETT - Group 25](https://www.fiap.com.br) - Postgraduate in .NET Software Architecture
 
 **Architecture:** Clean Architecture + Domain-Driven Design + CQRS + Event-Driven Architecture
 
