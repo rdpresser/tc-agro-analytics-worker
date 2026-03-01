@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using TC.Agro.Contracts.Realtime;
 
 namespace TC.Agro.Analytics.Service.Hubs;
 
@@ -80,8 +81,32 @@ public sealed class AlertHub : Hub<IAlertHubClient>
     {
         if (Context.User?.IsInRole("Admin") == true)
         {
+            if (string.IsNullOrWhiteSpace(ownerId))
+            {
+                _logger.LogWarning(
+                    "{ErrorCode}: Admin connection attempted owner-scoped operation without ownerId. ConnectionId: {ConnectionId}",
+                    OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                    Context.ConnectionId);
+
+                throw new HubException(
+                    OwnerScopeErrors.ToHubError(
+                        OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                        OwnerScopeErrors.AdminOwnerScopeRequiredMessage));
+            }
+
             if (!Guid.TryParse(ownerId, out var adminTargetOwnerId) || adminTargetOwnerId == Guid.Empty)
-                throw new HubException("Admin must provide a valid non-empty ownerId.");
+            {
+                _logger.LogWarning(
+                    "{ErrorCode}: Admin provided invalid ownerId '{OwnerId}'. ConnectionId: {ConnectionId}",
+                    OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                    ownerId,
+                    Context.ConnectionId);
+
+                throw new HubException(
+                    OwnerScopeErrors.ToHubError(
+                        OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                        OwnerScopeErrors.AdminOwnerScopeRequiredMessage));
+            }
 
             _logger.LogDebug(
                 "Owner scope resolved for AlertHub using explicit admin ownerId parameter.");
