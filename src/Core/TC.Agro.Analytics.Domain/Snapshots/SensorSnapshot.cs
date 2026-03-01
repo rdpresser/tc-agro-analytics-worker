@@ -1,9 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace TC.Agro.Analytics.Domain.Snapshots
 {
     public sealed class SensorSnapshot
     {
         public Guid Id { get; private set; } // SensorId
         public Guid OwnerId { get; private set; }
+        [JsonIgnore]
         public OwnerSnapshot Owner { get; private set; } = default!;
         public Guid PropertyId { get; private set; }
         public Guid PlotId { get; private set; }
@@ -18,11 +21,13 @@ namespace TC.Agro.Analytics.Domain.Snapshots
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
 
+        [JsonIgnore]
         public ICollection<AlertAggregate> Alerts { get; private set; } = [];
 
         private SensorSnapshot() { } // EF
 
-        private SensorSnapshot(
+        [JsonConstructor]
+        public SensorSnapshot(
             Guid id,
             Guid ownerId,
             Guid propertyId,

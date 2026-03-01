@@ -209,12 +209,7 @@ internal static class ServiceCollectionExtensions
                     Configuration = cacheProvider.ConnectionString
                 });
             })
-            .WithSerializer(new FusionCacheSystemTextJsonSerializer(
-                new System.Text.Json.JsonSerializerOptions
-                {
-                    ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
-                }
-            ))
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer(new System.Text.Json.JsonSerializerOptions()))
             .AsHybridCache();
 
         return services;

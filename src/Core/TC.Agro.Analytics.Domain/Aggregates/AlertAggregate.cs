@@ -3,21 +3,22 @@ namespace TC.Agro.Analytics.Domain.Aggregates;
 /// <summary>
 /// Alert aggregate root with full lifecycle management.
 /// Following DDD pattern: alerts have their own lifecycle (Pending → Acknowledged → Resolved).
-/// 
+///
 /// Ownership (per Domain Map):
 /// - Analytics.Worker OWNS Alert (rules evaluation and alert lifecycle)
 /// - Sensor.Ingest.Api OWNS SensorReading (time-series data)
-/// 
+///
 /// This aggregate is necessary because:
 /// - Alerts can change state (Pending → Acknowledged → Resolved)
 /// - State transitions have business rules (invariants)
 /// - Users interact with alerts (acknowledge, resolve)
-/// 
+///
 /// Pattern matches Analytics Service (AlertAggregate with lifecycle) and Identity Service (UserAggregate with activation).
 /// </summary>
 public sealed class AlertAggregate : BaseAggregateRoot
 {
     public Guid SensorId { get; private set; }
+    [System.Text.Json.Serialization.JsonIgnore]
     public SensorSnapshot Sensor { get; private set; } = default!;
 
     public AlertType Type { get; private set; } = default!;
@@ -43,12 +44,12 @@ public sealed class AlertAggregate : BaseAggregateRoot
     /// <summary>
     /// Factory method: Creates alerts from sensor data by evaluating business rules.
     /// Pattern: Rich Domain Model (DDD) - business logic lives in the aggregate.
-    /// 
+    ///
     /// Business Rules:
     /// - Temperature > MaxTemperature → HighTemperature alert
     /// - SoilMoisture < MinSoilMoisture → LowSoilMoisture alert
     /// - BatteryLevel < MinBatteryLevel → LowBattery alert
-    /// 
+    ///
     /// Metadata: Stores sensor context (other readings) for analysis.
     /// </summary>
     public static Result<IReadOnlyList<AlertAggregate>> CreateFromSensorData(
