@@ -172,7 +172,7 @@ public sealed class AlertReadStore : IAlertReadStore
                 LowPendingCount = group.Count(a => a.Severity == AlertSeverity.Low),
                 NewPendingInWindowCount = group.Count(a => a.CreatedAt >= windowStart)
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (summary is null)
         {
