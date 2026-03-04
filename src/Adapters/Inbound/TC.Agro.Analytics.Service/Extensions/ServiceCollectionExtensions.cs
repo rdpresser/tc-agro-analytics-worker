@@ -289,13 +289,18 @@ internal static class ServiceCollectionExtensions
             if (mqConnectionFactory.AutoPurgeOnStartup)
                 rabbitOpts.AutoPurgeOnStartup();
 
+            var enableWiretapTestQueues = builder.Configuration.GetValue<bool>("Messaging:WiretapTestQueues:Enabled");
+            var wiretapQueuePrefix = builder.Configuration["Messaging:WiretapTestQueues:Prefix"] ?? "TEST-";
+
             // ============================================================
             // CONSUMING - Sensor Ingested Events
             // Analytics Worker LISTENS to sensor events to create alerts
             // ============================================================
             opts.ConfigureSensorIngestSensorEventsConsumption(
                 exchangeName: "sensor-ingest.events-exchange",
-                queueName: "analytics-sensor-ingest-events-queue"
+                queueName: "analytics-sensor-ingest-events-queue",
+                enableWiretapQueue: enableWiretapTestQueues,
+                wiretapQueuePrefix: wiretapQueuePrefix
             );
 
             // ============================================================
@@ -306,7 +311,9 @@ internal static class ServiceCollectionExtensions
             // ============================================================
             opts.ConfigureIdentityUserEventsConsumption(
                 exchangeName: "identity.events-exchange",
-                queueName: "analytics-identity-user-events-queue"
+                queueName: "analytics-identity-user-events-queue",
+                enableWiretapQueue: enableWiretapTestQueues,
+                wiretapQueuePrefix: wiretapQueuePrefix
             );
 
             // ============================================================
@@ -317,7 +324,9 @@ internal static class ServiceCollectionExtensions
             // ============================================================
             opts.ConfigureFarmSensorEventsConsumption(
                 exchangeName: "farm.events-exchange",
-                queueName: "analytics-farm-sensor-events-queue"
+                queueName: "analytics-farm-sensor-events-queue",
+                enableWiretapQueue: enableWiretapTestQueues,
+                wiretapQueuePrefix: wiretapQueuePrefix
             );
         });
 
