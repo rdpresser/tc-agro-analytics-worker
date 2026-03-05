@@ -29,5 +29,6 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/TC.Agro.Analytics.Tests/TC.Agro.Analytics.Tests.csproj" Id="bf0743de-f4a7-49cf-b815-8a14ba13184a" />
+    <Project Path="test/TC.Agro.Analytics.Architecture.Tests/TC.Agro.Analytics.Architecture.Tests.csproj" />
   </Folder>
 </Solution>
