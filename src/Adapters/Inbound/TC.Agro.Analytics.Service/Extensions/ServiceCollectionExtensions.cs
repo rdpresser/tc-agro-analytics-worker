@@ -94,9 +94,17 @@ internal static class ServiceCollectionExtensions
     // FastEndpoints Configuration
     private static IServiceCollection AddCustomFastEndpoints(this IServiceCollection services)
     {
-        services.AddFastEndpoints(discoveryOptions =>
+        services.AddFastEndpoints(dicoveryOptions =>
         {
-            discoveryOptions.Assemblies = [typeof(Program).Assembly];
+            dicoveryOptions.DisableAutoDiscovery = true;
+            dicoveryOptions.Assemblies =
+            [
+                typeof(Application.DependencyInjection).Assembly,
+                    typeof(Program).Assembly
+            ];
+            dicoveryOptions.Filter = type =>
+                type.Assembly == typeof(Application.DependencyInjection).Assembly ||
+                type.Assembly == typeof(Program).Assembly;
         })
         .SwaggerDocument(o =>
         {
