@@ -9,7 +9,6 @@
 
 # Visual Studio
 .vs/
-.vscode/
 
 # User-specific files
 *.rsuser
