@@ -5,7 +5,7 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetSensorStatus;
 /// Following Identity Service pattern: ReadStore returns Response directly.
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
-internal sealed class GetSensorStatusQueryHandler 
+internal sealed class GetSensorStatusQueryHandler
     : BaseHandler<GetSensorStatusQuery, GetSensorStatusResponse>
 {
     private readonly IAlertReadStore _alertReadStore;

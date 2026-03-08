@@ -2,7 +2,6 @@ using System.Reflection;
 using TC.Agro.Analytics.Application.UseCases.Alerts.GetPendingAlerts;
 using TC.Agro.Analytics.Domain.Aggregates;
 using TC.Agro.Analytics.Infrastructure;
-using TC.Agro.Analytics.Service;
 
 namespace TC.Agro.Analytics.Architecture.Tests;
 

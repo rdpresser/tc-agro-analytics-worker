@@ -5,7 +5,7 @@ namespace TC.Agro.Analytics.Application.UseCases.Alerts.GetAlertHistory;
 /// Following Identity Service pattern: ReadStore returns PaginatedResponse from SharedKernel.
 /// Uses IAlertReadStore for read-only queries (CQRS pattern).
 /// </summary>
-internal sealed class GetAlertHistoryQueryHandler 
+internal sealed class GetAlertHistoryQueryHandler
     : BaseHandler<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>
 {
     private readonly IAlertReadStore _alertReadStore;

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using TC.Agro.Contracts.Realtime;
 
 namespace TC.Agro.Analytics.Service.Hubs;

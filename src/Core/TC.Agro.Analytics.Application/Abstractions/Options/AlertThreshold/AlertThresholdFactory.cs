@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-
 namespace TC.Agro.Analytics.Application.Abstractions.Options.AlertThreshold
 {
     public sealed class AlertThresholdFactory

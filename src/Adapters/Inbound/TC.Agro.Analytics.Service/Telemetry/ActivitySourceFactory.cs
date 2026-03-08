@@ -112,9 +112,9 @@ internal static class ActivitySourceFactory
     /// <param name="entityId">Entity ID if available</param>
     /// <param name="userId">User ID performing the operation</param>
     public static Activity? StartAnalyticsOperation(
-        string operationName, 
-        string entityType, 
-        string? entityId = null, 
+        string operationName,
+        string entityType,
+        string? entityId = null,
         string userId = TelemetryConstants.SystemUser)
     {
         var activity = Handlers.StartActivity(operationName);
