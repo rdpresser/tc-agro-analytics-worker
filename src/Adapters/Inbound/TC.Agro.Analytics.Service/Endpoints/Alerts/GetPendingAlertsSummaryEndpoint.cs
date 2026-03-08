@@ -14,9 +14,7 @@ public sealed class GetPendingAlertsSummaryEndpoint : BaseApiEndpoint<GetPending
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsSummaryQuery, PendingAlertsSummaryResponse>>();
-        PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsSummaryQuery, PendingAlertsSummaryResponse>>();
-
+        this.AddQueryCachingIfNotTesting();
         Description(d => d.Produces<PendingAlertsSummaryResponse>(200, "application/json")
                           .ProducesProblemDetails()
                           .WithTags("Alerts"));
@@ -58,3 +56,4 @@ public sealed class GetPendingAlertsSummaryEndpoint : BaseApiEndpoint<GetPending
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+

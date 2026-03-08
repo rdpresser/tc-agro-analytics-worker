@@ -16,9 +16,7 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         RequestBinder(new RequestBinder<GetPendingAlertsQuery>(BindingSource.QueryParams));
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
-        PreProcessor<QueryCachingPreProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
-        PostProcessor<QueryCachingPostProcessorBehavior<GetPendingAlertsQuery, PaginatedResponse<PendingAlertResponse>>>();
-
+        this.AddQueryCachingIfNotTesting();
         Description(
             d => d.Produces<PaginatedResponse<PendingAlertResponse>>(200, "application/json")
                   .ProducesProblemDetails()
@@ -96,3 +94,4 @@ public sealed class GetPendingAlertsEndpoint : BaseApiEndpoint<GetPendingAlertsQ
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+

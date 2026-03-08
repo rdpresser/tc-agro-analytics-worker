@@ -12,9 +12,7 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
         PostProcessor<LoggingCommandPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
-        PostProcessor<CacheInvalidationPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
-
-
+        this.AddCacheInvalidationIfNotTesting();
         Description(
             d => d.Produces<ResolveAlertResponse>(200, "application/json")
                 .ProducesProblemDetails(400)
@@ -55,3 +53,4 @@ public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, 
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+

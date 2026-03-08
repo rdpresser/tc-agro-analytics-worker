@@ -12,9 +12,7 @@ public sealed class GetSensorStatusEndpoint : BaseApiEndpoint<GetSensorStatusQue
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        PreProcessor<QueryCachingPreProcessorBehavior<GetSensorStatusQuery, GetSensorStatusResponse>>();
-        PostProcessor<QueryCachingPostProcessorBehavior<GetSensorStatusQuery, GetSensorStatusResponse>>();
-
+        this.AddQueryCachingIfNotTesting();
         Description(
             d => d.Produces<GetSensorStatusResponse>(200, "application/json")
                     .ProducesProblemDetails()
@@ -76,3 +74,4 @@ public sealed class GetSensorStatusEndpoint : BaseApiEndpoint<GetSensorStatusQue
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+

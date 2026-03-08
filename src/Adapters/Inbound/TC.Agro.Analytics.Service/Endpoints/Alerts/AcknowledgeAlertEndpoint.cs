@@ -11,8 +11,7 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
         Put("/alerts/{alertId:guid}/acknowledge");
 
         PostProcessor<LoggingCommandPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();
-        PostProcessor<CacheInvalidationPostProcessorBehavior<AcknowledgeAlertCommand, AcknowledgeAlertResponse>>();
-
+        this.AddCacheInvalidationIfNotTesting();
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
         Description(
@@ -53,3 +52,4 @@ public sealed class AcknowledgeAlertEndpoint : BaseApiEndpoint<AcknowledgeAlertC
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+

@@ -13,9 +13,7 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
 
         Roles(AppConstants.UserRole, AppConstants.AdminRole, AppConstants.ProducerRole);
 
-        PreProcessor<QueryCachingPreProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
-        PostProcessor<QueryCachingPostProcessorBehavior<GetAlertHistoryQuery, PaginatedResponse<AlertHistoryResponse>>>();
-
+        this.AddQueryCachingIfNotTesting();
         Description(
             d => d.Produces<PaginatedResponse<AlertHistoryResponse>>(200, "application/json")
                   .ProducesProblemDetails()
@@ -95,3 +93,4 @@ public sealed class GetAlertHistoryEndpoint : BaseApiEndpoint<GetAlertHistoryQue
         await MatchResultAsync(response, ct).ConfigureAwait(false);
     }
 }
+
