@@ -30,6 +30,7 @@ COPY services/analytics-worker/Directory.Packages.props ./services/analytics-wor
 # Copy shared common projects (required for ProjectReferences)
 COPY ["common/src/TC.Agro.SharedKernel/TC.Agro.SharedKernel.csproj", "common/src/TC.Agro.SharedKernel/"]
 COPY ["common/src/TC.Agro.Contracts/TC.Agro.Contracts.csproj", "common/src/TC.Agro.Contracts/"]
+COPY ["common/src/TC.Agro.Messaging/TC.Agro.Messaging.csproj", "common/src/TC.Agro.Messaging/"]
 
 # Copy analytics-worker projects maintaining directory structure (required for ProjectReferences)
 COPY ["services/analytics-worker/src/Adapters/Inbound/TC.Agro.Analytics.Service/TC.Agro.Analytics.Service.csproj", "services/analytics-worker/src/Adapters/Inbound/TC.Agro.Analytics.Service/"]
@@ -45,12 +46,12 @@ COPY . .
 
 # Build the application
 WORKDIR "/src/services/analytics-worker/src/Adapters/Inbound/TC.Agro.Analytics.Service"
-RUN dotnet build "./TC.Agro.Analytics.Service.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./TC.Agro.Analytics.Service.csproj" -c $BUILD_CONFIGURATION -o /app/build -m:1
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TC.Agro.Analytics.Service.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./TC.Agro.Analytics.Service.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false -m:1
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
